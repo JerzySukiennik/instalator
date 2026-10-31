@@ -12,6 +12,18 @@ function thumbHtml(id) {
   return `<img src="assets/thumbs/${id}.png" alt="" onerror="this.replaceWith(Object.assign(document.createElement('span'),{innerHTML:this.dataset.ic}))" data-ic='${icon(catIcon(id), 30, 1.7).replace(/'/g, "&#39;")}'>`;
 }
 
+const MOUNT_PL = { ceiling: "sufit", wall: "ściana", outdoorWall: "elewacja", doorbell: "przy drzwiach wejściowych", socketE27: "oprawka E27", socketGU10: "oczko GU10", radiator: "kaloryfer", door: "drzwi", window: "okno", doorLock: "zamek drzwi", floor: "podłoga", surface: "blat lub półka", tv: "pod telewizorem", garage: "garaż", gate: "brama", socket: "gniazdko" };
+
+function whereText(d) {
+  if (d.where === "rack") return "Montaż: zadanie Szafa rack";
+  if (d.where === "shelf") return "Montaż: półka w szafie rack";
+  if (d.where === "din") return "Montaż: zadanie Rozdzielnica";
+  if (d.strip) return `Montaż: taśma ${d.strip.map((k) => ({ tv: "za TV", kitchen: "pod szafki", bed: "za łóżko", cove: "pod sufitem", shelf: "na półce", desk: "przy biurku" }[k] || k)).join(", ")}`;
+  if (d.caps.includes("tablet") || d.caps.includes("wallmount") || d.caps.includes("stand")) return "Montaż: zadanie Tablet";
+  if (d.caps.includes("ap")) return `Montaż: zadanie Wi-Fi (${(d.mounts || []).map((m) => MOUNT_PL[m] || m).join(", ")})`;
+  return `Montaż: ${(d.mounts || []).map((m) => MOUNT_PL[m] || m).join(", ") || "w pokoju"}`;
+}
+
 export function openShop(ctx, cats) {
   const S = ctx.S;
   const first = cats && cats.length ? cats[0] : lastCat || "swiatlo";
@@ -36,7 +48,7 @@ export function openShop(ctx, cats) {
       const need = d.hubs ? d.hubs.filter((h) => h.any.length && (!plat || h.p.includes(plat))).map((h) => h.any.map((x) => BY_ID[x]?.name.replace(/^(Philips Hue|Home Assistant|UniFi) /, "") || x).join(" lub ")) : [];
       return `<div class="prod">
         <div class="pic">${thumbHtml(d.id)}</div>
-        <div><div class="brand">${esc(d.brand)}</div><b>${esc(d.name)}</b><p>${esc(d.desc || "")}</p>
+        <div><div class="brand">${esc(d.brand)}</div><b>${esc(d.name)}</b><p>${esc(d.desc || "")}</p><p class="where">${icon("drill", 13, 2)} ${esc(whereText(d))}</p>
           <div class="badges">${d.hubs ? ["ha", "apple", "google"].map((p) => `<span class="badge ${b[p] === "native" ? "ok" : b[p] === "bridge" ? "br" : "no"}">${{ ha: "HA", apple: "Apple", google: "Google" }[p]}${b[p] === "bridge" ? " przez HA" : ""}</span>`).join("") : ""}${d.power === "poe" ? `<span class="badge need">PoE</span>` : ""}${d.needsWifi ? `<span class="badge need">Wi-Fi</span>` : ""}${need.length ? `<span class="badge need">mostek: ${esc(need[0])}</span>` : ""}${owned ? `<span class="badge">masz ×${owned}</span>` : ""}</div>
         </div>
         <div class="bot"><span class="price">${fmtZl(d.price * n)}</span><div class="stepper"><button data-m="${d.id}">${icon("minus", 18, 2.4)}</button><b>${n}</b><button data-p="${d.id}">${icon("plus", 18, 2.4)}</button></div><button class="btn y sm" data-buy="${d.id}">Kup</button></div>

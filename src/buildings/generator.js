@@ -402,6 +402,7 @@ export function generate(spec) {
           if (Math.abs(q - fx) < 0.03) s.add(rx * W.d[0] + rz * W.d[1]);
         }
       }
+      for (const b of W.uBreaks || []) s.add(b);
       return [...s];
     };
     const brk = { 1: breaksFor(1), [-1]: breaksFor(-1) };
@@ -453,7 +454,7 @@ export function generate(spec) {
           for (let j = 0; j < ya.length - 1; j++) {
             const y0 = ya[j], y1 = ya[j + 1], v = sd * t2;
             const ym = (y0 + y1) / 2;
-            const cA = (uu, yy) => colAt(info, ym, sd, uu).clone().multiplyScalar(aoY(info, yy) * (info.exterior ? 1 : aoU(sd, uu)));
+            const cA = (uu, yy) => colAt(info, ym, sd, um).clone().multiplyScalar(aoY(info, yy) * (info.exterior ? 1 : aoU(sd, uu)));
             const pts = [WP(W, ux0, v, y0), WP(W, ux1, v, y0), WP(W, ux1, v, y1), WP(W, ux0, v, y1)];
             const nrm = [W.n[0] * sd, 0, W.n[1] * sd];
             const c00 = cA(ux0, y0), c10 = cA(ux1, y0), c11 = cA(ux1, y1), c01 = cA(ux0, y1);

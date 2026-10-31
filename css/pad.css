@@ -235,3 +235,5 @@ body.desk .task:hover, body.desk .vjob:hover, body.desk .item:hover { border-col
 .gcard .gt { font-size: 14px; line-height: 1.35; font-weight: 600; }
 .gcard .gb { grid-column: 1 / -1; display: flex; gap: 8px; flex-wrap: wrap; }
 .port.hint { outline: 3px solid var(--tape-y); outline-offset: 1px; animation: needp 0.8s ease-in-out infinite; z-index: 2; }
+
+.prod p.where { margin-top: 5px; font-size: 11px; color: var(--ink2); display: flex; align-items: center; gap: 4px; }

@@ -10,7 +10,7 @@ export function mount(root, ctx, taskId, h) {
   const body = frame(root, ctx, "Rozdzielnica", "Pstrykaj i patrz na telewizor", h, { cats: ["rozdzielnica"] });
   const lay = panelLayout(ctx.B);
   let sel = null;
-  body.innerHTML = `<div class="h"><span id="pwr"></span><span id="lit"></span></div><div class="panelv"></div><div class="h">Moduły na szynę DIN</div><div class="tray" style="border:0;background:none;padding:0;margin:0 -14px"></div><div class="h">Obwody</div><div class="list circ"></div>`;
+  body.innerHTML = `<div class="guide"></div><div class="h"><span id="pwr"></span><span id="lit"></span></div><div class="panelv"></div><div class="h">Moduły na szynę DIN</div><div class="tray" style="border:0;background:none;padding:0;margin:0 -14px"></div><div class="h">Obwody</div><div class="list circ"></div>`;
   const pv = $(".panelv", body), trayHost = $(".tray", body);
 
   const label = (cid) => {
@@ -23,7 +23,27 @@ export function mount(root, ctx, taskId, h) {
   const stateOf = (it) => it.kind === "main" ? ctx.S.panel.main : it.kind === "rcd" ? !!ctx.S.panel.rcd[it.rcd] : !!ctx.S.panel.br[it.circuit];
   const keyOf = (it) => it.kind === "main" ? "main" : it.kind === "rcd" ? `rcd${it.rcd}` : `mcb:${it.circuit}`;
 
+  const guide = () => {
+    const S = ctx.S, p = S.panel;
+    const circs = ctx.B.circuits || [];
+    const offs = circs.filter((c) => !p.br[c.id]).length;
+    const mod = Object.keys(S.inv).find((id) => S.inv[id] > 0 && BY_ID[id]?.where === "din");
+    const unwired = S.devs.find((d) => d.place === "din" && d.ch && d.ch.length && d.ch.every((c) => !c));
+    const needLabels = S.job?.reqs.some((r) => r.type === "labels") && circs.some((c) => !p.labels[c.id]);
+    let n = 0, t = "", done = false;
+    if (mod && p.main) { n = 1; t = `Masz w skrzynce ${BY_ID[mod].name}. Najpierw wyłącz GŁÓWNY, potem stuknij moduł i zielone miejsce na szynie.`; }
+    else if (mod) { n = 1; t = `Stuknij ${BY_ID[mod].name} w skrzynce, potem zielone miejsce na szynie.`; }
+    else if (unwired && !p.main) { n = 2; t = "Stuknij zamontowany moduł Shelly i przypisz kanały do obwodów światła."; }
+    else if (!p.main) { n = 3; t = "Włącz rozłącznik GŁÓWNY: stuknij go."; }
+    else if (!p.rcd[0]) { n = 4; t = "Włącz różnicówkę RCD obok."; }
+    else if (offs) { n = 5; t = `Przeciągnij palcem po rzędzie bezpieczników, żeby włączyć wszystkie (${offs} wył.). Patrz, jak zapalają się pokoje.`; }
+    else if (needLabels) { n = 6; t = "Podpisz obwody: wyłącz jeden bezpiecznik, zobacz na telewizorze, co zgasło, i stuknij jego żółtą etykietę."; }
+    else { done = true; t = "Rozdzielnica gotowa: wszystko pod prądem."; }
+    $(".guide", body).innerHTML = `<div class="gcard ${done ? "ok" : ""}"><span class="gn">${done ? icon("check", 18, 3) : n}</span><div class="gt">${esc(t)}</div></div>`;
+  };
+
   const draw = () => {
+    guide();
     const W = pv.clientWidth - 20 || 320;
     const sw = W / lay.per;
     $("#pwr", body).innerHTML = ctx.S.panel.main ? `<span class="tape" style="background:var(--ok);color:#fff">zasilanie wł.</span>` : `<span class="tape">zasilanie wył.</span>`;

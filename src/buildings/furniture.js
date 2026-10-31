@@ -823,6 +823,13 @@ KIT.island = (g, o) => {
   g.use(o.topMat ?? 'gloss');
   g.cb(-w / 2 - 0.02, H - 0.04, -d / 2 - 0.02, w / 2 + 0.02, H, d / 2, 0.004, top);
   if (o.waterfall) for (const s of [-1, 1]) g.bx(s * (w / 2 + 0.02) - 0.02, 0, -d / 2 - 0.02, s * (w / 2 + 0.02) + 0.02, H - 0.04, d / 2, top);
+  if (o.hob) {
+    g.use('gloss');
+    const hx = o.hob;
+    g.bx(hx - 0.3, H, -d / 2 + 0.06, hx + 0.3, H + 0.006, -d / 2 + 0.58, '#141518');
+    g.use('matte');
+    for (const [ox, oz, r] of [[-0.14, 0.18, 0.09], [0.14, 0.18, 0.07], [-0.14, 0.44, 0.07], [0.14, 0.44, 0.09]]) g.cyl(hx + ox, H + 0.006, -d / 2 + oz, r, r, 0.0008, 16, '#2a2c30', { noBottom: true });
+  }
   const stools = o.stools ?? 3;
   for (let i = 0; i < stools; i++) { g.at(-w / 2 + ((i + 0.5) * w) / stools, 0, d / 2 + 0.12, Math.PI + (hash(i, 3) - 0.5) * 0.3); KIT.stool(g, { color: o.stoolCol ?? P.oak }); g.pop(); }
   if (o.decor !== false) {
@@ -833,7 +840,7 @@ KIT.island = (g, o) => {
     g.use('satin');
     g.bx(-w / 4 - 0.18, H, -0.15, -w / 4 + 0.18, H + 0.015, 0.1, P.oakLight);
   }
-  return { size: [w, H, d + 0.5], center: [0, 0, 0.2], surfaces: [{ x: -w / 4, y: H, z: 0, w: w / 2, d, tag: 'wyspa' }], outlets: [], kind: 'island', shadowK: 0.9 };
+  return { size: [w, H, d + 0.5], center: [0, 0, 0.2], surfaces: [{ x: o.hob ? -o.hob * 0.9 : -w / 4, y: H, z: 0, w: w / 2.5, d, tag: 'wyspa' }], outlets: [], kind: 'island', shadowK: 0.9 };
 };
 
 KIT.fridge = (g, o) => {
@@ -1876,3 +1883,21 @@ LIGHTS.bollard = (g, o, glow) => {
   glow.cyl(0, h - 0.12, 0, 0.06, 0.06, 0.1, 10, '#ffffff');
   return { bulbs: [{ pos: [0, h - 0.025, 0], kind: 'E27', shape: 'a60' }], kind: 'słupek', glassCol: '#efe7d6' };
 };
+
+KIT.canopy = (g, o) => {
+  const w = o.w ?? 1.8, d = o.d ?? 1.0, col = o.color ?? '#3b3e43';
+  g.use('satin');
+  g.bx(-w / 2, 0, 0, w / 2, 0.14, d, col);
+  g.bx(-w / 2 + 0.04, -0.012, 0.03, w / 2 - 0.04, 0.0, d - 0.04, o.soffit ?? '#d9cfc0');
+  return { size: [w, 0.14, d], noData: true, noShadow: true };
+};
+KIT.canopy.wall = true;
+
+KIT.houseNumber = (g, o) => {
+  g.use('matte');
+  g.bx(-0.13, 0, 0, 0.13, 0.18, 0.015, o.color ?? '#2b2c2f');
+  g.bx(-0.09, 0.04, 0.015, -0.03, 0.14, 0.02, '#f2efe8');
+  g.bx(0.02, 0.04, 0.015, 0.09, 0.14, 0.02, '#f2efe8');
+  return { size: [0.26, 0.18, 0.02], noData: true, noShadow: true };
+};
+KIT.houseNumber.wall = true;
