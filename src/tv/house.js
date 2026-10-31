@@ -745,7 +745,7 @@ export class House {
       this.fill.position.copy(cam.position).addScaledVector(right, -0.9).add(new THREE.Vector3(0, 0.75, 0));
       this.fill.intensity += (1.15 - this.fill.intensity) * Math.min(1, dt * 3);
     } else this.fill.intensity += (0 - this.fill.intensity) * Math.min(1, dt * 3);
-    this.R.dimT = this.closeFill ? 0.62 : 1;
+    this.R.dimT = this.closeFill ? 0.62 : this.dimReview ? 0.45 : 1;
     for (const m of this.cones.values()) if (m.material.uniforms) m.material.uniforms.t.value = this.t;
     if (this.wifiOn && this.der?.aps?.length) {
       this._ringT = (this._ringT || 0) - dt;

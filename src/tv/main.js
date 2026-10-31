@@ -133,7 +133,8 @@ function refresh(snap) {
     return;
   }
   if (state.phase === "handover") { hud.show("handover"); house.sync(state, snap.der); paintTablet(snap); return; }
-  if (state.phase === "review") { hud.show("hud handover"); hud.review(state); house.sync(state, snap.der); return; }
+  if (state.phase === "review") { hud.show("handover"); house.dimReview = true; hud.review(state, () => audio.play("stamp")); house.sync(state, snap.der); return; }
+  house.dimReview = false;
   if (state.phase === "play") { hud.show("hud"); hud.clearHandover(); hud.job(snap, host.code, url, tasks); house.sync(state, snap.der); paintTablet(snap); }
 }
 
@@ -417,7 +418,7 @@ async function beginJob(job) {
   sendState();
   hud.banner("Prąd jest wyłączony. Zacznijcie od rozdzielnicy.");
   setTimeout(() => hud.bubble(job.client, job.client.hello), 600);
-  setTimeout(() => hud.clearHandover(), 6500);
+  setTimeout(() => hud.bubble(job.client, ""), 6500);
   audio.stopAllLoops();
   audio.loop(job.building === "gzowo" ? "amb_river" : job.building === "kawalerka" ? "amb_city" : "amb_birds", 0.22);
 }
@@ -477,7 +478,7 @@ async function runHandover() {
       if (r.type === "wifi" || r.type === "wifizone") house.showWifi(true); else house.showWifi(false);
     } });
   }
-  steps.push({ dur: 0.1, run: () => { house.showWifi(false); dir.overview(data, { floor: 0, speed: 0.025 }); hud.bubble(j.client, ""); state.phase = "review"; hud.review(state); audio.play("stamp"); audio.play("payment", { delay: 0.6 }); savePortfolio(); sendState(); } });
+  steps.push({ dur: 0.1, run: () => { house.showWifi(false); dir.overview(data, { floor: 0, speed: 0.025 }); hud.bubble(j.client, ""); state.phase = "review"; hud.review(state, () => audio.play("stamp")); audio.play("payment", { delay: 2.4 }); savePortfolio(); sendState(); } });
   script = { steps, i: -1, t: 0 };
 }
 
@@ -587,7 +588,7 @@ async function demo(building, view) {
   await new Promise((r) => setTimeout(r, 120));
   if (view === "night" || view === "dusk") { R.setMode(view, true); dir.overview(data, { floor: 0, speed: 0.02 }); }
   else if (view === "handover") { reduce(state, "demo", { a: "handover" }, data); runHandover(); }
-  else if (view === "review") { reduce(state, "demo", { a: "handover" }, data); state.phase = "review"; R.setMode("dusk", true); dir.overview(data, { floor: 0 }); hud.review(state); }
+  else if (view === "review") { reduce(state, "demo", { a: "handover" }, data); state.phase = "review"; R.setMode("dusk", true); dir.overview(data, { floor: 0 }); }
   else if (view.startsWith("kind:")) { const r = data.rooms.find((x) => x.kind === view.slice(5)); if (r) { state.turn.task = `room:${r.id}`; focusTask(`room:${r.id}`); } }
   else if (view !== "overview") { state.turn.task = view; focusTask(view); }
   if (q.get("az")) dir.orbit.az = Number(q.get("az"));
@@ -663,12 +664,13 @@ function soundHint() {
   if (document.getElementById("snd")) return;
   const b = document.createElement("button");
   b.id = "snd";
-  b.className = "tape y";
-  b.textContent = "🔈 Kliknij tutaj, żeby był dźwięk";
-  b.style.cssText = "position:fixed;left:50%;bottom:1.2rem;transform:translateX(-50%);z-index:9;border:0;cursor:pointer;font-size:0.8rem";
-  b.onclick = () => { audio.unlock(); b.remove(); };
+  b.title = "Włącz dźwięk";
+  b.innerHTML = `<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/></svg><span>dźwięk</span>`;
+  const on = () => { audio.unlock(); b.remove(); window.removeEventListener("pointerdown", on); window.removeEventListener("keydown", on); };
+  b.onclick = on;
   document.body.appendChild(b);
-  window.addEventListener("pointerdown", () => b.remove(), { once: true });
+  window.addEventListener("pointerdown", on);
+  window.addEventListener("keydown", on);
 }
 
 async function boot() {

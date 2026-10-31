@@ -186,32 +186,51 @@ export class Hud {
   bubble(client, text) {
     const h = $("#handover", this.root);
     h.classList.remove("hide");
-    h.innerHTML = text ? `<div class="bubble card">${avatar(client.look, 64)}<div><b>${esc(client.name)}</b>${esc(text)}</div></div>` : "";
+    let b = $(".bubble", h);
+    if (!text) { if (b) b.remove(); if (!h.children.length) h.classList.add("hide"); return; }
+    if (!b) { b = document.createElement("div"); b.className = "bubble card"; h.appendChild(b); }
+    b.innerHTML = `${avatar(client.look, 64)}<div><b>${esc(client.name)}</b>${esc(text)}</div>`;
   }
 
-  review(s) {
+  review(s, onStamp) {
     const r = s.review, j = s.job;
     if (!r) return;
     const h = $("#handover", this.root);
     h.classList.remove("hide");
+    if (h.dataset.key === String(r.at) && $("#review", h)) return;
+    h.dataset.key = String(r.at);
     const stars = Array.from({ length: 5 }, (_, i) => `<span class="${r.stars >= i + 1 ? "" : r.stars >= i + 0.5 ? "half" : "off"}">${icon("star", 40, 0)}</span>`).join("").replace(/fill="none"/g, 'fill="currentColor"');
     const quote = r.stars >= 4.5 ? "Wszystko działa, a tablet to bajka. Polecę was znajomym." : r.stars >= 3.5 ? "Jest dobrze. Parę rzeczy bym jeszcze dorobił, ale da się żyć." : r.stars >= 2 ? "Hm. Spodziewałem się więcej za te pieniądze." : "Szczerze? Nie tak się umawialiśmy.";
-    h.innerHTML = `<div id="review" class="card">
-      <span class="stamp">${r.stars >= 3 ? "odebrane" : "do poprawki"}</span>
-      <div style="display:flex;gap:1rem;align-items:center">${avatar(j.client.look, 72)}<div><h2>${esc(j.client.name)}</h2><div class="q">„${esc(quote)}”</div></div></div>
-      <div class="stars">${stars}</div>
-      <div class="rows">
-        <span>Spełnione wymagania</span><b>${r.met}/${r.total}</b>
-        <span>Budżet ${r.left >= 0 ? "zostało" : "przekroczony o"}</span><b>${fmtZl(Math.abs(r.left))}</b>
-        <span>Zapłata z napiwkiem</span><b>${fmtZl(r.pay)}</b>
+    const rows = (r.res || []).map((x) => ({ ok: x.ok, text: j.reqs.find((q) => q.id === x.id)?.text || "" }));
+    const step = 0.16, t0 = 0.5, tList = t0 + rows.length * step;
+    const no = (j.id.match(/\d+/) || ["4927"])[0].slice(-4);
+    const d = new Date();
+    $(".bubble", h)?.remove();
+    $("#review", h)?.remove();
+    h.insertAdjacentHTML("beforeend", `<div id="review" class="card">
+      <div class="rv-head"><span>Protokół odbioru</span><span>nr ${esc(no)} · ${d.getDate()}.${String(d.getMonth() + 1).padStart(2, "0")}.${d.getFullYear()}</span></div>
+      <div class="rv-who">${avatar(j.client.look, 64)}<div><h2>${esc(j.client.name)}</h2><span>${esc(j.buildingName)}</span></div></div>
+      <ol class="rv-list">${rows.map((x, i) => `<li class="${x.ok ? "ok" : "no"}" style="animation-delay:${(t0 + i * step).toFixed(2)}s"><span class="mk">${x.ok ? icon("check", 20, 3.2) : "–"}</span>${esc(x.text)}</li>`).join("")}</ol>
+      <div class="rv-foot" style="animation-delay:${tList.toFixed(2)}s">
+        <div><div class="stars">${stars}</div><div class="q">„${esc(quote)}”</div></div>
+        <div class="rv-money"><span>Budżet ${r.left >= 0 ? "zostało" : "przekroczony o"}</span><b>${fmtZl(Math.abs(r.left))}</b><span>Zapłata z napiwkiem</span><b class="pay">0 zł</b></div>
       </div>
-      <div style="margin-top:1rem;text-align:center"><span class="tape y">Gospodarz: pobaw się domem albo nowe zlecenie</span></div>
-    </div>`;
+      <span class="rv-stamp ${r.stars >= 3 ? "" : "redo"}" style="animation-delay:${(tList + 1.1).toFixed(2)}s">${r.stars >= 3 ? "Odebrano" : "Do poprawki"}<small>${r.met}/${r.total}</small></span>
+      <div class="rv-next" style="animation-delay:${(tList + 1.6).toFixed(2)}s"><span class="tape y">Gospodarz: pobaw się domem albo weź nowe zlecenie</span></div>
+    </div>`);
+    const pay = $(".pay", h);
+    setTimeout(() => {
+      const t1 = performance.now();
+      const tick = (now) => { const k = Math.min(1, (now - t1) / 900); pay.textContent = fmtZl(Math.round(r.pay * (1 - Math.pow(1 - k, 3)))); if (k < 1) requestAnimationFrame(tick); };
+      requestAnimationFrame(tick);
+    }, (tList + 0.2) * 1000);
+    if (onStamp) setTimeout(onStamp, (tList + 1.25) * 1000);
   }
 
   clearHandover() {
     const h = $("#handover", this.root);
     h.innerHTML = "";
+    h.dataset.key = "";
     h.classList.add("hide");
   }
 }
