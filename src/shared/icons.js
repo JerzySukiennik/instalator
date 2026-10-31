@@ -34,6 +34,7 @@ const P = {
   wc: '<path d="M7 4h7v6H7zM5 10h12a4 4 0 0 1-4 5H9a4 4 0 0 1-4-5zM9 15l-1 5h7l-1-5"/>',
   plug: '<path d="M9 3v5M15 3v5M6 8h12v3a6 6 0 0 1-12 0zM12 17v4"/>',
   back: '<path d="M14.5 5.5 8 12l6.5 6.5"/>',
+  chev: '<path d="m9.5 5.5 6.5 6.5-6.5 6.5"/>',
   close: '<path d="M6 6l12 12M18 6 6 18"/>',
   plus: '<path d="M12 5v14M5 12h14"/>',
   minus: '<path d="M5 12h14"/>',

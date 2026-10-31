@@ -53,7 +53,9 @@ function sendState() {
   }, 30);
 }
 
+let lastSnap = null;
 function refresh(snap) {
+  lastSnap = snap;
   if (state.phase === "lobby") { hud.show("lobby"); hud.lobby(state, host.code, url); return; }
   if (state.phase === "board") { hud.show("board"); hud.board(state, null); return; }
   if (state.phase === "job") {
@@ -69,12 +71,57 @@ function refresh(snap) {
   if (state.phase === "play") { hud.show("hud"); hud.clearHandover(); hud.job(snap, host.code, url, tasks); house.sync(state, snap.der); paintTablet(snap); }
 }
 
+const camRT = new THREE.WebGLRenderTarget(384, 216, { type: THREE.FloatType });
+const camCam = new THREE.PerspectiveCamera(72, 16 / 9, 0.05, 250);
+const camImgs = {};
+let camAt = 0;
+window.__camImages = camImgs;
+
+function shootCams(force = false) {
+  if (!data || (!force && performance.now() - camAt < 2500)) return;
+  camAt = performance.now();
+  const W = 384, H = 216;
+  const buf = new Float32Array(W * H * 4);
+  for (const card of state.tablet.dash?.cards || []) {
+    if (card.kind !== "camera" || !card.dev) continue;
+    const d = state.devs.find((x) => x.uid === card.dev);
+    if (!d || !d.pos) continue;
+    const aim = d.aim || [0, 0, 1];
+    const p = new THREE.Vector3(...d.pos);
+    const a = new THREE.Vector3(aim[0], 0, aim[2]).normalize();
+    camCam.position.copy(p).addScaledVector(a, 0.25).add(new THREE.Vector3(0, -0.12, 0));
+    camCam.lookAt(p.clone().addScaledVector(a, 7).add(new THREE.Vector3(0, -1.8, 0)));
+    camCam.updateMatrixWorld();
+    R.renderer.setRenderTarget(camRT);
+    R.renderer.render(R.scene, camCam);
+    R.renderer.setRenderTarget(null);
+    R.renderer.readRenderTargetPixels(camRT, 0, 0, W, H, buf);
+    const cv = camImgs[d.uid] || document.createElement("canvas");
+    cv.width = W; cv.height = H;
+    const g = cv.getContext("2d");
+    const im = g.createImageData(W, H);
+    const exp = R.renderer.toneMappingExposure * 1.25;
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+      const i = ((H - 1 - y) * W + x) * 4, o = (y * W + x) * 4;
+      for (let k = 0; k < 3; k++) { let c = buf[i + k] * exp; c = c / (1 + c); im.data[o + k] = Math.min(255, Math.pow(c, 1 / 2.2) * 300); }
+      im.data[o + 3] = 255;
+    }
+    g.putImageData(im, 0, 0);
+    g.fillStyle = "rgba(255,255,255,0.85)";
+    g.font = "600 11px 'IBM Plex Mono', monospace";
+    const t = new Date();
+    g.fillText(`${t.toISOString().slice(0, 10)} ${t.toTimeString().slice(0, 8)}`, 8, H - 8);
+    camImgs[d.uid] = cv;
+  }
+}
+
 function paintTablet(snap) {
   const obj = house.tabletObj;
   if (!obj || !state.tablet.platform) return;
   const disp = obj.userData.display;
   if (!tabletCanvas) { tabletCanvas = document.createElement("canvas"); tabletCanvas.width = 1180; tabletCanvas.height = 820; }
-  renderDash(tabletCanvas.getContext("2d"), tabletCanvas.width, tabletCanvas.height, snap, data);
+  shootCams();
+  renderDash(tabletCanvas.getContext("2d"), tabletCanvas.width, tabletCanvas.height, snap, data, { camImages: camImgs });
   if (!tabletTex) { tabletTex = new THREE.CanvasTexture(tabletCanvas); tabletTex.colorSpace = THREE.SRGBColorSpace; tabletTex.anisotropy = 4; }
   tabletTex.needsUpdate = true;
   if (disp && disp.mesh) {
@@ -180,7 +227,7 @@ async function beginJob(job) {
   data = b.data;
   startJob(state, job, data);
   tasks = tasksFor(job, data);
-  R.setMode("day");
+  R.setMode("afternoon", true);
   house.setFloor(0);
   dir.overview(data, { floor: 0, zoom: 1.6, az: 2.3 });
   dir.snap();
@@ -294,6 +341,32 @@ async function lobbyScene() {
   dir.snap();
 }
 
+async function demo(building, view) {
+  const { rollJobs } = await import("../shared/jobs.js");
+  const { runDemo } = await import("./demo.js");
+  state.phase = "board";
+  state.board.jobs = rollJobs(Number(q.get("seed")) || 7);
+  const job = state.board.jobs.find((j) => j.building === building) || state.board.jobs[1];
+  await beginJob(job);
+  hud.clearHandover();
+  if (q.get("stage") !== "empty") runDemo(state, data, reduce, { stage: q.get("stage") || "full", platform: q.get("platform") || null });
+  state.players.forEach((p) => { if (p.cid === "demo") { p.online = false; p.host = false; } });
+  if (q.get("platform") && state.job.platform === "any") state.tablet.platform = q.get("platform");
+  sendState();
+  await new Promise((r) => setTimeout(r, 120));
+  if (view === "night" || view === "dusk") { R.setMode(view, true); dir.overview(data, { floor: 0, speed: 0.02 }); }
+  else if (view === "handover") { reduce(state, "demo", { a: "handover" }, data); runHandover(); }
+  else if (view === "review") { reduce(state, "demo", { a: "handover" }, data); state.phase = "review"; R.setMode("dusk", true); dir.overview(data, { floor: 0 }); hud.review(state); }
+  else if (view.startsWith("kind:")) { const r = data.rooms.find((x) => x.kind === view.slice(5)); if (r) { state.turn.task = `room:${r.id}`; focusTask(`room:${r.id}`); } }
+  else if (view !== "overview") { state.turn.task = view; focusTask(view); }
+  if (q.get("az")) dir.orbit.az = Number(q.get("az"));
+  dir.orbit.speed = 0;
+  dir.snap();
+  sendState();
+  if (q.get("hud") === "0") document.getElementById("ui").style.display = "none";
+  setTimeout(() => { window.__demoReady = true; }, 900);
+}
+
 function addEmulators(n) {
   const box = document.createElement("div");
   box.id = "emu";
@@ -318,8 +391,10 @@ function loop(now) {
       if (!st) script = null; else { st.run(); script.t = st.dur; }
     }
   }
+  if (lastSnap && data && (state.phase === "play" || state.turn.task === "tablet") && performance.now() - camAt > 2500) paintTablet(lastSnap);
   dir.update(dt);
-  house.update(dt, dir.tgt);
+  house.closeFill = dir.cutMode === "close";
+  house.update(dt, dir.tgt, R.camera);
   house.cutaway(R.camera.position, dir.tgt, dir.cutMode);
   for (let i = pings.length - 1; i >= 0; i--) {
     const p = pings[i];
@@ -347,12 +422,17 @@ async function boot() {
     onMsg, onStream
   });
   url = padUrl(host.code);
+  window.__tv = { state, house, dir, R, host, get data() { return data; }, reduce: (cid, a) => onMsg(cid, { t: "act", ...a }), THREE };
+  if (q.get("demo")) {
+    requestAnimationFrame(loop);
+    await demo(q.get("demo"), q.get("view") || "overview");
+    return;
+  }
   await lobbyScene();
   sendState();
   refresh(snapshotFor(state, null));
   requestAnimationFrame(loop);
   if (q.get("emu")) addEmulators(Number(q.get("emu")) || 1);
-  window.__tv = { state, house, dir, R, host, get data() { return data; }, reduce: (cid, a) => onMsg(cid, { t: "act", ...a }), THREE };
 }
 
 boot().catch((e) => { console.error(e); document.getElementById("ui").innerHTML = `<div class="card" style="margin:20vh auto;width:30rem;padding:1.4rem;pointer-events:auto">Nie udało się wystartować: ${e.message}</div>`; });

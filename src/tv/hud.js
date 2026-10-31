@@ -111,6 +111,7 @@ export class Hud {
     const act = order[s.turn.i % Math.max(1, order.length)];
     const task = tasks.find((t) => t.id === s.turn.task);
     const solo = order.length <= 1;
+    $("#turn", this.root).style.display = act ? "" : "none";
     $("#turn", this.root).innerHTML = act ? `
       <span class="dot" style="background:${act.color}">${icon("drill", 20, 2)}</span>
       <div><small>${solo ? "pracujesz" : "tura"}</small><b>${esc(act.name)}</b>${task ? ` · ${esc(task.name)}` : " · wybiera zadanie"}</div>

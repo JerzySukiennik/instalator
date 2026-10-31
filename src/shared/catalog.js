@@ -10,7 +10,7 @@ const THREAD = (own) => [
 ];
 const AQARA_ZB = [{ any: ["aqara-hub-m3"], p: ALL }, { any: ["ha-zbt2"], p: ["ha"] }];
 const PROTECT = [{ any: ["ucg-max", "udm-pro-max", "unvr"], p: ["ha"] }, { any: ["ha-green"], p: ["apple", "google"], via: "Home Assistant" }];
-const SHELLY = [{ any: [], p: ["ha"] }, { any: ["ha-green"], p: ["apple", "google"], via: "Home Assistant" }];
+const SHELLY = [{ any: [], p: ["ha", "google"] }, { any: ["ha-green"], p: ["apple"], via: "Home Assistant" }];
 const WIFI = [{ any: [], p: ALL }];
 
 export const CATEGORIES = [
@@ -52,11 +52,11 @@ export const CATALOG = [
   { id: "rack-9u", brand: "Lanberg", name: "Szafa rack 19\" 9U wisząca", cat: "siec", price: 479, where: "rackmount", power: "none", caps: ["rack"], u: 9, desc: "Szafa na ścianę dla domu." },
   { id: "rack-12u", brand: "Lanberg", name: "Szafa rack 19\" 12U wisząca", cat: "siec", price: 569, where: "rackmount", power: "none", caps: ["rack"], u: 12, desc: "Większa szafa do willi." },
 
-  { id: "shelly-pro-4pm", brand: "Shelly", name: "Shelly Pro 4PM", cat: "rozdzielnica", price: 509, where: "din", mod: 2, power: "din", channels: 4, caps: ["relay", "energyPer"], hubs: SHELLY, desc: "4 kanały na szynę DIN: zwykłe obwody światła stają się smart." },
-  { id: "shelly-pro-3em", brand: "Shelly", name: "Shelly Pro 3EM", cat: "rozdzielnica", price: 509, where: "din", mod: 2, power: "din", channels: 0, caps: ["energy"], hubs: SHELLY, desc: "Licznik energii na 3 fazy z przekładnikami, pokazuje zużycie całego domu." },
+  { id: "shelly-pro-4pm", brand: "Shelly", name: "Shelly Pro 4PM", cat: "rozdzielnica", price: 509, where: "din", mod: 3, power: "din", channels: 4, caps: ["relay", "energyPer"], hubs: SHELLY, desc: "4 kanały na szynę DIN: zwykłe obwody światła stają się smart." },
+  { id: "shelly-pro-3em", brand: "Shelly", name: "Shelly Pro 3EM", cat: "rozdzielnica", price: 509, where: "din", mod: 1, power: "din", channels: 0, caps: ["energy"], hubs: SHELLY, desc: "Licznik energii na 3 fazy z przekładnikami, pokazuje zużycie całego domu." },
   { id: "shelly-pro-2pm", brand: "Shelly", name: "Shelly Pro 2PM", cat: "rozdzielnica", price: 429, where: "din", mod: 1, power: "din", channels: 2, caps: ["relay", "blinds"], hubs: SHELLY, desc: "2 kanały albo sterownik rolet." },
-  { id: "shelly-pro-dimmer-2pm", brand: "Shelly", name: "Shelly Pro Dimmer 2PM", cat: "rozdzielnica", price: 369, where: "din", mod: 2, power: "din", channels: 2, caps: ["relay", "dimmer"], hubs: SHELLY, desc: "Ściemniacz na 2 obwody prosto z rozdzielnicy." },
-  { id: "surge-t1t2", brand: "Hager", name: "Ogranicznik przepięć T1+T2", cat: "rozdzielnica", price: 1079, where: "din", mod: 4, power: "din", channels: 0, caps: ["surge"], desc: "Chroni całą elektronikę przed burzą." },
+  { id: "shelly-pro-dimmer-2pm", brand: "Shelly", name: "Shelly Pro Dimmer 2PM", cat: "rozdzielnica", price: 369, where: "din", mod: 1, power: "din", channels: 2, caps: ["relay", "dimmer"], hubs: SHELLY, desc: "Ściemniacz na 2 obwody prosto z rozdzielnicy." },
+  { id: "surge-t1t2", brand: "Hager", name: "Ogranicznik przepięć T1+T2", cat: "rozdzielnica", price: 1079, where: "din", mod: 2, power: "din", channels: 0, caps: ["surge"], desc: "Chroni całą elektronikę przed burzą." },
   { id: "shelly-1-gen4", brand: "Shelly", name: "Shelly 1 Gen4", cat: "dom", price: 99, mounts: ["gate", "garage"], power: "mains", caps: ["gate"], hubs: [{ any: [], p: ALL }], desc: "Przekaźnik do bramy albo garażu, Matter w środku." },
   { id: "shelly-plug-s", brand: "Shelly", name: "Shelly Plug S Gen3", cat: "dom", price: 79, mounts: ["socket"], power: "mains", caps: ["plug"], hubs: [{ any: [], p: ALL }], desc: "Inteligentne gniazdko z pomiarem prądu." },
 

@@ -13,6 +13,7 @@ export function el(html) {
 let hapticLabel = null;
 export function haptic(strong = false) {
   try {
+    if (navigator.userActivation && !navigator.userActivation.hasBeenActive) return;
     if (navigator.vibrate) { navigator.vibrate(strong ? 22 : 8); return; }
     if (!hapticLabel) {
       hapticLabel = document.createElement("label");

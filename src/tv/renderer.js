@@ -9,6 +9,7 @@ import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 
 const MODES = {
   day: { sky: "#a9c4d8", hor: "#dfe3dc", hemiSky: "#e9f0f5", hemiGround: "#8a8467", hemi: 1.05, sun: "#fff1dc", sunI: 2.7, elev: 48, az: 35, exp: 1.12, fog: [70, 260], bloom: 0.22 },
+  afternoon: { sky: "#a4bccf", hor: "#eadfcb", hemiSky: "#e7ebef", hemiGround: "#8a7c62", hemi: 0.92, sun: "#ffe0b2", sunI: 2.35, elev: 26, az: 228, exp: 1.12, fog: [70, 260], bloom: 0.3 },
   dusk: { sky: "#7f8db3", hor: "#f0b48a", hemiSky: "#c5c9e2", hemiGround: "#6b5a4c", hemi: 0.55, sun: "#ffb27a", sunI: 1.5, elev: 9, az: 250, exp: 1.18, fog: [60, 220], bloom: 0.42 },
   night: { sky: "#1a2338", hor: "#2d3a55", hemiSky: "#4b5b86", hemiGround: "#1c1a20", hemi: 0.28, sun: "#a9bde6", sunI: 0.32, elev: 38, az: 140, exp: 1.25, fog: [50, 190], bloom: 0.6 }
 };

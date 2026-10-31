@@ -1,5 +1,7 @@
 // Instalator: TV sound — real recorded effects from assets/sfx (manifest-driven), loops for ambience, silent when missing.
 
+const GAIN = { house_door_close: 4, screwdriver: 3, stamp: 3, relay_click: 2.6, footsteps_wood: 2.4, spark: 2.4, peel_sticker: 2.4, pen_tick: 2, din_snap: 1.8, rj45_in: 1.6, rj45_out: 1.6, breaker_on: 1.5, breaker_off: 1.5, bulb_screw: 1.6 };
+
 export class Audio {
   constructor() {
     this.ctx = null;
@@ -47,7 +49,7 @@ export class Audio {
     src.buffer = b;
     src.playbackRate.value = rate * (0.96 + Math.random() * 0.08);
     const g = this.ctx.createGain();
-    g.gain.value = vol;
+    g.gain.value = vol * (GAIN[name] || 1);
     src.connect(g).connect(this.master);
     src.start(this.ctx.currentTime + delay);
   }

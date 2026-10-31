@@ -10,9 +10,9 @@ export function panelLayout(data) {
   const rows = Math.max(2, p.rows || 3), per = Math.max(10, p.slotsPerRow || 12);
   const items = [];
   const circuits = data.circuits || [];
-  items.push({ key: "main", kind: "main", row: 0, slot: 0, mod: 3 });
+  items.push({ key: "main", kind: "main", row: 0, slot: 0, mod: 2 });
   const rcds = Math.max(1, Math.ceil(circuits.length / 6));
-  for (let i = 0; i < Math.min(rcds, 2); i++) items.push({ key: `rcd${i}`, kind: "rcd", rcd: i, row: 0, slot: 3 + i * 4, mod: 4 });
+  for (let i = 0; i < Math.min(rcds, 2); i++) items.push({ key: `rcd${i}`, kind: "rcd", rcd: i, row: 0, slot: 3 + i * 3, mod: 2 });
   let row = 1, slot = 0;
   circuits.forEach((c, i) => {
     if (slot >= per - 1) { row++; slot = 0; }

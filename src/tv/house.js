@@ -74,6 +74,11 @@ export class House {
     this.overlay.add(this.runLines);
     this.floorShown = 99;
     this.t = 0;
+    this.cables = new THREE.Group();
+    this.R.scene.add(this.cables);
+    this.cableKey = "";
+    this.fill = new THREE.PointLight("#fff1dd", 0, 4.5, 1.3);
+    this.R.scene.add(this.fill);
   }
 
   async load(id) {
@@ -99,6 +104,7 @@ export class House {
   }
 
   clear() {
+    this.ready = false;
     if (this.b) this.root.remove(this.b.group);
     for (const v of this.vis.values()) v.obj.parent && v.obj.parent.remove(v.obj);
     this.vis.clear();
@@ -108,6 +114,8 @@ export class House {
     this.cones.forEach((m) => this.overlay.remove(m));
     this.cones.clear();
     this.runLines.clear();
+    this.cables.clear();
+    this.cableKey = "";
     this.b = null;
   }
 
@@ -194,6 +202,8 @@ export class House {
     this.der = der;
     this.applyPower();
     this.syncRuns(s);
+    this.syncPatches(s);
+    this.ready = true;
     if (this.wifiOn) this.showWifi(true);
     if (this.conesOn) this.showCones(true);
   }
@@ -220,7 +230,6 @@ export class House {
     } else if (d.place === "shelf") {
       obj = this.model(d.id, {});
       this.cab.add(obj);
-      this.layoutShelf();
     } else if (d.place === "din") {
       obj = this.model(d.id, {});
       this.putDin(obj, d.row, d.slot, it?.mod || 1);
@@ -244,8 +253,51 @@ export class House {
       if (v.fixture?.bulb) v.fixture.bulb.visible = false;
     }
     this.vis.set(d.uid, v);
-    if (d.place !== "rack" && d.place !== "din" && d.place !== "shelf") this.popIn(obj);
+    if (d.place === "shelf" || d.id === "rack-shelf") this.layoutShelf();
+    if (this.ready) this.installAnim(v);
     return v;
+  }
+
+  installAnim(v) {
+    const { obj, d } = v;
+    const it = BY_ID[d.id] || {};
+    const p0 = obj.position.clone(), q0 = obj.quaternion.clone(), s0 = obj.scale.clone();
+    const ease = (k) => 1 - Math.pow(1 - k, 3);
+    const back = (k) => 1 + 2.7 * Math.pow(k - 1, 3) + 1.7 * Math.pow(k - 1, 2);
+    if (d.place === "rack") {
+      this.anims.push({ t: 0, dur: 0.7, step: (k) => { obj.position.copy(p0).add(new THREE.Vector3(0, 0, 0.35 * (1 - ease(k)))); } });
+    } else if (d.place === "din") {
+      this.anims.push({ t: 0, dur: 0.35, step: (k) => { obj.position.copy(p0).add(new THREE.Vector3(0, 0, 0.03 * (1 - ease(k)))); obj.scale.set(s0.x, s0.y * (k < 0.8 ? 1 : 1 - 0.06 * Math.sin((k - 0.8) * 15)), s0.z); } });
+    } else if (d.kind === "socketE27" || d.kind === "socketGU10") {
+      this.anims.push({ t: 0, dur: 0.9, step: (k) => { const e = ease(k); obj.position.copy(p0).add(new THREE.Vector3(0, -0.06 * (1 - e), 0)); obj.quaternion.copy(q0).multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), (1 - e) * Math.PI * 4)); } });
+    } else if (d.place === "strip") {
+      obj.traverse((o) => { if (o.isMesh && o.geometry?.index) { const n = o.geometry.index.count; o.geometry.setDrawRange(0, 0); o.userData._n = n; } });
+      this.anims.push({ t: 0, dur: 1.4, step: (k) => obj.traverse((o) => { if (o.userData._n) { const c = Math.floor(o.userData._n * ease(k)); o.geometry.setDrawRange(0, c - (c % 3)); } }) });
+    } else if (d.place === "shelf") {
+      this.anims.push({ t: 0, dur: 0.5, step: (k) => { obj.position.y = obj.userData._y0 ?? obj.position.y; } });
+    } else {
+      const n = new THREE.Vector3(0, 0, 1).applyQuaternion(q0);
+      const ceiling = (it.mounts || []).includes("ceiling") && d.kind === "ceiling";
+      const off = ceiling ? new THREE.Vector3(0, -0.25, 0) : n.multiplyScalar(0.18);
+      this.anims.push({ t: 0, dur: 0.6, step: (k) => { obj.position.copy(p0).addScaledVector(off, 1 - ease(k)); obj.scale.copy(s0).multiplyScalar(Math.max(0.01, k < 1 ? back(k) : 1)); } });
+      this.dust(p0);
+    }
+  }
+
+  dust(p) {
+    const n = 14;
+    const geo = new THREE.BufferGeometry();
+    const pos = new Float32Array(n * 3), vel = [];
+    for (let i = 0; i < n; i++) { pos.set([p.x, p.y, p.z], i * 3); vel.push(new THREE.Vector3((Math.random() - 0.5) * 0.9, Math.random() * 0.4 - 0.25, (Math.random() - 0.5) * 0.9)); }
+    geo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+    const pts = new THREE.Points(geo, new THREE.PointsMaterial({ color: "#e9e2d4", size: 0.035, transparent: true, opacity: 0.9, depthWrite: false }));
+    this.overlay.add(pts);
+    this.anims.push({ t: 0, dur: 0.9, step: (k) => {
+      for (let i = 0; i < n; i++) { pos[i * 3] += vel[i].x * 0.016; pos[i * 3 + 1] += (vel[i].y - k * 0.6) * 0.016; pos[i * 3 + 2] += vel[i].z * 0.016; }
+      geo.attributes.position.needsUpdate = true;
+      pts.material.opacity = 0.9 * (1 - k);
+      if (k >= 1) this.overlay.remove(pts);
+    } });
   }
 
   layoutShelf() {
@@ -265,13 +317,6 @@ export class House {
     });
   }
 
-  popIn(obj) {
-    const s0 = obj.scale.clone();
-    this.anims.push({ t: 0, dur: 0.55, step: (k) => {
-      const e = k < 1 ? 1 + 2.2 * Math.pow(k - 1, 3) + 1.2 * Math.pow(k - 1, 2) : 1;
-      obj.scale.copy(s0).multiplyScalar(Math.max(0.001, e));
-    } });
-  }
 
   applyPower() {
     const s = this.state, d = this.data;
@@ -284,9 +329,10 @@ export class House {
       if (on && rel && rel.dev.relay && rel.dev.relay[rel.ch] === false) on = false;
       const smart = [...this.vis.values()].find((v) => v.d.fixture === f.id);
       if (smart) on = false;
+      if (on && f._on === false && this.ready) f._flick = 0.45;
       f._on = on;
-      if (f.emissive) { f.emissive.emissiveIntensity = on ? 2.2 : 0; if (f.emissive.color && on) f.emissive.emissive?.set?.("#ffd8a0"); }
-      if (on) this.lit.push({ pos: f.lightPos, color: "#ffd2a0", k: 1 });
+      if (f.emissive) { f.emissive.emissiveIntensity = on ? 2.2 : 0; if (on) f.emissive.emissive?.set?.("#ffd8a0"); }
+      if (on) this.lit.push({ pos: f.lightPos, color: "#ffd2a0", k: 1, f });
     }
     for (const v of this.vis.values()) {
       const it = BY_ID[v.d.id] || {};
@@ -294,7 +340,7 @@ export class House {
       const live = !!(st && st.pw);
       for (const l of v.obj.userData.leds || []) {
         if (!l.material) continue;
-        l.material.emissiveIntensity = live ? (l.role === "display" ? 1.0 : 2.4) : 0;
+        l.material.emissiveIntensity = live ? (l.role === "display" ? 1.0 : l.role === "glow" || l.role === "ring" ? 1.1 : 1.6) : 0;
         if (l.role === "status" && st) l.material.emissive?.set?.(st.net ? (l.color || "#4ab4ff") : "#f2a541");
       }
       const L = v.obj.userData.light;
@@ -321,6 +367,45 @@ export class House {
     this.runLines.clear();
     if (!this.xray) return;
     for (const d of s.devs) if (d.run) this.runLines.add(this.runMesh(d, 1));
+  }
+
+  portWorld(uid, idx) {
+    const v = this.vis.get(uid);
+    const obj = v ? v.obj : uid === "ont" ? this.ontObj?.children[0] : uid === "mbk" ? this.cab : null;
+    if (!obj) return null;
+    obj.updateWorldMatrix(true, false);
+    const list = (obj.userData.ports || []).filter((p) => p.kind !== "sfp" && p.kind !== "power");
+    const sorted = [...list.filter((p) => p.kind === "wan"), ...list.filter((p) => p.kind !== "wan")];
+    const p = sorted[idx];
+    const local = p ? new THREE.Vector3(...p.pos) : new THREE.Vector3(-0.18 + (idx % 12) * 0.03, 0.012 + Math.floor(idx / 12) * 0.016, 0.01);
+    return obj.localToWorld(local);
+  }
+
+  syncPatches(s) {
+    const key = JSON.stringify(s.patches) + this.vis.size;
+    if (key === this.cableKey) return;
+    this.cableKey = key;
+    this.cables.clear();
+    const a = this.data.rack || this.data.mediaBox;
+    if (!a) return;
+    const n = new THREE.Vector3(0, 0, 1).applyQuaternion(fromQuat(a.quat, a.normal));
+    for (const p of s.patches) {
+      const A = this.portWorld(p.a[0], p.a[1]), B = this.portWorld(p.b[0], p.b[1]);
+      if (!A || !B) continue;
+      const d = A.distanceTo(B);
+      const mid = A.clone().add(B).multiplyScalar(0.5).addScaledVector(n, 0.05 + d * 0.12).add(new THREE.Vector3(0, -0.03 - d * 0.18, 0));
+      const curve = new THREE.CatmullRomCurve3([A.clone(), A.clone().addScaledVector(n, 0.03), mid, B.clone().addScaledVector(n, 0.03), B.clone()], false, "centripetal");
+      const mat = new THREE.MeshStandardMaterial({ color: p.color, roughness: 0.55, flatShading: false });
+      const tube = new THREE.Mesh(new THREE.TubeGeometry(curve, 28, 0.0028, 6), mat);
+      tube.castShadow = true;
+      this.cables.add(tube);
+      for (const [P, Q] of [[A, A.clone().addScaledVector(n, 0.03)], [B, B.clone().addScaledVector(n, 0.03)]]) {
+        const boot = new THREE.Mesh(new THREE.BoxGeometry(0.012, 0.009, 0.024), new THREE.MeshStandardMaterial({ color: p.color, roughness: 0.4, transparent: true, opacity: 0.92 }));
+        boot.position.copy(P).addScaledVector(n, 0.012);
+        boot.lookAt(Q.clone().addScaledVector(n, 0.05));
+        this.cables.add(boot);
+      }
+    }
   }
 
   runPath(d) {
@@ -458,14 +543,21 @@ export class House {
     }
   }
 
-  update(dt, focus) {
+  update(dt, focus, cam) {
     this.t += dt;
+    if (cam && this.closeFill) { this.fill.position.copy(cam.position).add(new THREE.Vector3(0.2, 0.35, 0)); this.fill.intensity += (2.2 - this.fill.intensity) * Math.min(1, dt * 3); }
+    else this.fill.intensity += (0 - this.fill.intensity) * Math.min(1, dt * 3);
     for (let i = this.anims.length - 1; i >= 0; i--) {
       const a = this.anims[i];
       a.t += dt;
       const k = Math.min(1, a.t / a.dur);
       a.step(k);
       if (k >= 1) this.anims.splice(i, 1);
+    }
+    for (const f of this.fixtures || []) {
+      if (!(f._flick > 0)) continue;
+      f._flick -= dt;
+      if (f.emissive) f.emissive.emissiveIntensity = f._flick > 0 ? (Math.sin(this.t * 90) > 0.2 ? 2.2 : 0.2) : 2.2;
     }
     for (const b of this.breakers?.values() || []) {
       if (!b.lever || b.target === undefined) continue;
@@ -480,7 +572,8 @@ export class House {
         if (!s || s.pos[1] > (this.data.floors[this.floorShown]?.y ?? 99) + 3.5) { l.intensity = 0; return; }
         l.position.set(s.pos[0], s.pos[1] - 0.15, s.pos[2]);
         l.color.set(s.color);
-        l.intensity = (0.8 + night * 5.5) * s.k;
+        const fl = s.f && s.f._flick > 0 ? (Math.sin(this.t * 90) > 0.2 ? 1 : 0.15) : 1;
+        l.intensity = (0.8 + night * 5.5) * s.k * fl;
       });
     }
   }
