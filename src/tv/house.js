@@ -224,6 +224,7 @@ export class House {
     for (const [uid, v] of this.vis) if (!seen.has(uid)) { v.obj.parent && v.obj.parent.remove(v.obj); this.vis.delete(uid); if (v.fixture?.bulb) v.fixture.bulb.visible = true; }
     this.state = s;
     this.der = der;
+    this.syncLabels(s);
     this.applyPower();
     this.syncRuns(s);
     this.syncPatches(s);
@@ -350,6 +351,47 @@ export class House {
     });
   }
 
+
+  syncLabels(s) {
+    if (!this.panelEnc || !this.layout || !this.rails?.length) return;
+    const key = JSON.stringify(s.panel?.labels || {});
+    if (key === this._labelKey) return;
+    this._labelKey = key;
+    this._labelMeshes = this._labelMeshes || [];
+    const per = this.layout.per;
+    this.rails.forEach((rail, row) => {
+      const L = rail.label;
+      if (!L) return;
+      let m = this._labelMeshes[row];
+      if (!m) {
+        const cv = document.createElement("canvas");
+        cv.width = per * 64; cv.height = 64;
+        const tex = new THREE.CanvasTexture(cv);
+        tex.colorSpace = THREE.SRGBColorSpace;
+        tex.anisotropy = 4;
+        m = new THREE.Mesh(new THREE.PlaneGeometry(L.w, L.h), new THREE.MeshStandardMaterial({ map: tex, transparent: true, roughness: 0.8 }));
+        m.position.set(L.x0 + L.w / 2, L.y, (L.z || 0) + 0.0006);
+        m.userData = { cv, tex };
+        this.panelEnc.add(m);
+        this._labelMeshes[row] = m;
+      }
+      const { cv, tex } = m.userData;
+      const g = cv.getContext("2d");
+      g.clearRect(0, 0, cv.width, cv.height);
+      g.fillStyle = "#1d2125";
+      g.textAlign = "center";
+      g.textBaseline = "middle";
+      for (const it of this.layout.items.filter((x) => x.row === row && x.kind === "mcb")) {
+        const room = s.panel?.labels?.[it.circuit];
+        if (!room) continue;
+        const name = (this.data.rooms.find((r) => r.id === room)?.name || room).toUpperCase().replace(/^POKÓJ /, "P.").slice(0, 5);
+        const cx = (it.slot + it.mod / 2) * 64;
+        g.font = `700 ${name.length > 4 ? 22 : 26}px "IBM Plex Mono", monospace`;
+        g.fillText(name, cx, 34, it.mod * 64 - 6);
+      }
+      tex.needsUpdate = true;
+    });
+  }
 
   applyPower() {
     const s = this.state, d = this.data;
