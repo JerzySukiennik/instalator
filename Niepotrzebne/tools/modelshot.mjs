@@ -20,7 +20,11 @@ const browser = await chromium.launch({
   args: ['--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist'],
 });
 const logs = [];
-async function shot(query, file, w, h) {
+async function shot(query, file, w, h, tries = 2) {
+  try { await shotOnce(query, file, w, h); } catch (e) { if (tries > 1) { logs.push('[retry] ' + query + ' ' + String(e.message || e).slice(0, 120)); await shot(query, file, w, h, tries - 1); } else throw e; }
+}
+
+async function shotOnce(query, file, w, h) {
   const page = await browser.newPage({ viewport: { width: w, height: h }, deviceScaleFactor: 1 });
   page.on('console', (m) => { if (m.type() === 'error' || m.type() === 'warning') logs.push(`[${m.type()}] ${m.text()}`); });
   page.on('pageerror', (e) => logs.push(`[pageerror] ${e.message}`));

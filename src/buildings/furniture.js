@@ -457,13 +457,11 @@ KIT.desk = (g, o) => {
   if (o.books !== false) books(g, -w / 2 + 0.05, -w / 2 + 0.3, h, -d / 2 + 0.12, 0.2, R, { h: 0.22, gaps: false });
   g.use('gloss');
   g.cyl(w / 2 - 0.2, h, 0.05, 0.04, 0.04, 0.1, 10, o.mug ?? '#e9e4d8');
-  let chair = null;
   if (o.chair !== false) {
     g.at(o.chairX ?? 0.05, 0, d / 2 + 0.25, Math.PI + 0.25);
-    chair = KIT.officeChair(g, { color: o.chairCol });
+    KIT.officeChair(g, { color: o.chairCol });
     g.pop();
   }
-  void chair;
   return { size: [w, h, d], surfaces: [{ x: w / 4, y: h, z: 0, w: w / 3, d, tag: 'biurko' }], strips: [{ kind: 'desk', pts: [[-w / 2 + 0.03, h - 0.035, -d / 2 + 0.02], [w / 2 - 0.03, h - 0.035, -d / 2 + 0.02]] }], outlets: [{ pos: [0.3, 0.3, -d / 2], n: 3 }] };
 };
 
@@ -833,12 +831,13 @@ KIT.island = (g, o) => {
   const stools = o.stools ?? 3;
   for (let i = 0; i < stools; i++) { g.at(-w / 2 + ((i + 0.5) * w) / stools, 0, d / 2 + 0.12, Math.PI + (hash(i, 3) - 0.5) * 0.3); KIT.stool(g, { color: o.stoolCol ?? P.oak }); g.pop(); }
   if (o.decor !== false) {
+    const bx2 = o.hob ? -o.hob - 0.05 : w / 4, by2 = o.hob ? -w / 2 + 0.25 : -w / 4;
     g.use('gloss');
-    g.cyl(w / 4, H, -0.05, 0.16, 0.18, 0.07, 16, '#e7e2d8');
+    g.cyl(bx2, H, -0.05, 0.16, 0.18, 0.07, 16, '#e7e2d8');
     g.use('matte');
-    for (let i = 0; i < 6; i++) g.blob(w / 4 + Math.cos(i * 1.1) * 0.08, H + 0.09, -0.05 + Math.sin(i * 1.1) * 0.08, 0.045, 0.04, 0.045, ['#d4a336', '#c64f2c', '#8fb04a'][i % 3], 10 + i, { detail: 0 });
+    for (let i = 0; i < 6; i++) g.blob(bx2 + Math.cos(i * 1.1) * 0.08, H + 0.09, -0.05 + Math.sin(i * 1.1) * 0.08, 0.045, 0.04, 0.045, ['#d4a336', '#c64f2c', '#8fb04a'][i % 3], 10 + i, { detail: 0 });
     g.use('satin');
-    g.bx(-w / 4 - 0.18, H, -0.15, -w / 4 + 0.18, H + 0.015, 0.1, P.oakLight);
+    g.bx(by2 - 0.18, H, -0.15, by2 + 0.18, H + 0.015, 0.1, P.oakLight);
   }
   return { size: [w, H, d + 0.5], center: [0, 0, 0.2], surfaces: [{ x: o.hob ? -o.hob * 0.9 : -w / 4, y: H, z: 0, w: w / 2.5, d, tag: 'wyspa' }], outlets: [], kind: 'island', shadowK: 0.9 };
 };
@@ -1259,7 +1258,6 @@ KIT.curtain = (g, o) => {
       if (pat === 'check') for (let k = 0; k < Math.floor(h / 0.3); k++) g.bx(x0, bottom + 0.15 + k * 0.3, zz + 0.0301, x1 + 0.004, bottom + 0.17 + k * 0.3, zz + 0.0305, '#9ea1a5');
     }
   }
-  void h;
   return { size: [w + 0.2, top, 0.16], noShadow: true, noData: true };
 };
 KIT.curtain.wall = true;
@@ -1488,9 +1486,10 @@ KIT.gardenSet = (g, o) => {
   }
   if (o.umbrella) {
     g.use('metal');
-    g.cyl(0, 0, 0, 0.025, 0.025, 2.3, 6, '#d9dcdf');
-    g.use('matte2');
-    g.lathe([[1.3, 1.95], [0.02, 2.35]], 10, o.umbrella);
+    g.cyl(0, 0, 0, 0.025, 0.025, 2.4, 6, '#d9dcdf');
+    g.use('matte');
+    g.lathe([[0.03, 1.15], [0.11, 1.5], [0.12, 2.0], [0.06, 2.3], [0.02, 2.4]], 8, o.umbrella, { alt: shade(o.umbrella, 0.9) });
+    g.cyl(0, 1.95, 0, 0.13, 0.13, 0.05, 8, shade(o.umbrella, 0.8));
   }
   return { size: [1.8, 0.9, 2.0], noData: true };
 };
@@ -1732,7 +1731,7 @@ KIT.box = (g, o) => {
 KIT.gzowoFireplaceWall = KIT.stove;
 
 export function bulbInto(g, b) {
-  const p = b.pos, up = b.up ? -1 : 1;
+  const p = b.pos;
   g.at(p[0], p[1], p[2], 0, b.up ? Math.PI : 0, 0);
   const shape = b.shape || (b.kind === 'GU10' ? 'gu10' : 'a60');
   if (shape === 'gu10') {
@@ -1747,7 +1746,6 @@ export function bulbInto(g, b) {
     g.lathe([[0, 0], [0.0135, 0], [0.0135, -0.026], [0.02, -0.036], [0.03, -0.062], [0.03, -0.085], [0.022, -0.103], [0, -0.11]], 10, '#fff6e6');
   }
   g.pop();
-  void up;
 }
 
 export const LIGHTS = {};

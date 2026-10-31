@@ -108,7 +108,7 @@ export default {
   ],
   street: [3.0, 0, -16.5],
   approach: [[3.0, 0, -16.5], [3.0, 0, -11], [3.2, 0.8, -6.8], [3.2, Y, -2.2], [2.95, Y, -0.8]],
-  views: { dollhouse: { az: -0.42, el: 0.56, dist: 1.05, sunAz: 315, sunEl: 46 }, close: { pos: [1.2, Y + 1.55, 4.9], target: [6.2, Y + 1.0, 1.6], fov: 60 } },
+  views: { dollhouse: { az: -0.5, el: 0.58, dist: 1.12, sunAz: 315, sunEl: 46 }, close: { pos: [1.2, Y + 1.55, 4.9], target: [6.2, Y + 1.0, 1.6], fov: 60 } },
   outdoorSkip: () => false,
   extra(api) {
     const g = api.stat[0];
@@ -157,7 +157,22 @@ function buildSite(api) {
   cg.bx(6.8, Y + 2.82, Z1 - 0.25, X1 + 0.05, Y + 3.22, Z1 + 0.05, shade(facade, 0.96), { top: C('#8a8780') });
   cg.bx(X1 - 0.25, Y + 2.82, Z0, X1 + 0.05, Y + 3.22, Z1, shade(facade, 0.96), { top: C('#8a8780') });
   cg.use('matte');
-  for (const [x, z] of [[12, -2], [19, 1], [26, -3], [9, -4.5]]) {
+  const RR = rng(77);
+  for (let i = 0; i < 26; i++) {
+    const z0 = Z0 + 0.3 + i * 0.47;
+    if (z0 > Z1 - 0.3) break;
+    const segs = [[6.85, X1 - 0.3]];
+    if (z0 < -0.3) segs.push([X0 + 0.3, 6.85]);
+    for (const [xa, xb] of segs) cg.bx(xa, Y + 2.82, z0, xb, Y + 2.826, z0 + 0.45, C('#5c5853').clone().multiplyScalar(0.94 + RR() * 0.1));
+  }
+  for (const [x, z, w, d] of [[10.5, -3.6, 2.6, 2.2], [21.0, -3.2, 2.6, 2.2]]) {
+    cg.bx(x - w / 2, Y + 2.82, z - d / 2, x + w / 2, Y + 5.0, z + d / 2, facade, { top: C('#6f6c66') });
+    cg.bx(x - w / 2 - 0.06, Y + 5.0, z - d / 2 - 0.06, x + w / 2 + 0.06, Y + 5.12, z + d / 2 + 0.06, C('#8a8780'));
+    cg.bx(x - 0.45, Y + 2.82, z + d / 2, x + 0.45, Y + 4.8, z + d / 2 + 0.02, C('#5b6066'));
+  }
+  cg.bx(15.2, Y + 2.82, 2.0, 16.2, Y + 3.25, 3.0, C('#8a8780'));
+  cg.bx(15.25, Y + 3.25, 2.05, 16.15, Y + 3.3, 2.95, C('#5b6066'));
+  for (const [x, z] of [[12, -2], [19, 1], [26, -3], [9, -4.5], [29, 3.5], [7.8, 4.5], [24.5, 4.2]]) {
     cg.bx(x - 0.3, Y + 2.82, z - 0.3, x + 0.3, Y + 3.5, z + 0.3, C('#9a9894'));
     cg.bx(x - 0.36, Y + 3.5, z - 0.36, x + 0.36, Y + 3.56, z + 0.36, C('#7f7d79'));
   }
@@ -170,8 +185,6 @@ function buildSite(api) {
     const yy = fl[f];
     const wg = f === 3 ? cg : g;
     const owin = (x0, x1, y0, y1, z, out) => {
-      const prev = g;
-      void prev;
       wg.use('matte');
       wg.bx(x0 - 0.06, y0 - 0.06, Math.min(z, z + out * 0.02), x1 + 0.06, y1 + 0.06, Math.max(z, z + out * 0.02), C('#f3f2ee'));
       const glass = hash(x0, y0, z) < 0.3 ? '#5f6d76' : '#3b4852';
@@ -207,7 +220,10 @@ function buildSite(api) {
     }
   }
   g.use('matte');
-  g.bx(X0 - 0.05, 0.75, -1.5, X0 + 0.0, Y - 0.25, 1.5, accent);
+  const bands = [['#b9694c', 1.2], ['#d7a16f', 0.45], ['#a7b39c', 0.9], ['#e7e2d7', 0.35], ['#8f9c86', 0.6]];
+  let bz = Z0 + 1.2;
+  for (const [c, w] of bands) { g.bx(X0 - 0.04, 0.75, bz, X0 + 0.0, Y + 2.6, bz + w, C(c)); bz += w + 0.08; }
+  for (let i = 0; i < 4; i++) g.bx(X0 - 0.05, 0.75, Z1 - 1.6 + i * 0.32, X0 + 0.0, 0.75 + (Y + 1.8) * (0.35 + i * 0.18), Z1 - 1.36 + i * 0.32, C(['#b9694c', '#d7a16f', '#a7b39c', '#8f9c86'][i]));
   g.use('satin');
   g.bx(2.0, 2.6, Z0 - 1.6, 4.4, 2.8, Z0, C('#a9a59d'));
   g.use('matte');

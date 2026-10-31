@@ -42,13 +42,13 @@ export default {
       { at: 5.9, w: 1.2, kind: 'window', sill: 0.85, head: 2.2 }
     ] },
     { id: 'A', floor: 0, a: [3.0, 0], b: [3.0, 8.2], t: 0.2, open: [
-      { id: 'drzwi-techniczne', at: 1.2, w: 0.9, kind: 'door', head: 2.05, hinge: 'a', swing: 1, angle: 75 },
-      { id: 'drzwi-wc', at: 3.1, w: 0.8, kind: 'door', head: 2.05, hinge: 'b', swing: 1, angle: 70 },
-      { id: 'drzwi-goscinny', at: 4.65, w: 0.9, kind: 'door', head: 2.05, hinge: 'b', swing: 1, angle: 85 }
+      { id: 'drzwi-techniczne', at: 1.2, w: 0.9, kind: 'door', head: 2.05, hinge: 'a', swing: 1, angle: 75, style: 'panel' },
+      { id: 'drzwi-wc', at: 3.1, w: 0.8, kind: 'door', head: 2.05, hinge: 'b', swing: 1, angle: 70, style: 'panel' },
+      { id: 'drzwi-goscinny', at: 4.65, w: 0.9, kind: 'door', head: 2.05, hinge: 'b', swing: 1, angle: 85, style: 'panel' }
     ] },
     { id: 'B', floor: 0, a: [0, 2.56], b: [3.0, 2.56], t: 0.12 },
     { id: 'Cw', floor: 0, a: [0, 4.46], b: [3.0, 4.46], t: 0.12 },
-    { id: 'D', floor: 0, a: [5.26, 0], b: [5.26, 5.66], t: 0.12, open: [{ id: 'drzwi-kuchnia', at: 0.55, w: 0.9, kind: 'door', head: 2.05, hinge: 'b', swing: -1, angle: 85 }] },
+    { id: 'D', floor: 0, a: [5.26, 0], b: [5.26, 5.66], t: 0.12, open: [{ id: 'drzwi-kuchnia', at: 0.55, w: 0.9, kind: 'door', head: 2.05, hinge: 'b', swing: -1, angle: 85, style: 'panel' }] },
     { id: 'E', floor: 0, a: [3.0, 5.66], b: [5.26, 5.66], t: 0.12, open: [{ id: 'drzwi-salon', at: 0.3, w: 0.9, kind: 'door', head: 2.05, hinge: 'a', swing: 1, style: 'glass', angle: 90 }] },
 
     { id: 'wN1', floor: 1, a: [0, 0], b: [9.4, 0], t: 0.4, ext: true, open: [
@@ -70,16 +70,16 @@ export default {
       { at: 6.0, w: 1.2, kind: 'window', sill: 0.85, head: 2.2 }
     ] },
     { id: 'A1', floor: 1, a: [3.0, 0], b: [3.0, 8.2], t: 0.2, open: [
-      { id: 'drzwi-gabinet', at: 0.65, w: 0.8, kind: 'door', head: 2.05, hinge: 'b', swing: 1, angle: 80 },
-      { id: 'drzwi-lazienka', at: 2.9, w: 0.8, kind: 'door', head: 2.05, hinge: 'b', swing: 1, angle: 75 },
-      { id: 'drzwi-zosia', at: 4.8, w: 0.8, kind: 'door', head: 2.05, hinge: 'b', swing: 1, angle: 85 }
+      { id: 'drzwi-gabinet', at: 0.65, w: 0.8, kind: 'door', head: 2.05, hinge: 'b', swing: 1, angle: 80, style: 'panel' },
+      { id: 'drzwi-lazienka', at: 2.9, w: 0.8, kind: 'door', head: 2.05, hinge: 'b', swing: 1, angle: 75, style: 'panel' },
+      { id: 'drzwi-zosia', at: 4.8, w: 0.8, kind: 'door', head: 2.05, hinge: 'b', swing: 1, angle: 85, style: 'panel' }
     ] },
     { id: 'B1', floor: 1, a: [0, 2.06], b: [3.0, 2.06], t: 0.12 },
     { id: 'C1', floor: 1, a: [0, 4.66], b: [3.0, 4.66], t: 0.12 },
     { id: 'D1', floor: 1, a: [5.26, 0], b: [5.26, 8.2], t: 0.12, open: [
-      { id: 'drzwi-kuba', at: 0.35, w: 0.85, kind: 'door', head: 2.05, hinge: 'a', swing: -1, angle: 80 },
-      { id: 'drzwi-sypialnia', at: 4.5, w: 0.85, kind: 'door', head: 2.05, hinge: 'b', swing: -1, angle: 85 },
-      { id: 'drzwi-garderoba', at: 6.6, w: 0.8, kind: 'door', head: 2.05, hinge: 'b', swing: 1, angle: 70 }
+      { id: 'drzwi-kuba', at: 0.35, w: 0.85, kind: 'door', head: 2.05, hinge: 'a', swing: -1, angle: 80, style: 'panel' },
+      { id: 'drzwi-sypialnia', at: 4.5, w: 0.85, kind: 'door', head: 2.05, hinge: 'b', swing: -1, angle: 85, style: 'panel' },
+      { id: 'drzwi-garderoba', at: 6.6, w: 0.8, kind: 'door', head: 2.05, hinge: 'b', swing: 1, angle: 70, style: 'panel' }
     ] },
     { id: 'E1', floor: 1, a: [5.26, 3.66], b: [9.4, 3.66], t: 0.12 },
     { id: 'F1', floor: 1, a: [3.0, 5.72], b: [5.26, 5.72], t: 0.12 }
@@ -362,7 +362,7 @@ function buildRoof(api) {
   const base = 2.95 + 2.6 + 0.3, x0 = -0.75, x1 = 10.15, z0 = -0.8, z1 = 9.0, zr = 4.1, ridge = base + 3.4;
   const tile = C('#3d3f43');
   g.use('satin');
-  for (const [za, sgn] of [[z0, 1], [z1, -1]]) {
+  for (const za of [z0, z1]) {
     const n = 14;
     for (let i = 0; i < n; i++) {
       const t0 = i / n, t1 = (i + 1) / n;
@@ -371,7 +371,6 @@ function buildRoof(api) {
       g.face([[x0, yA, zA], [x1, yA, zA], [x1, yB + 0.03, zB], [x0, yB + 0.03, zB]], [4.7, base - 5, 4.1], c);
       g.face([[x0, yA - 0.04, zA], [x1, yA - 0.04, zA], [x1, yB - 0.04, zB], [x0, yB - 0.04, zB]], [4.7, base + 20, 4.1], C('#d9d2c4'));
     }
-    void sgn;
   }
   g.bx(x0 - 0.02, ridge - 0.05, zr - 0.14, x1 + 0.02, ridge + 0.12, zr + 0.14, C('#2f3135'));
   for (const x of [-0.2, 9.6]) g.face([[x, base, -0.2], [x, base, 8.4], [x, ridge - 0.1, zr]], [4.7, base, 4.1], C('#ece8e0'));

@@ -11,7 +11,9 @@ keyp = os.path.join(ROOT, 'keys', f'{rnd}.json')
 os.makedirs(os.path.dirname(keyp), exist_ok=True)
 key = json.load(open(keyp)) if os.path.exists(keyp) else {}
 
-def norm(src, dst, size=(1600, 900)):
+SIZE = tuple(int(v) for v in os.environ.get('AB_SIZE', '1600x900').split('x'))
+
+def norm(src, dst, size=SIZE):
     im = Image.open(src).convert('RGB')
     w, h = im.size
     tr = size[0] / size[1]

@@ -263,3 +263,8 @@ body.desk .task:hover, body.desk .vjob:hover, body.desk .item:hover { border-col
 .searchbar input { flex: 1; border: 0; outline: none; background: none; font-size: 16px; height: 44px; color: var(--ink); min-width: 0; }
 .searchbar input::-webkit-search-cancel-button { display: none; }
 .searchbar .clr { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; background: var(--paper); }
+.gcard.warn { border-color: #e8a33d; box-shadow: 0 3px 0 #b97a1f; }
+.gcard.warn .gn { background: #e8a33d; color: #fff; }
+.guide .gcard + .gcard { margin-top: 8px; }
+.cov .why { display: block; margin-top: 4px; font-size: 11px; font-weight: 700; color: #b97a1f; }
+.cov .go { margin-top: 6px; pointer-events: auto; }

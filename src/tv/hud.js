@@ -136,13 +136,26 @@ export class Hud {
     return newly;
   }
 
-  achieve(text) {
+  achieve(text, onShow) {
+    this.achQ = this.achQ || [];
+    this.achQ.push({ text, onShow });
+    if (!this.achBusy) this.nextAchieve();
+  }
+
+  nextAchieve() {
+    const q = this.achQ;
+    if (!q.length) { this.achBusy = false; return; }
+    this.achBusy = true;
+    let { text, onShow } = q.shift();
+    let label = "z listy klienta";
+    if (q.length >= 2) { label = `z listy klienta · ${q.length + 1} naraz`; text = `${text} i ${q.length} więcej`; q.length = 0; }
     const a = document.createElement("div");
     a.className = "achieve";
-    a.innerHTML = `<span class="ck">${icon("check", 26, 3)}</span><span><small>z listy klienta</small>${esc(text)}</span>`;
+    a.innerHTML = `<span class="ck">${icon("check", 26, 3)}</span><span><small>${label}</small>${esc(text)}</span>`;
     this.root.appendChild(a);
-    setTimeout(() => a.classList.add("out"), 2600);
-    setTimeout(() => a.remove(), 3200);
+    if (onShow) onShow();
+    setTimeout(() => a.classList.add("out"), 2000);
+    setTimeout(() => { a.remove(); this.nextAchieve(); }, 2450);
   }
 
   banner(text) {

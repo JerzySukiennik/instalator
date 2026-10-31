@@ -127,7 +127,7 @@ function refresh(snap) {
   if (state.phase === "job") {
     hud.show("hud");
     const newly = hud.job(snap, host.code, url, tasks);
-    newly.forEach((r, i) => { const rq = state.job.reqs.find((x) => x.id === r.id); setTimeout(() => { audio.play("pen_tick", { vol: 0.9 }); if (rq && state.phase === "job") hud.achieve(rq.text); }, i * 900); });
+    newly.forEach((r) => { const rq = state.job.reqs.find((x) => x.id === r.id); if (rq) hud.achieve(rq.text, () => audio.play("pen_tick", { vol: 0.9 })); });
     house.sync(state, snap.der ? { ...snap.der } : derive(state, data));
     paintTablet(snap);
     return;

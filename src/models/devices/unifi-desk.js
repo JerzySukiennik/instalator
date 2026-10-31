@@ -16,31 +16,31 @@ function backPort(kit, x, y, z) {
 
 function gateway(max) {
   const kit = new Kit();
-  const W = 0.1418, H = 0.03, D = 0.1276;
-  kit.loft('satin', WHITE, 0, 0, 0, W, D, 0.013, 5, [[0.0095, 0], [0.0095, 0.001], ...botR(0.001, 0.0095, 4), ...topR(H, 0.003, 3)]);
-  kit.loft('matte', '#9c9fa2', 0, 0.0002, 0, W - 0.021, D - 0.021, 0.006, 2, [[0, 0], [0, 0.0012]], { bottom: true });
-  const dx = max ? -0.0372 : 0, dy = 0.0192, zf = D / 2;
+  const W = 0.1418, H = 0.027, D = 0.1276;
+  kit.loft('satin', WHITE, 0, 0, 0, W, D, 0.013, 5, [[0.007, 0], [0.007, 0.0008], ...botR(0.0008, 0.007, 3), ...topR(H, 0.0026, 3)]);
+  kit.loft('matte', '#9c9fa2', 0, 0.0002, 0, W - 0.016, D - 0.016, 0.007, 2, [[0, 0], [0, 0.001]]);
+  const dx = -W / 2 + 0.22 * W, dy = 0.0172, zf = D / 2;
   kit.box('glass', '#0a0b0d', dx, dy, zf + 0.0002, 0.0245, 0.0112, 0.0006, { r: 0.0056, seg: 6 });
   kit.display(uniScreen('pill', 256, 116), 0.0222, 0.0094, dx, dy, zf + 0.00055, { r: 0.0047, seg: 6 });
   const pm = frontPrint(max ? 'ucg-max-front' : 'ucg-ultra-front', 0.06, 0.004, [{ t: max ? 'Cloud Gateway Max' : 'Cloud Gateway Ultra', x: 0.03, y: 0.002, size: 0.0021, color: '#c4c7ca', weight: 500 }]);
-  printPlane(kit, pm, 0.06, 0.004, dx - 0.03, 0.0098, zf + 0.0001);
+  printPlane(kit, pm, 0.06, 0.004, dx - 0.03, 0.0079, zf + 0.0001);
   if (max) {
-    kit.box('matte', '#c9cbcd', 0.0405, 0.0196, zf + 0.00005, 0.0282, 0.0142, 0.0002, { r: 0.0028, seg: 3 });
-    kit.box('satin', '#f1f1ef', 0.0405, 0.0196, zf + 0.0002, 0.0272, 0.0132, 0.0003, { r: 0.0024, seg: 3 });
-    kit.box('matte', '#2a2b2d', 0.0478, 0.0115, zf + 0.00008, 0.0032, 0.0011, 0.0002, { r: 0.0005, seg: 2 });
-    for (let i = 0; i < 4; i++) kit.box('matte', '#3a3c3e', 0.004 + i * 0.0148, 0.0052, zf - 0.0021, 0.0122, 0.0016, 0.0003, { rx: 0.62, r: 0.0007, seg: 2 });
+    kit.box('matte', '#c9cbcd', 0.0405, 0.0168, zf + 0.00005, 0.0282, 0.0128, 0.0002, { r: 0.0028, seg: 3 });
+    kit.box('satin', '#f1f1ef', 0.0405, 0.0168, zf + 0.0002, 0.0272, 0.0118, 0.0003, { r: 0.0024, seg: 3 });
+    kit.box('matte', '#2a2b2d', 0.0478, 0.0096, zf + 0.00008, 0.0032, 0.0011, 0.0002, { r: 0.0005, seg: 2 });
+    for (let i = 0; i < 4; i++) kit.box('matte', '#2a2b2d', 0.006 + i * 0.0166, 0.00384, zf - 0.00088, 0.0145, 0.0022, 0.0003, { rx: 0.57, r: 0.001, seg: 2 });
   }
   const logo = uLogoMat('#c9ccd0');
   kit.quad(logo, null, 0.009, 0.009, 0, H + 0.0001, -0.03, { rx: -Math.PI / 2 });
   const zb = -D / 2;
   for (let i = 0; i < 5; i++) {
     const x = -0.026 + i * 0.0165;
-    backPort(kit, x, 0.019, zb);
-    kit.port(i + 1, max ? (i === 4 ? 'wan' : 'rj45') : (i === 4 ? 'wan' : 'rj45'), x, 0.019, zb);
+    backPort(kit, x, 0.0155, zb);
+    kit.port(i + 1, i === 4 ? 'wan' : 'rj45', x, 0.0155, zb);
   }
-  kit.add('matte', '#202224', new THREE.ShapeGeometry(new THREE.Shape(rrPts(0.009, 0.0034, 0.0016, 3))).rotateY(Math.PI).translate(0.05, 0.019, zb - 0.0002));
-  kit.port('usb-c', 'power', 0.05, 0.019, zb);
-  kit.led('#f0f6ff', 'status', (m) => kit.box(m, null, 0, 0.0003, D / 2 - 0.016, 0.03, 0.0006, 0.001), { intensity: 0.8, silent: false });
+  kit.add('matte', '#202224', new THREE.ShapeGeometry(new THREE.Shape(rrPts(0.009, 0.0034, 0.0016, 3))).rotateY(Math.PI).translate(0.05, 0.0155, zb - 0.0002));
+  kit.port('usb-c', 'power', 0.05, 0.0155, zb);
+  kit.led('#f0f6ff', 'status', (m) => kit.box(m, null, 0, 0.0003, D / 2 - 0.012, 0.03, 0.0006, 0.001), { intensity: 0.8, silent: false });
   return kit.build();
 }
 
@@ -92,6 +92,9 @@ function flexMini() {
       { t: 'PoE IN', x: X(0.0198), y: 0.0039, size: 0.0019, color: '#ffffff', weight: 600 },
       ...xs.slice(1).map((x, i) => ({ t: String(i + 2), x, y: 0.0039, size: 0.0019, color: '#8d9298' })),
       { t: 'LINK', x: X(0.0975), y: 0.0165, size: 0.0011, color: '#9ba0a5', align: 'left' },
+      { rect: [0.0015, 0.0011], x: X(0.0975), y: 0.0137, color: '#9aa0a6' },
+      { rect: [0.0015, 0.0011], x: X(0.0975), y: 0.0119, color: '#ff9f1c' },
+      { rect: [0.0015, 0.0011], x: X(0.0975), y: 0.0101, color: '#41d65a' },
     ],
   });
 }
@@ -99,22 +102,29 @@ function flexMini() {
 function lite8() {
   const W = 0.1637, H = 0.0317, D = 0.0996, r = 0.0085;
   const X = (x) => x - W / 2;
-  const y = 0.0181;
+  const y = 0.0181, pitch = 0.0156;
+  const g1 = 0.0176, g2 = 0.0838, gw = 4 * pitch + 0.0008;
   const xs = [];
-  for (let i = 0; i < 4; i++) xs.push(X(0.0183 + 0.0159 * (i + 0.5)));
-  for (let i = 0; i < 4; i++) xs.push(X(0.0821 + 0.0159 * (i + 0.5)));
+  for (let i = 0; i < 4; i++) xs.push(X(g1 + 0.0004 + pitch * (i + 0.5)));
+  for (let i = 0; i < 4; i++) xs.push(X(g2 + 0.0004 + pitch * (i + 0.5)));
+  const lx = X(0.1508);
   return deskSwitch({
     key: 'lite8-front', W, H, D, r,
     prof: [[0.0042, 0], [0.0042, 0.0022], ...botR(0.0022, 0.0042, 3), ...topR(H, 0.0034, 3)],
     plateY: [0.0064, H - 0.0034],
-    frames: [[X(0.0181), X(0.0821), y, 0.0136], [X(0.0823), X(0.1463), y, 0.0136]],
-    jack: [0.0148, 0.0124],
+    frames: [[X(g1), X(g1 + gw), y, 0.0136], [X(g2), X(g2 + gw), y, 0.0136]],
+    jack: [0.0146, 0.0124],
     blueLed: [X(0.0102), 0.0181],
     ports: xs.map((x, i) => ({ id: i + 1, kind: i < 4 ? 'poe' : 'rj45', x, y, amber: i < 4 })),
     print: [
       ...xs.map((x, i) => ({ t: String(i + 1) + (i < 4 ? ' ϟ+' : ''), x, y: 0.0091, size: 0.0018, color: '#8d9298' })),
-      { t: 'PoE', x: X(0.1515), y: 0.0235, size: 0.0011, color: '#9ba0a5', align: 'left' },
-      { t: 'LINK', x: X(0.1515), y: 0.0165, size: 0.0011, color: '#9ba0a5', align: 'left' },
+      { t: 'PoE', x: lx, y: 0.0262, size: 0.0011, color: '#9ba0a5', align: 'left' },
+      { rect: [0.0016, 0.0011], x: lx, y: 0.0233, color: '#9aa0a6' }, { t: 'OFF', x: lx + 0.0022, y: 0.0238, size: 0.0009, color: '#9ba0a5', align: 'left' },
+      { rect: [0.0016, 0.0011], x: lx, y: 0.0216, color: '#ff9f1c' }, { t: 'ON', x: lx + 0.0022, y: 0.0221, size: 0.0009, color: '#9ba0a5', align: 'left' },
+      { t: 'LINK', x: lx, y: 0.0187, size: 0.0011, color: '#9ba0a5', align: 'left' },
+      { rect: [0.0016, 0.0011], x: lx, y: 0.0158, color: '#9aa0a6' }, { t: 'DOWN', x: lx + 0.0022, y: 0.0163, size: 0.0009, color: '#9ba0a5', align: 'left' },
+      { rect: [0.0016, 0.0011], x: lx, y: 0.0141, color: '#ff9f1c' }, { t: '10/100', x: lx + 0.0022, y: 0.0146, size: 0.0009, color: '#9ba0a5', align: 'left' },
+      { rect: [0.0016, 0.0011], x: lx, y: 0.0124, color: '#41d65a' }, { t: '1000', x: lx + 0.0022, y: 0.0129, size: 0.0009, color: '#9ba0a5', align: 'left' },
     ],
   });
 }

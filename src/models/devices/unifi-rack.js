@@ -90,7 +90,8 @@ function udmProMax(opts = {}) {
       face.holes.push(new THREE.Path(rj45Pts(px, py, r === 0)));
       kit.add('matte', '#3d3f42', new THREE.ShapeGeometry(face).translate(0, 0, ZF - T - 0.0011));
       rj45(kit, px, py, ZF - T - 0.0011, { up: r === 0, wall: '#2a2b2d' });
-      const led = kit.led('#41e05a', 'port', (m) => kit.box(m, null, px + 0.0047, py + (r === 0 ? 0.0052 : -0.0052), ZF - T - 0.0014, 0.0022, 0.0013, 0.0004), { intensity: 1.8 });
+      const ly = py + (r === 0 ? 0.0052 : -0.0052);
+      const led = kit.led('#41e05a', 'port', (m) => { kit.box(m, null, px + 0.0049, ly, ZF - T - 0.0007, 0.0026, 0.0016, 0.0004); kit.box(m, null, px - 0.0049, ly, ZF - T - 0.0007, 0.0026, 0.0016, 0.0004); }, { intensity: 2.6 });
       kit.port(r === 0 ? 1 + i * 2 : 2 + i * 2, 'rj45', px, py, ZF, led);
     }
   }
@@ -99,7 +100,7 @@ function udmProMax(opts = {}) {
   holes.push(rectPts(p9x, p9y, 0.0148, 0.0132));
   kit.add('matte', '#3d3f42', new THREE.ShapeGeometry(Object.assign(new THREE.Shape(rectPts(p9x, p9y, 0.0148, 0.0132)), { holes: [new THREE.Path(rj45Pts(p9x, p9y, true))] })).translate(0, 0, ZF - T - 0.0004));
   rj45(kit, p9x, p9y, ZF - T - 0.0004);
-  const l9 = kit.led('#41e05a', 'port', (m) => kit.box(m, null, p9x + 0.0049, p9y + 0.0054, ZF - T - 0.0002, 0.002, 0.0012, 0.0004), { intensity: 1.8 });
+  const l9 = kit.led('#41e05a', 'port', (m) => { kit.box(m, null, p9x + 0.0049, p9y + 0.0054, ZF - T + 0.0001, 0.0026, 0.0016, 0.0004); kit.box(m, null, p9x - 0.0049, p9y + 0.0054, ZF - T + 0.0001, 0.0026, 0.0016, 0.0004); }, { intensity: 2.6 });
   kit.port(9, 'wan', p9x, p9y, ZF, l9);
   const sx = X(0.4135);
   for (const [id, sy] of [[10, Y(0.0302)], [11, Y(0.0163)]]) {
@@ -180,17 +181,21 @@ function unvr() {
   const y0 = (U - H) / 2, Y = (y) => y0 + y;
   const holes = [];
   const bays = [[0.0128, 0.1186], [0.1208, 0.2244], [0.2266, 0.330], [0.3324, 0.4365]];
-  for (const [a, b] of bays) holes.push(bay(kit, X((a + b) / 2), Y(0.0215), b - a, 0.0296));
-  const rx = X(0.4262), ry = Y(0.0036);
+  for (const [a, b] of bays) holes.push(bay(kit, X((a + b) / 2), Y(0.0208), b - a, 0.0282));
+  for (const [a, b] of [[0.0398, 0.1186], [0.1214, 0.2238], [0.2272, 0.3294], [0.333, 0.4359]]) {
+    const sl = rrPts(b - a, 0.0019, 0.00095, 2, X((a + b) / 2), Y(H - 0.0026));
+    holes.push(sl);
+    cup(kit, sl, 0.004, ZF - T, '#1d1f21', '#0b0c0d');
+  }
+  const rx = X(0.4262), ry = Y(0.0034);
   holes.push(circPts(0.0007, 8, rx, ry));
   cup(kit, circPts(0.0007, 8, rx, ry), 0.002, ZF - T, '#111', '#111');
   chassis(kit, { w: W, h: H, depth: 0.325, u: 1, holes });
-  kit.led('#3fb6ff', 'status', (m) => kit.box(m, null, X(0.024), Y(H - 0.0024), ZF + 0.00008, 0.0225, 0.0011, 0.00016), { intensity: 2 });
-  vents(kit, [[0.0395, 0.1186], [0.1208, 0.2244], [0.2266, 0.330], [0.3324, 0.4365]], Y(H - 0.0024), -W / 2);
+  kit.led('#5cc8ff', 'status', (m) => kit.box(m, null, X(0.0245), Y(H - 0.0026), ZF + 0.00008, 0.0232, 0.0017, 0.0002, { r: 0.0008, seg: 1 }), { intensity: 2.8 });
   const pm = frontPrint('unvr-front', W, H, [
-    { t: 'NVR', x: 0.0205, y: 0.0035, size: 0.0019, weight: 700, color: '#42474d' },
-    ...bays.map(([a, b], i) => ({ t: String(i + 1), x: (a + b) / 2, y: 0.0035, size: 0.0014 })),
-    { t: 'RESET', x: 0.4282, y: 0.0036, size: 0.0011, align: 'left', color: '#5d636a' },
+    { t: 'NVR', x: 0.0205, y: 0.0034, size: 0.0019, weight: 700, color: '#42474d' },
+    ...bays.map(([a, b], i) => ({ t: String(i + 1), x: (a + b) / 2, y: 0.0034, size: 0.0014 })),
+    { t: 'RESET', x: 0.4282, y: 0.0034, size: 0.0011, align: 'left', color: '#5d636a' },
   ], { metal: 0.5, rough: 0.45 });
   printPlane(kit, pm, W, H, -W / 2, y0, ZF + 0.00008);
   kit.port(1, 'rj45', 0.12, Y(0.022), -0.325);

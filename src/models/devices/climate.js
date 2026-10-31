@@ -14,24 +14,32 @@ function trvScreen() {
   return displayMat('tado-trv-screen', 192, 192, (ctx, w, h) => {
     ctx.fillStyle = '#060708';
     ctx.fillRect(0, 0, w, h);
-    ctx.fillStyle = '#f2a33a';
-    ctx.font = '700 22px Helvetica, Arial';
-    ctx.textAlign = 'center';
-    ctx.fillText('≋', w / 2, 46);
+    ctx.strokeStyle = '#f2a33a';
+    ctx.lineWidth = 3.2;
+    ctx.lineCap = 'round';
+    for (let k = -1; k <= 1; k++) {
+      ctx.beginPath();
+      for (let t = 0; t <= 12; t++) { const y = 30 + t * 1.6, x = w / 2 + k * 9 + Math.sin(t / 12 * Math.PI * 2) * 2.6; if (t) ctx.lineTo(x, y); else ctx.moveTo(x, y); }
+      ctx.stroke();
+    }
     ctx.fillStyle = '#ffffff';
-    ctx.font = '600 62px "Avenir Next", Helvetica, Arial';
-    ctx.fillText('20.0', w / 2, 108);
+    ctx.textAlign = 'center';
+    ctx.font = '500 64px "Avenir Next", Helvetica, Arial';
+    ctx.fillText('20.0', w / 2, 112);
     ctx.font = '500 24px "Avenir Next", Helvetica, Arial';
     ctx.fillStyle = '#d9dde2';
-    ctx.fillText('🌡19.5°', w / 2, 146);
+    ctx.fillText('19.5°', w / 2 + 8, 150);
+    ctx.strokeStyle = '#d9dde2'; ctx.lineWidth = 2.4;
+    ctx.beginPath(); ctx.moveTo(w / 2 - 34, 132); ctx.lineTo(w / 2 - 34, 146); ctx.stroke();
+    ctx.beginPath(); ctx.arc(w / 2 - 34, 148, 3.4, 0, Math.PI * 2); ctx.stroke();
   });
 }
 
 function trvX() {
   const kit = new Kit();
-  kit.cyl('metal', '#b8bbbe', 0, 0, 0.009, 0.0228, 0.018, { axis: 'z', seg: 36, face: knurl(36, '#8f9296', '#c9ccce') });
+  kit.cyl('metal', '#b8bbbe', 0, 0, 0.009, 0.0228, 0.018, { axis: 'z', seg: 60, face: knurl(60, '#7f8286', '#d2d5d7') });
   kit.lathe('satin', TADO, 0, 0, 0, [[0.0226, 0.0178], [0.0262, 0.0195], [0.0279, 0.0235], [0.028, 0.058]], { seg: 40, axis: 'z' });
-  kit.lathe('satin', TADO, 0, 0, 0, [[0.028, 0.058], [0.028, 0.0765], [0.0271, 0.0798], [0.0247, 0.0812], [0.0216, 0.0812]], { seg: 48, axis: 'z', face: knurl(48, '#e7e7e4', TADO) });
+  kit.lathe('satin', TADO, 0, 0, 0, [[0.028, 0.058], [0.028, 0.0765], [0.0271, 0.0798], [0.0247, 0.0812], [0.0216, 0.0812]], { seg: 96, axis: 'z', face: knurl(96, '#dededb', TADO) });
   kit.lathe('glass', '#07080a', 0, 0, 0, [[0.0216, 0.0808], [0.0212, 0.0812], [0, 0.0814]], { seg: 32, axis: 'z' });
   const g = new THREE.CircleGeometry(0.0182, 32);
   const uv = g.attributes.uv;

@@ -36,19 +36,4 @@ cp $S/*.png $P/aaa/ 2>/dev/null
 python3 Niepotrzebne/tools/abpack.py $R house $S/tv-living-dom.png $REF/steam/electrician-smart/07.jpg $S/tv-overview-dom.png $REF/steam/electrician/07.jpg $S/tv-overview-willa.png $REF/steam/electrician-smart/05.jpg $S/tv-night-dom.png $REF/steam/electrician-smart-vr/05.jpg
 python3 Niepotrzebne/tools/abpack.py $R rack $S/tv-rack-dom.png $REF/steam/datacenter/07.jpg $S/tv-rack-willa.png $REF/steam/datacenter/06.jpg
 python3 Niepotrzebne/tools/abpack.py $R hud $S/tv-review-gzowo.png $REF/steam/electrician/06.jpg $S/tv-panel-dom.png $REF/steam/electrician-smart/08.jpg
-python3 - "$S" "$REF" "$R" <<'PY'
-import sys, os, subprocess
-from PIL import Image
-S, REF, R = sys.argv[1:4]
-crops = {'google': (f'{REF}/ui/google-home/01.jpg', (147, 307, 2413, 1722)), 'apple': (f'{REF}/ui/apple-home/01.jpg', (700, 45, 1585, 955)), 'ha': (f'{REF}/ui/ha/01.png', None)}
-args = []
-for p, (src, box) in crops.items():
-    im = Image.open(src).convert('RGB')
-    if box: im = im.crop(box)
-    dst = f'{S}/ref-dash-{p}.png'
-    im.save(dst)
-    args += [f'{S}/dash-{p}.png', dst]
-subprocess.run(['python3', 'Niepotrzebne/tools/abpack.py', R, 'dash', *args])
-PY
-python3 Niepotrzebne/tools/idpack.py $R u7-pro u7-lite u7-pro-wall u7-outdoor g5-bullet g5-turret-ultra g5-flex g4-doorbell-pro ucg-ultra ucg-max udm-pro-max usw-lite-8-poe usw-pro-max-24-poe unvr shelly-pro-4pm shelly-pro-2pm hue-e27 hue-bridge-pro tado-trv-x nuki-ultra aqara-hub-m3 sonos-era-100 homepod-mini ipad-a16
 ls $P

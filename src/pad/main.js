@@ -2,7 +2,7 @@
 
 import { connectClient } from "../net/index.js";
 import { PROTO, REACTIONS } from "../shared/protocol.js";
-import { fmtZl } from "../shared/catalog.js";
+import { fmtZl, BY_ID } from "../shared/catalog.js";
 import { icon, avatar } from "../shared/icons.js";
 import { $, el, esc, haptic, toast, confirmBox, sheet } from "./ui.js";
 import { askOrientation } from "./gestures.js";
@@ -182,6 +182,10 @@ function tasksView() {
   const S = ctx.S;
   const solo = S.players.filter((p) => p.online).length <= 1;
   const powerOff = !(S.panel?.main);
+  const gwDev = S.devs.find((d) => (d.place === "rack" || d.place === "shelf") && BY_ID[d.id]?.caps.includes("gateway"));
+  const rackDark = !!(gwDev && S.der?.dev[gwDev.uid] && !S.der.dev[gwDev.uid].pw);
+  const apsMine = S.devs.filter((d) => BY_ID[d.id]?.caps.includes("ap"));
+  const apsDark = apsMine.length && !(S.der?.aps || []).length;
   const tasks = S.tasks || [];
   app.innerHTML = `${topBar(S.job.client.name, S.job.buildingName)}
     <div class="body">
@@ -190,8 +194,8 @@ function tasksView() {
         const st = taskStatus(t);
         const done = st && st.n && st.ok === st.n;
         const loose = S.devs.filter((d) => d.place !== "fixed" && S.der?.dev[d.uid] && !S.der.dev[d.uid].net && (d.run || ((d.place === "rack" || d.place === "shelf") && d.id !== "rack-shelf" && !["patch-panel-24", "brush-panel", "ups-2u", "pdu-pro"].includes(d.id)))).length;
-        const hot = (t.id === "panel" && powerOff) || (t.id === "rack" && loose > 0 && !powerOff);
-        const sub = t.id === "panel" ? (powerOff ? "Prąd wyłączony. Zacznij tutaj!" : "Bezpieczniki, moduły Shelly") : t.id === "rack" ? (loose ? `${loose} bez kabla albo prądu` : "Bramka, switch, patchowanie") : t.id === "wifi" ? `Zasięg ${Math.round((S.der?.cov || 0) * 100)}%` : t.id === "tablet" ? (S.tablet?.mount ? "Projekt pulpitu" : "Kup, powieś, sparuj") : t.id === "handover" ? "Zawołaj klienta" : t.id === "outdoor" ? "Kamery, dzwonek, brama" : roomSub(t.room);
+        const hot = (t.id === "panel" && (powerOff || rackDark)) || (t.id === "rack" && loose > 0 && !powerOff && !rackDark);
+        const sub = t.id === "panel" ? (powerOff ? "Prąd wyłączony. Zacznij tutaj!" : rackDark ? "Szafa bez prądu: włącz bezpieczniki" : "Bezpieczniki, moduły Shelly") : t.id === "rack" ? (rackDark ? "Szafa bez prądu" : loose ? `${loose} bez kabla albo prądu` : "Bramka, switch, patchowanie") : t.id === "wifi" ? (apsDark ? `Zasięg 0%: punkty nie działają` : `Zasięg ${Math.round((S.der?.cov || 0) * 100)}%`) : t.id === "tablet" ? (S.tablet?.mount ? "Projekt pulpitu" : "Kup, powieś, sparuj") : t.id === "handover" ? "Zawołaj klienta" : t.id === "outdoor" ? "Kamery, dzwonek, brama" : roomSub(t.room);
         return `<button class="task ${hot ? "hot" : ""} ${done ? "done" : ""} ${t.id === "handover" ? "wide" : ""}" data-id="${esc(t.id)}">${icon(t.icon || "home", 26, 1.9)}<div><b>${esc(t.name)}</b><br><small>${esc(sub)}</small></div></button>`;
       }).join("")}</div>
     </div>`;

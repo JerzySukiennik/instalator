@@ -133,6 +133,7 @@ export function makeSite(api, o = {}) {
     trees(list) { for (const t of list) S.tree(...t); },
     tuft(x, z, s = 1) { tufts.push({ x, z, s, y: S.ground(x, z) }); },
     scatter(n, test, seed = 1, sMin = 0.8, sMax = 1.3, x0 = -40, z0 = -40, x1 = 40, z1 = 40) {
+      sMin *= 0.62; sMax *= 0.62; n = Math.round(n * 1.35);
       const R = rng(seed);
       let k = 0;
       for (let i = 0; i < n * 6 && k < n; i++) {
@@ -370,11 +371,9 @@ export function makeSite(api, o = {}) {
             if (ww < 1 && b.balconies?.includes(face)) {
               g.use('satin');
               rect(u - 1.6, u + 1.6, yy - 0.18, yy, 1.3, '#bcb8b0');
-              const fr = P0(u - 1.6, 1.3, yy), to = P0(u + 1.6, 1.3, yy);
               g.use('matte');
               const a2 = P0(u - 1.6, 1.25, yy), b2 = P0(u + 1.6, 1.3, yy + 1.05);
               g.bx(Math.min(a2[0], b2[0]), yy, Math.min(a2[2], b2[2]), Math.max(a2[0], b2[0]), yy + 1.05, Math.max(a2[2], b2[2]), accent);
-              void fr; void to;
               if (hash(f, i, 3) < 0.5) { const pp = P0(u + 1.0, 0.6, yy); g.blob(pp[0], yy + 0.45, pp[2], 0.3, 0.35, 0.3, '#5d7a42', f + i, { detail: 0 }); }
             }
             g.use('matte');

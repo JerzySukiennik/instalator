@@ -63,26 +63,31 @@ function homepodMini() {
   const prof = [];
   const a0 = Math.asin(-(cy - 0.0016) / R), a1 = Math.asin((Hh - cy - 0.0016) / R);
   for (let i = 0; i <= 12; i++) { const a = a0 + (a1 - a0) * (i / 12); prof.push([Math.cos(a) * R, cy + Math.sin(a) * R]); }
-  const mesh = patternMat('homepod-mesh', '#e9e9e7', 0.95, (ctx) => {
-    ctx.fillStyle = '#efefed'; ctx.fillRect(0, 0, 64, 64);
-    ctx.strokeStyle = '#a9aaab'; ctx.lineWidth = 3.2;
-    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(64, 64); ctx.moveTo(64, 0); ctx.lineTo(0, 64); ctx.stroke();
-  }, [56, 14]);
-  const g = new THREE.LatheGeometry(prof.map(([r, y]) => new THREE.Vector2(r, y)), 36);
+  const mesh = patternMat('homepod-mesh-fine', '#ebebe9', 0.95, (ctx) => {
+    ctx.fillStyle = '#f1f1ef'; ctx.fillRect(0, 0, 64, 64);
+    ctx.strokeStyle = '#b4b5b6'; ctx.lineWidth = 2.2;
+    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(64, 64); ctx.moveTo(64, 0); ctx.lineTo(0, 64); ctx.moveTo(-32, 32); ctx.lineTo(32, 96); ctx.moveTo(32, -32); ctx.lineTo(96, 32); ctx.moveTo(96, 32); ctx.lineTo(32, 96); ctx.moveTo(32, -32); ctx.lineTo(-32, 32); ctx.stroke();
+  }, [96, 22]);
+  const g = new THREE.LatheGeometry(prof.map(([r, y]) => new THREE.Vector2(r, y)), 40);
   kit.add(mesh, null, g);
   const rTop = prof[prof.length - 1][0], rBot = prof[0][0];
   kit.lathe('satin', '#d9d9d7', 0, 0, 0, [[0, 0], [rBot - 0.002, 0], [rBot, 0.0016]], { seg: 24 });
-  kit.lathe('gloss', '#f2f2f2', 0, 0, 0, [[rTop, Hh - 0.0016], [rTop - 0.003, Hh - 0.0003], [0.026, Hh], [0.024, Hh]], { seg: 32 });
-  const glow = new THREE.MeshStandardMaterial({ color: '#f4f4f6', roughness: 0.2, emissive: '#ffffff', emissiveIntensity: 1.3, emissiveMap: canvasTex('siri-glow', 128, 128, (ctx) => {
-    const gr = ctx.createRadialGradient(64, 64, 4, 64, 64, 64);
-    gr.addColorStop(0, '#202020'); gr.addColorStop(0.45, '#6a3cff'); gr.addColorStop(0.7, '#ff5fc8'); gr.addColorStop(0.86, '#45c8ff'); gr.addColorStop(1, '#1a1a1a');
-    ctx.fillStyle = gr; ctx.fillRect(0, 0, 128, 128);
+  kit.lathe('gloss', '#f2f2f2', 0, 0, 0, [[rTop, Hh - 0.0016], [rTop - 0.003, Hh - 0.0003], [0.03, Hh], [0.028, Hh]], { seg: 32 });
+  const glow = new THREE.MeshStandardMaterial({ color: '#1a1a1e', roughness: 0.15, emissive: '#ffffff', emissiveIntensity: 1.7, emissiveMap: canvasTex('siri-glow-vivid', 256, 256, (ctx) => {
+    ctx.fillStyle = '#121214'; ctx.fillRect(0, 0, 256, 256);
+    const blobs = [['#7a2cff', 92, 96, 70], ['#ff2fa8', 160, 92, 66], ['#ff8a1f', 168, 160, 58], ['#2fb8ff', 96, 164, 66], ['#3b5bff', 128, 128, 40]];
+    ctx.globalCompositeOperation = 'lighter';
+    for (const [c, x, y, r] of blobs) { const gr = ctx.createRadialGradient(x, y, 2, x, y, r); gr.addColorStop(0, c); gr.addColorStop(1, 'rgba(0,0,0,0)'); ctx.fillStyle = gr; ctx.fillRect(0, 0, 256, 256); }
+    ctx.globalCompositeOperation = 'destination-in';
+    const m = ctx.createRadialGradient(128, 128, 60, 128, 128, 128); m.addColorStop(0, 'rgba(0,0,0,1)'); m.addColorStop(1, 'rgba(0,0,0,0.15)');
+    ctx.fillStyle = m; ctx.fillRect(0, 0, 256, 256);
+    ctx.globalCompositeOperation = 'source-over';
   }), flatShading: true });
   glow.name = 'dev-light';
-  const cg = new THREE.CircleGeometry(0.024, 32).rotateX(-Math.PI / 2).translate(0, Hh + 0.0001, 0);
+  const cg = new THREE.CircleGeometry(0.028, 40).rotateX(-Math.PI / 2).translate(0, Hh + 0.0001, 0);
   const cm = new THREE.Mesh(cg, glow);
   kit.extra.push(cm);
-  kit.leds.push({ material: glow, role: 'glow', color: '#6a3cff' });
+  kit.leds.push({ material: glow, role: 'glow', color: '#7a2cff' });
   return kit.build();
 }
 
@@ -163,25 +168,25 @@ function tvStreamer() {
 
 function era100() {
   const kit = new Kit();
-  const W = 0.12, D = 0.1305, H = 0.1825;
+  const W = 0.12, D = 0.1305, H = 0.1825, n = 2.35;
   const grille = patternMat('sonos-grille-black', '#1b1b1d', 0.85, (ctx) => {
     ctx.fillStyle = '#1d1d1f'; ctx.fillRect(0, 0, 64, 64);
     ctx.fillStyle = '#0c0c0d';
     for (let i = 0; i < 4; i++) for (let j = 0; j < 4; j++) { ctx.beginPath(); ctx.arc(8 + i * 16 + (j % 2) * 8, 8 + j * 16, 4, 0, Math.PI * 2); ctx.fill(); }
   }, [60, 46]);
-  const body = loftGeo([[0.004, 0], [0.0012, 0.0012], [0, 0.0045], [0, H - 0.008]].map(([k, y]) => ({ y, pts: seLoop(W - 2 * k, D - 2 * k, 3.1, 52) })));
+  const body = loftGeo([[0.004, 0], [0.0012, 0.0012], [0, 0.0045], [0, H - 0.008]].map(([k, y]) => ({ y, pts: seLoop(W - 2 * k, D - 2 * k, n, 56) })));
   const uv = new Float32Array(body.attributes.position.count * 2);
   const P = body.attributes.position.array;
   for (let i = 0; i < uv.length / 2; i++) { uv[i * 2] = (Math.atan2(P[i * 3 + 2], P[i * 3]) / (Math.PI * 2) + 0.5); uv[i * 2 + 1] = P[i * 3 + 1] / H; }
   body.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
   kit.add(grille, null, body);
-  kit.add('satin', '#202022', loftGeo([[0, H - 0.008], [0, H - 0.003], [0.0025, H - 0.0006], [0.005, H]].map(([k, y]) => ({ y, pts: seLoop(W - 2 * k, D - 2 * k, 3.1, 52) }))));
-  kit.box('matte', '#0c0c0d', 0, H + 0.0001, 0.006, 0.05, 0.0006, 0.0055, { r: 0.0027, seg: 3, axis: 'y' });
-  for (const x of [-0.034, 0.034]) kit.cyl('matte', '#3a3a3d', x, H + 0.0002, 0.006, 0.0016, 0.0004, { seg: 8 });
-  kit.cyl('matte', '#3a3a3d', 0, H + 0.0002, -0.026, 0.0016, 0.0004, { seg: 8 });
-  kit.led('#ffffff', 'status', (m) => kit.cyl(m, null, 0, H + 0.0002, 0.04, 0.0009, 0.0004, { seg: 8 }), { intensity: 1 });
-  const logo = labelMat('sonos-word-dark', 256, 64, (ctx) => { ctx.clearRect(0, 0, 256, 64); ctx.fillStyle = '#4a4a4e'; ctx.font = '700 48px "Futura", "Avenir Next", Helvetica, Arial'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('SONOS', 128, 34); });
-  kit.quad(logo, null, 0.034, 0.0085, 0.044, H - 0.04, D / 2 * 0.86, { rz: -Math.PI / 2, ry: 0.55 });
+  kit.add('satin', '#2a2a2e', loftGeo([[0, H - 0.008], [0, H - 0.003], [0.0025, H - 0.0006], [0.005, H]].map(([k, y]) => ({ y, pts: seLoop(W - 2 * k, D - 2 * k, n, 56) }))));
+  kit.box('matte', '#050506', -0.004, H + 0.0002, 0.002, 0.074, 0.0007, 0.0062, { r: 0.003, seg: 3, axis: 'y', ry: 0.42 });
+  for (const [x, z] of [[-0.036, -0.034], [0.03, 0.038], [0.04, 0.012], [-0.044, 0.006]]) kit.cyl('matte', '#3a3a3d', x, H + 0.0002, z, 0.0012, 0.0004, { seg: 8 });
+  kit.led('#ffffff', 'status', (m) => kit.cyl(m, null, -0.02, H + 0.0002, -0.046, 0.0009, 0.0004, { seg: 8 }), { intensity: 1 });
+  const logo = labelMat('sonos-word-dark', 256, 64, (ctx) => { ctx.clearRect(0, 0, 256, 64); ctx.fillStyle = '#56565b'; ctx.font = '700 48px "Futura", "Avenir Next", Helvetica, Arial'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('SONOS', 128, 34); });
+  const t = 0.62, px = Math.pow(Math.cos(t), 2 / n) * W / 2 * 1.012, pz = Math.pow(Math.sin(t), 2 / n) * D / 2 * 1.012;
+  kit.quad(logo, null, 0.036, 0.009, px, H - 0.042, pz, { rz: -Math.PI / 2, ry: Math.PI / 2 - 0.7, order: 'YXZ' });
   return kit.build();
 }
 
@@ -212,10 +217,10 @@ function arcUltra() {
 export const MEDIA = {
   'ha-green': { mount: 'surface', family: 'hub', name: 'Home Assistant Green', build: haGreen, view: { el: 30 } },
   'ha-zbt2': { mount: 'surface', family: 'hub', name: 'Home Assistant Connect ZBT-2', build: zbt2 },
-  'homepod-mini': { mount: 'surface', family: 'hub', name: 'Apple HomePod mini', build: homepodMini },
+  'homepod-mini': { mount: 'surface', family: 'hub', name: 'Apple HomePod mini', build: homepodMini, view: { el: 30 } },
   'apple-tv-4k': { mount: 'surface', family: 'hub', name: 'Apple TV 4K', build: appleTv, view: { el: 34 } },
   'nest-hub': { mount: 'surface', family: 'hub', name: 'Google Nest Hub', build: nestHub, view: { yaw: 18, el: 12 } },
   'google-tv-streamer': { mount: 'surface', family: 'hub', name: 'Google TV Streamer', build: tvStreamer, view: { el: 30 } },
-  'sonos-era-100': { mount: 'surface', family: 'hub', name: 'Sonos Era 100', build: era100 },
+  'sonos-era-100': { mount: 'surface', family: 'hub', name: 'Sonos Era 100', build: era100, view: { el: 30 } },
   'sonos-arc-ultra': { mount: 'surface', family: 'hub', name: 'Sonos Arc Ultra', build: arcUltra, view: { yaw: 22, el: 16 } },
 };

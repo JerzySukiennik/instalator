@@ -87,7 +87,7 @@ const ELEV = { ceiling: 48, din: 14, rack: 16, socketE27: 14, socketGU10: 24, st
 
 function stageModel(id) {
   const info = MODEL_INFO[id] || { mount: 'surface' };
-  const dev = Q.get('strip') && info.strip ? buildStrip(id, [[-0.4, 0, 0], [0.4, 0, 0], [0.4, 0, -0.3]].map((p) => new THREE.Vector3(...p)), { normal: [0, 1, 0], on: Q.get('on') === '1' }) : buildDevice(id, { on: Q.get('on') === '1' ? true : Q.get('on') === '0' ? false : undefined, color: Q.get('lc') ? '#' + Q.get('lc') : undefined, rows: +(Q.get('rows') || 0) || undefined });
+  const dev = Q.get('strip') && info.strip ? buildStrip(id, [[-0.4, 0, 0], [0.4, 0, 0], [0.4, 0, -0.3]].map((p) => new THREE.Vector3(...p)), { normal: [0, 1, 0], on: Q.get('on') === '1' }) : buildDevice(id, { on: Q.get('on') === '1' ? true : Q.get('on') === '0' ? false : (info.view && info.view.on) || undefined, color: Q.get('lc') ? '#' + Q.get('lc') : (info.view && info.view.lc) || undefined, rows: +(Q.get('rows') || 0) || undefined });
   const inner = new THREE.Group();
   inner.add(dev);
   const pr = info.view && info.view.flip === false ? null : PRESENT[info.mount];

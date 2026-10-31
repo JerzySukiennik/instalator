@@ -54,16 +54,29 @@ export function mount(root, ctx, taskId, h) {
     toast("W szafie nie ma już miejsca.");
   };
   const runAll = (links) => links.forEach((l, i) => setTimeout(() => { haptic(true); ctx.send({ a: "patch", from: l.from, to: l.to, color: l.color }); }, i * 420));
+  const runOps = (ops) => ops.forEach((o, i) => setTimeout(() => {
+    haptic(true);
+    if (o.unpatch) ctx.send({ a: "unpatch", at: o.unpatch });
+    else if (o.patch) ctx.send({ a: "patch", from: o.patch.from, to: o.patch.to, color: o.patch.color });
+  }, i * 420));
 
   const drawGuide = () => {
     step = netStep(ctx.S, ctx.B);
     const g = $(".guide", body);
-    const btns = step.buy ? `<button class="btn y sm gbuy">${icon("cart", 18, 2)} Kup</button>` : step.place ? `<button class="btn y sm gplace">${icon("drill", 18, 2)} Zamontuj</button>` : step.link ? `<button class="btn y sm glink">Podłącz</button>${step.all.length > 1 ? `<button class="btn w sm gall">Podłącz wszystko (${step.all.length})</button>` : ""}` : "";
-    g.innerHTML = `<div class="gcard ${step.done ? "ok" : ""}"><span class="gn">${step.done ? icon("check", 18, 3) : step.n}</span><div class="gt">${esc(step.text)}</div>${btns ? `<div class="gb">${btns}</div>` : ""}</div>`;
+    const btns = step.fix ? `<button class="btn y sm gfix">${icon("drill", 18, 2)} Napraw</button>`
+      : step.goto ? `<button class="btn y sm ggo">${icon("bolt", 18, 2)} Do rozdzielnicy</button>`
+      : step.buy ? `<button class="btn y sm gbuy">${icon("cart", 18, 2)} Kup</button>`
+      : step.place ? `<button class="btn y sm gplace">${icon("drill", 18, 2)} Zamontuj</button>`
+      : step.link ? `<button class="btn y sm glink">Podłącz</button>${(step.all || []).length > 1 ? `<button class="btn w sm gall">Podłącz wszystko (${step.all.length})</button>` : ""}` : "";
+    const warn = step.warn ? `<div class="gcard warn"><span class="gn">${icon("bolt", 18, 2.4)}</span><div class="gt">${esc(step.warn.text)}</div><div class="gb"><button class="btn w sm gwarn">${icon("bolt", 18, 2)} Do rozdzielnicy</button></div></div>` : "";
+    g.innerHTML = `${warn}<div class="gcard ${step.done ? "ok" : step.goto ? "warn" : ""}"><span class="gn">${step.done ? icon("check", 18, 3) : step.goto ? icon("bolt", 18, 2.4) : step.n}</span><div class="gt">${esc(step.text)}</div>${btns ? `<div class="gb">${btns}</div>` : ""}</div>`;
     if ($(".gbuy", g)) $(".gbuy", g).onclick = () => openShop(ctx, ["siec", "centrale", "kamery"]);
     if ($(".gplace", g)) $(".gplace", g).onclick = () => { haptic(true); autoPlace(step.place); };
     if ($(".glink", g)) $(".glink", g).onclick = () => runAll([step.link]);
     if ($(".gall", g)) $(".gall", g).onclick = () => runAll(step.all);
+    if ($(".gfix", g)) $(".gfix", g).onclick = () => runOps(step.fix);
+    if ($(".ggo", g)) $(".ggo", g).onclick = () => { haptic(); ctx.openTask(step.goto); };
+    if ($(".gwarn", g)) $(".gwarn", g).onclick = () => { haptic(); ctx.openTask(step.warn.goto); };
   };
 
   const objs = new Map();

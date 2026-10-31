@@ -19,8 +19,9 @@ export function mount(root, ctx, taskId, h) {
     planHost.appendChild(floors);
     floors.querySelectorAll("button").forEach((b) => (b.onclick = () => { floor = Number(b.dataset.f); haptic(); ctx.stream({ t: "floor", floor }); draw(); }));
   }
-  const cov = el(`<div class="cov"><b>0%</b><span>zasięgu w domu</span></div>`);
+  const cov = el(`<div class="cov"><b>0%</b><span>zasięgu w domu</span><small class="why" hidden></small><button class="btn y sm go" hidden>Napraw w szafie</button></div>`);
   planHost.appendChild(cov);
+  $(".go", cov).onclick = () => { haptic(); ctx.openTask("rack"); };
   const outdoorAp = () => (BY_ID[sel]?.wifi?.outdoor);
 
   const apList = () => (ctx.S.der?.aps || []).map((a) => ({ ...a }));
@@ -44,6 +45,12 @@ export function mount(root, ctx, taskId, h) {
     const pct = grid && grid.inside ? Math.round((grid.good / grid.inside) * 100) : 0;
     $("b", cov).textContent = `${ghost ? pct : Math.round((ctx.S.der?.cov || 0) * 100)}%`;
     $("span", cov).textContent = ghost ? "z nowym punktem (to piętro)" : "zasięgu w całym domu";
+    const mine = ctx.S.devs.filter((d) => BY_ID[d.id]?.caps.includes("ap"));
+    const dark = mine.filter((d) => !(ctx.S.der?.dev[d.uid]?.pw && (ctx.S.der?.aps || []).some((a) => a.uid === d.uid)));
+    const why = !ghost && dark.length ? (ctx.S.der?.dev[dark[0].uid]?.pw ? `${dark.length} z ${mine.length} punktów bez sieci` : `${dark.length} z ${mine.length} punktów bez prądu`) : "";
+    $(".why", cov).hidden = !why;
+    $(".why", cov).textContent = why;
+    $(".go", cov).hidden = !why;
     plan.set({ floor, heat: grid, devs: ctx.S.devs, der: ctx.S.der, ghost: ghost ? { ...ghost, floor } : null, mounts: ghost ? [] : sel ? validMounts(sel) : [], zones: !!outdoorAp() });
   };
 

@@ -15,6 +15,7 @@ await page.waitForFunction(() => window.__demoReady === true, null, { timeout: 9
 const shots = await page.evaluate(async () => {
   const { renderDash } = await import("/src/dash/render.js");
   const { snapshotFor } = await import("/src/shared/game.js");
+  if (window.__shootCams) window.__shootCams();
   const snap = snapshotFor(window.__tv.state, window.__tv.data);
   const out = {};
   for (const p of ["ha", "apple", "google"]) {

@@ -17,19 +17,20 @@ function wordMat(key, text, color, font, w = 256, h = 96) {
   });
 }
 
-function e27Base(kit, seg = 10) {
+function e27Base(kit, seg = 8) {
   const thread = [];
-  for (let i = 0; i <= 4; i++) thread.push([i % 2 ? 0.0127 : 0.0136, -0.0262 + i * 0.005]);
-  kit.lathe('metal', '#cfd1d3', 0, 0, 0, [...thread, [0.0124, -0.0055]], { seg });
-  kit.lathe('gloss', '#18191b', 0, 0, 0, [[0.0124, -0.0055], [0.0052, -0.0019], [0, 0]], { seg: 8 });
+  for (let i = 0; i <= 6; i++) thread.push([i % 2 ? 0.0126 : 0.0137, -0.0262 + i * 0.0033]);
+  kit.lathe('metal', '#d3d5d7', 0, 0, 0, [...thread, [0.0124, -0.0055]], { seg, face: (cx, cy, cz, nx, ny, nz) => (ny < -0.2 ? '#9fa3a7' : null) });
+  kit.lathe('gloss', '#141416', 0, 0, 0, [[0.0124, -0.0055], [0.0062, -0.0024], [0.0034, -0.0014]], { seg: 8 });
+  kit.lathe('metal', '#cdb98a', 0, 0, 0, [[0.0034, -0.0014], [0, 0]], { seg: 8 });
 }
 
 function bulb(o) {
   const kit = new Kit();
   e27Base(kit);
-  kit.lathe('satin', o.body, 0, 0, 0, o.neck, { seg: 14 });
+  kit.lathe('satin', o.body, 0, 0, 0, o.neck, { seg: 12 });
   const lc = o.color || WARM;
-  kit.light(lc, 'bulb', [0, o.lightY, 0], (m) => kit.lathe(m, null, 0, 0, 0, o.dome, { seg: 14 }), { on: o.on, base: '#ebe9e5', intensity: 1.9 });
+  kit.light(lc, 'bulb', [0, o.lightY, 0], (m) => kit.lathe(m, null, 0, 0, 0, o.dome, { seg: 12 }), { on: o.on, base: '#efedea', intensity: o.on ? 1.15 : 1.15 });
   if (o.logo) kit.quad(o.logo, null, o.logoW, o.logoW * 0.375, 0, o.logoY, o.logoZ, { rx: o.logoRx || 0, rz: Math.PI });
   kit.ud.bulb = true;
   return kit.build();
@@ -42,7 +43,7 @@ function hueE27(opts = {}) {
     neck: [[0.029, -0.075], [0.0255, -0.0605], [0.0192, -0.0445], [0.0158, -0.0325], [0.015, -0.0262]],
     dome: [[0, -0.112], [0.0165, -0.1112], [0.0268, -0.1062], [0.0301, -0.0965], [0.0299, -0.0855], [0.029, -0.075]],
     lightY: -0.094,
-    logo: wordMat('hue-word-grey', 'hue', '#6f6a64', '500 64px "Avenir Next", Helvetica, Arial', 192, 72), logoW: 0.013, logoY: -0.056, logoZ: 0.0244, logoRx: 0.34,
+    logo: wordMat('hue-word-dark', 'hue', '#4f4a44', '600 66px "Avenir Next", Helvetica, Arial', 192, 72), logoW: 0.016, logoY: -0.056, logoZ: 0.0247, logoRx: 0.34,
   });
 }
 
@@ -73,10 +74,10 @@ function hueGU10(opts = {}) {
 function hueBridgePro() {
   const kit = new Kit();
   const W = 0.0923, H = 0.026;
-  kit.loft('satin', '#1d1d1f', 0, 0, 0, W, W, 0.021, 5, [[0.003, 0], ...botR(0, 0.003, 2), ...topR(H, 0.006, 3)]);
-  kit.lathe('satin', '#3a3a3d', 0, H - 0.0016, 0, [[0.0312, 0.0017], [0.0305, 0.00125]], { seg: 32 });
-  kit.lathe('gloss', '#121214', 0, H - 0.0016, 0, [[0.0305, 0.00125], [0.0298, 0.0004], [0.022, 0], [0, 0]], { seg: 32 });
-  kit.quad(wordMat('hue-word-dark', 'hue', '#3c3c3f', '500 64px "Avenir Next", Helvetica, Arial', 192, 72), null, 0.014, 0.00525, 0, H - 0.0011, 0, { rx: -Math.PI / 2 });
+  kit.loft('matte', '#0c0c0e', 0, 0, 0, W, W, 0.021, 5, [[0.003, 0], ...botR(0, 0.003, 2), ...topR(H, 0.006, 3)]);
+  kit.lathe('satin', '#3d3d42', 0, H, 0, [[0.0318, 0.00005], [0.0309, 0.0003]], { seg: 40 });
+  kit.lathe('gloss', '#151518', 0, H, 0, [[0.0309, 0.0003], [0.0296, 0.0006], [0.02, 0.0008], [0, 0.0009]], { seg: 40 });
+  kit.quad(wordMat('hue-word-bridge', 'hue', '#8d8d95', '500 66px "Avenir Next", Helvetica, Arial', 192, 72), null, 0.019, 0.0071, 0, H + 0.0011, 0.002, { rx: -Math.PI / 2 });
   kit.led('#f1f3f6', 'status', (m) => kit.cyl(m, null, -0.004, H + 0.00005, -0.038, 0.0007, 0.0003, { seg: 8 }), { intensity: 1.4 });
   kit.box('matte', '#4b4b4f', 0.004, H + 0.0001, -0.038, 0.0032, 0.0002, 0.0018);
   kit.port('lan', 'rj45', -0.01, 0.012, -W / 2);
@@ -124,9 +125,9 @@ function goveeFloorLamp(opts = {}) {
 }
 
 export const LIGHT = {
-  'hue-e27': { mount: 'socketE27', family: 'light', name: 'Philips Hue White and Color E27', build: hueE27, bulb: true },
-  'hue-gu10': { mount: 'socketGU10', family: 'light', name: 'Philips Hue White and Color GU10', build: hueGU10, bulb: true },
-  'ikea-kajplats-e27': { mount: 'socketE27', family: 'light', name: 'IKEA KAJPLATS E27', build: kajplats, bulb: true },
+  'hue-e27': { mount: 'socketE27', family: 'light', name: 'Philips Hue White and Color E27', build: hueE27, bulb: true, view: { on: true, lc: '#d76bff' } },
+  'hue-gu10': { mount: 'socketGU10', family: 'light', name: 'Philips Hue White and Color GU10', build: hueGU10, bulb: true, view: { on: true, lc: '#d76bff' } },
+  'ikea-kajplats-e27': { mount: 'socketE27', family: 'light', name: 'IKEA KAJPLATS E27', build: kajplats, bulb: true, view: { on: true, lc: '#4fd6ff' } },
   'hue-bridge-pro': { mount: 'surface', family: 'light', name: 'Philips Hue Bridge Pro', build: hueBridgePro, view: { el: 52 } },
   'hue-tap-dial': { mount: 'wall', family: 'light', name: 'Philips Hue Tap Dial Switch', build: hueTapDial },
   'ikea-dirigera': { mount: 'surface', family: 'light', name: 'IKEA DIRIGERA', build: dirigera },

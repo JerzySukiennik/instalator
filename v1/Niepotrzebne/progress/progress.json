@@ -1,0 +1,115 @@
+{
+ "phase": "Runda 1 krytyków: modele (rozpoznawanie na ślepo) i pulpity tabletu; budynki w budowie",
+ "pieces": [
+  {
+   "id": "devices",
+   "name": "Modele urządzeń (UniFi, Hue, Shelly…)",
+   "owner": "builder Opus + krytyk Opus",
+   "status": "won",
+   "round": 1,
+   "shots": [
+    "models-grid.png",
+    "../shots/models/cmp_rack1.png"
+   ],
+   "verdict": "22/22 rozpoznane na ślepo spośród zdjęć produktów"
+  },
+  {
+   "id": "buildings",
+   "name": "4 budynki w przekroju",
+   "owner": "builder Opus + krytyk Opus",
+   "status": "building",
+   "round": 0,
+   "verdict": "kawalerka w bloku gotowa, reszta w toku",
+   "shots": [
+    "kawalerka.png"
+   ]
+  },
+  {
+   "id": "core",
+   "name": "Rdzeń gry: TV + telefony, tury, zlecenia",
+   "owner": "lead (Claude)",
+   "status": "won",
+   "round": 0,
+   "verdict": "działa: lobby → zlecenia → tury → odbiór; tryb komputerowy; testy logiki ALL OK"
+  },
+  {
+   "id": "panel",
+   "name": "Rozdzielnica",
+   "owner": "lead + krytyk Opus",
+   "status": "building",
+   "round": 0,
+   "verdict": "rozdzielnica 3D na telefonie z modeli z TV",
+   "shots": [
+    "pad-panel3d-c.png"
+   ]
+  },
+  {
+   "id": "rack",
+   "name": "Szafa rack UniFi i patchowanie",
+   "owner": "lead + krytyk Opus",
+   "status": "building",
+   "round": 0,
+   "verdict": "telefon pokazuje ten sam rack 3D co TV (po uwadze Jurka)",
+   "shots": [
+    "pad-rack3d-sheet.png"
+   ]
+  },
+  {
+   "id": "tablet",
+   "name": "Tablet i dashboardy HA / Apple / Google",
+   "owner": "lead + krytyk Opus",
+   "status": "loop",
+   "round": 1,
+   "verdict": "0/3: prawdziwe apki wygrały",
+   "shots": [
+    "../shots/dash/sheet.png"
+   ],
+   "gap": "placeholder kamery, za duże puste kafelki, złe ikony — poprawione, czeka na rundę 2"
+  },
+  {
+   "id": "phone",
+   "name": "Telefon: gesty i interakcje",
+   "owner": "lead + krytyk Opus",
+   "status": "building",
+   "round": 0,
+   "shots": [
+    "../shots/pad-sheet1.png",
+    "../shots/pad-sheet2.png"
+   ]
+  },
+  {
+   "id": "look",
+   "name": "Wygląd TV (światło, HUD, odbiór)",
+   "owner": "lead + krytyk Opus",
+   "status": "todo",
+   "round": 0
+  },
+  {
+   "id": "research",
+   "name": "Research: katalog, ceny, zdjęcia, wzorce, dźwięki",
+   "owner": "4× Haiku",
+   "status": "won",
+   "round": 0,
+   "verdict": "73 produkty z cenami PL, 102 zdjęcia, 54 zrzuty wzorców, 35 dźwięków"
+  }
+ ],
+ "log": [
+  {
+   "t": "2026-10-31T16:31:38+0100",
+   "msg": "Wywiad zamknięty: TV + telefony, tury = zadania, 4 budynki z Gzowem, HA/Apple/Google, wzorzec: gry + AAA + prawdziwe urządzenia"
+  },
+  {
+   "t": "2026-10-31T17:38:16+0100",
+   "msg": "Dodana wersja na sam komputer (panel narzędzi z boku), na prośbę Jurka"
+  },
+  {
+   "t": "2026-10-31T17:45:30+0100",
+   "msg": "Jurek nie wiedział, jak podłączyć U7 do racka → dodany przewodnik z podświetlonymi portami, przycisk Podłącz wszystko i pytanie Wepnij od razu po montażu"
+  },
+  {
+   "t": "2026-10-31T18:01:41+0100",
+   "msg": "Runda 1: modele 22/22 ✓, pulpity 0/3 → przerobione według uwag krytyka"
+  }
+ ],
+ "updated": "2026-10-31T18:01:41+0100"
+}

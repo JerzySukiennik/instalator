@@ -5,7 +5,7 @@ import { P } from '../palette.js';
 import { makeSite, lawnColor, jetty, boat, kayak } from '../exterior.js';
 
 const PI = Math.PI, H = 2.72;
-const MARBLE = { type: 'marble', color: '#66746a', dark: '#323d37', vein: '#a37650', size: [1.2, 0.6], cell: 0.15, mat: 'gloss' };
+const MARBLE = { type: 'marble', color: '#5d6b61', dark: '#2f3a33', light: '#97a69a', vein: '#9a6a45', size: [1.2, 0.6], cell: 0.12, mat: 'gloss' };
 const OSB = { color: '#cfc6b5', flakes: { cols: ['#bcb09b', '#ddd5c6', '#a99c86', '#c9bfac', '#e4ddd0'], n: 105, joint: '#a1957f' } };
 
 export default {
@@ -46,7 +46,7 @@ export default {
     { id: 'korytarz', name: 'Korytarz', kind: 'hall', poly: [[-7.58, -2.54], [-6.32, -2.54], [-6.32, 0.86], [-7.58, 0.86]], floorFinish: { type: 'planks', color: '#a77d55', dir: 'z', w: 0.16, len: [1.0, 2.0] }, wall: '#ebe7df' },
     { id: 'lazienka', name: 'Łazienka', kind: 'bath', poly: [[-9.72, -2.54], [-7.58, -2.54], [-7.58, 0.86], [-9.72, 0.86]], floorFinish: { type: 'tiles', color: '#4f5550', size: [0.3, 0.6], grout: '#3c413d', vary: 0.04 }, wall: { color: '#ece9e2', tiles: { h: 2.1, color: '#e9e6df', size: [0.1, 0.1], grout: '#cfcac0', gap: 0.002 } } },
     { id: 'sypialnia', name: 'Sypialnia', kind: 'bed', poly: [[-9.72, 0.86], [-6.32, 0.86], [-6.32, 4.32], [-9.72, 4.32]], floorFinish: { type: 'planks', color: '#a77d55', dir: 'x', w: 0.16, len: [1.0, 2.0] }, wall: OSB, ceiling: { color: '#e3c08f' } },
-    { id: 'taras', name: 'Taras', kind: 'terrace', poly: [[-9.72, 4.32], [6.32, 4.32], [6.32, 8.4], [-9.72, 8.4]], floorFinish: { type: 'deck', color: '#8a573c', dir: 'x', w: 0.14, len: [2.4, 4.0], vary: 0.09, gap: 0.009 } }
+    { id: 'taras', name: 'Taras', kind: 'terrace', poly: [[-9.72, 4.32], [6.32, 4.32], [6.32, 8.4], [-9.72, 8.4]], floorFinish: { type: 'deck', color: '#7c5a44', dir: 'x', w: 0.14, len: [2.4, 4.0], vary: 0.09, gap: 0.009 } }
   ],
   items: [
     { t: 'stove', room: 'salon', x: -4.6, z: -3.55, r: 0, toWall: 0.68 },
@@ -63,6 +63,10 @@ export default {
     { t: 'plyTable', room: 'salon', x: 3.6, z: 1.3, r: 0 },
     { t: 'floorLamp', room: 'salon', x: 5.2, z: 2.6, r: 0, style: 'gzowo' },
     { t: 'pouf', room: 'salon', x: -0.6, z: 1.5, color: '#b9a28a' },
+    { t: 'rug', room: 'salon', x: -2.2, z: 1.25, r: 0, w: 3.0, d: 2.2, color: '#d9d0c0', border: '#8a6e57', pattern: 'berber', seed: 5 },
+    { t: 'sideTable', room: 'salon', x: -3.65, z: 2.55, r: 0, rad: 0.2, h: 0.5, top: '#d4ad7a', leg: '#1d1e20' },
+    { t: 'tableLamp', room: 'salon', x: -3.65, z: 2.55, r: 0, y: 0.5, lampBody: '#1d1e20', shadeCol: '#efe6d6' },
+    { t: 'box', room: 'salon', x: -5.25, z: -3.0, w: 0.5, d: 0.35, h: 0.32, color: '#6b4f38', noData: true },
     { t: 'plant', room: 'salon', x: -5.8, z: 3.75, kind: 'olive', s: 1.1, pot: '#2f3236' },
     { t: 'box', room: 'salon', x: 1.9, z: 0.2, w: 0.16, d: 0.1, h: 0.06, color: '#1d1e20', mat: 'matte', noData: true },
 
@@ -136,20 +140,20 @@ export default {
   zones: [
     { id: 'strefa-wejscie', kind: 'entrance', pos: [7.5, -0.4, 0.3], r: 2 },
     { id: 'strefa-taras', kind: 'terrace', pos: [-0.5, 0.4, 6.4], r: 4 },
-    { id: 'strefa-ogrod', kind: 'garden', pos: [-2.0, -0.7, 14.0], r: 7 },
-    { id: 'strefa-pomost', kind: 'jetty', pos: [2.0, -0.7, 29.5], r: 3 },
+    { id: 'strefa-ogrod', kind: 'garden', pos: [-2.0, -0.6, 12.0], r: 5 },
+    { id: 'strefa-pomost', kind: 'jetty', pos: [2.0, -0.7, 17.6], r: 2.5 },
     { id: 'strefa-brama', kind: 'gate', pos: [10.2, -0.45, -15.6], r: 2.5 },
     { id: 'strefa-podjazd', kind: 'driveway', pos: [10.0, -0.45, -7.0], r: 4 },
     { id: 'strefa-ulica', kind: 'street', pos: [10.0, -0.5, -22.0], r: 5 }
   ],
   extraMounts: [
     { id: 'brama-slupek', kind: 'gate', pos: [8.4, 0.75, -15.85], normal: [0, 0, 1], tags: ['gate', 'driveway'] },
-    { id: 'pomost-slupek', kind: 'outdoorWall', pos: [2.75, -0.55, 23.0], normal: [0, 0, 1], tags: ['jetty', 'post'] },
+    { id: 'pomost-slupek', kind: 'outdoorWall', pos: [2.75, -0.15, 15.95], normal: [0, 0, 1], tags: ['jetty', 'post'] },
     { id: 'drzewo-sosna', kind: 'outdoorWall', pos: [-12.6, 2.6, 9.2], normal: [0.6, 0, 0.8], tags: ['garden', 'tree'] }
   ],
   street: [10.0, -0.5, -22.0],
   approach: [[10.0, -0.5, -22.0], [10.2, -0.45, -16.0], [10.0, -0.45, -6.0], [7.6, -0.45, -1.0], [7.4, -0.2, 0.3]],
-  views: { dollhouse: { az: 0.18, el: 0.62, dist: 0.95, sunAz: 330, sunEl: 47 }, close: { pos: [1.2, 1.55, 3.4], target: [-1.6, 1.35, -4.2], fov: 64 } },
+  views: { dollhouse: { az: 0.36, el: 0.74, dist: 0.86, target: [-1.0, 0.4, 0.4], sunAz: 40, sunEl: 47 }, wide: { az: 0.12, el: 0.5, dist: 1.42, target: [-0.5, 0.0, 7.5], sunAz: 40, sunEl: 47 }, close: { pos: [1.2, 1.55, 3.4], target: [-1.6, 1.35, -4.2], fov: 64 } },
   ceilingDecor(api, ceil) {
     const g = ceil[0];
     g.use('satin');
@@ -165,8 +169,8 @@ export default {
   roof(api) { buildRoof(api); }
 };
 
-const bankZ = (x) => 24 + 1.6 * Math.sin(x * 0.045 + 0.6) + 0.8 * Math.sin(x * 0.13);
-const FAR = 118;
+const bankZ = (x) => 17.5 + 1.4 * Math.sin(x * 0.045 + 0.6) + 0.7 * Math.sin(x * 0.13);
+const FAR = 105;
 
 function ground(x, z) {
   const zb = bankZ(x);
@@ -201,7 +205,7 @@ function buildSite(api) {
     },
     hole: (x, z) => x > -9.2 && x < 5.8 && z > -3.8 && z < 7.8
   });
-  S.water({ x0: -120, z0: 16, x1: 120, z1: FAR + 2, y: -1.55, bankZ: 22.4, farZ: FAR - 1 });
+  S.water({ x0: -120, z0: 10, x1: 120, z1: FAR + 2, y: -1.55, bankZ: 16.0, farZ: FAR - 1 });
   g.use('satin');
   g.bx(-9.84, -0.6, 4.44, 6.44, -0.045, 8.4, C('#5c4535'));
   for (let i = 0; i < 2; i++) g.bx(-1.5, -0.6, 8.4 + i * 0.32, 2.5, -0.2 - i * 0.18, 8.72 + i * 0.32, C('#7a5a42'), { top: C('#8a573c') });
@@ -219,16 +223,16 @@ function buildSite(api) {
   g.use('metal');
   g.bx(6.62, 0.55, -16.4, 7.08, 0.85, -16.18, C('#2d4a3a'));
   S.car(10.1, -8.0, PI + 0.05, { color: '#9aa0a6', kind: 'sedan' });
-  jetty(S, 2.0, 22.6, 9.0, 1.6, -1.18);
-  boat(S, 3.55, -1.62, 28.4, 0.08, '#4f6f62');
-  kayak(S, -1.8, -1.32, 21.4, 1.35, '#d9682f');
+  jetty(S, 2.0, 15.6, 9.5, 1.6, -1.18);
+  boat(S, 3.55, -1.62, 21.8, 0.08, '#4f6f62');
+  kayak(S, -2.4, -1.3, 15.2, 1.35, '#d9682f');
   g.use('satin');
-  for (const [x, z] of [[2.75, 22.9], [1.25, 22.9]]) g.cyl(x, -1.4, z, 0.07, 0.07, 1.25, 7, C('#5d4a36'));
-  firePit(S, -5.5, 14.0);
+  for (const [x, z] of [[2.75, 15.9], [1.25, 15.9]]) g.cyl(x, -1.4, z, 0.07, 0.07, 1.25, 7, C('#5d4a36'));
+  firePit(S, -6.0, 12.2);
   hammock(S, [-14.2, 3.2], [-10.9, 6.6]);
-  const pines = [[-18, -10], [-15, 1.5], [-20, 12], [-11, -13], [3, -12.5], [-4, -13.5], [14.5, -12], [16, 3], [13.5, 13], [-14.2, 3.2], [-10.9, 6.6], [-21, 18], [17, 18.5], [-8, 18.5]];
+  const pines = [[-18, -10], [-15, 1.5], [-20, 12], [-11, -13], [3, -12.5], [-4, -13.5], [14.5, -12], [16, 3], [14.5, 11], [-14.2, 3.2], [-10.9, 6.6], [-21, 12.5], [17, 12.5], [-9, 13.5]];
   S.trees(pines.map(([x, z], i) => ['pine', x, z, 0.95 + hash(i, 4) * 0.35]));
-  S.trees([['birch', -16, 16, 1.0], ['birch', 10, 17.5, 0.95], ['birch', 12, 10, 0.9], ['oak', -6, -11, 1.0], ['oak', 17, -4, 0.95], ['willow', -12.5, 23.5, 1.0], ['willow', 10, 24.5, 1.05], ['willow', 24, 25.5, 1.1], ['alder', -26, 24, 1.0], ['bush', -22, 6, 0.9], ['bush', 18, 9, 1.0]]);
+  S.trees([['birch', -16, 13, 1.0], ['birch', 13.5, 13.5, 0.95], ['birch', 14.5, 8.5, 0.9], ['oak', -6, -11, 1.0], ['oak', 17, -4, 0.95], ['willow', -14.5, 17.0, 1.0], ['willow', 17, 17.5, 1.05], ['willow', 27, 19.0, 1.1], ['alder', -26, 24, 1.0], ['bush', -22, 6, 0.9], ['bush', 18, 9, 1.0]]);
   const R = rng(17);
   const far = [];
   for (let x = -110; x < 110; x += 3.2 + R() * 3) {
@@ -244,7 +248,7 @@ function buildSite(api) {
     if (noise2(x * 0.07, 9, 7) > 0.3) reeds.push(['reeds', x + R(), FAR - 2.5 + R() * 1.5, 0.8 + R() * 0.5]);
   }
   S.trees(reeds);
-  const lawn = (x, z) => x > -23.5 && x < 18.5 && z > -15.5 && z < bankZ(x) - 1.2 && !house(x, z, 0.4) && !drive(x, z) && !path(x, z) && Math.hypot(x + 5.5, z - 14) > 2.0;
+  const lawn = (x, z) => x > -23.5 && x < 18.5 && z > -15.5 && z < bankZ(x) - 1.2 && !house(x, z, 0.4) && !drive(x, z) && !path(x, z) && Math.hypot(x + 6.0, z - 12.2) > 2.0;
   S.scatter(5600, lawn, 51, 0.85, 1.4, -24, -16, 19, 26);
   S.scatter(1600, (x, z) => (x < -24.5 || x > 19.5) && z < 20 && z > -18, 52, 0.85, 1.3, -50, -18, 45, 20);
   S.scatter(1500, (x, z) => z > FAR + 2 && z < FAR + 30, 53, 0.9, 1.4, -70, FAR, 70, FAR + 30);

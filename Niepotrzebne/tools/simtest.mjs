@@ -2,6 +2,7 @@
 import { newState, reduce, startJob, tasksFor, snapshotFor, advanceTurn, activeCid } from "../../src/shared/game.js";
 import { rollJobs, makeJob, rng, CLIENTS } from "../../src/shared/jobs.js";
 import { derive, evaluate } from "../../src/shared/sim.js";
+import { netStep } from "../../src/shared/netguide.js";
 
 const q = [0, 0, 0, 1];
 const data = {
@@ -90,6 +91,28 @@ ok(der.online, "internet through ONT → gateway");
 ok(by("u7-pro").every((d) => der.dev[d.uid].pw && der.dev[d.uid].net), "both APs powered over PoE and online");
 ok(der.cov > 0.8, `Wi-Fi coverage ${Math.round(der.cov * 100)}%`);
 ok(der.dev[by("g4-doorbell-pro")[0].uid].net, "doorbell online");
+const guide = () => netStep({ ...s, der: derive(s, data) }, data);
+const apply = (st) => { for (const o of st.fix || []) o.unpatch ? A({ a: "unpatch", at: o.unpatch }) : A({ a: "patch", ...o.patch }); for (const l of st.all || []) A({ a: "patch", from: l.from, to: l.to, color: l.color }); };
+ok(guide().done, `guide: network ready (${guide().text})`);
+A({ a: "breaker", key: "main", on: false });
+let gs = guide();
+ok(gs.goto === "panel" && !gs.done, `guide: rack without power sends you to the panel (${gs.text})`);
+A({ a: "breaker", key: "main", on: true });
+const ap0 = by("u7-pro")[0];
+A({ a: "unpatch", at: [ap0.run.pp, ap0.run.port] });
+A({ a: "patch", from: [ap0.run.pp, ap0.run.port], to: [gw.uid, 2] });
+gs = guide();
+ok(!derive(s, data).dev[ap0.uid].pw && gs.fix, `guide: AP in a gateway port is dark, fix offered (${gs.text})`);
+apply(gs);
+ok(derive(s, data).dev[ap0.uid].pw && guide().done, "guide: Napraw moves the AP to a PoE port");
+A({ a: "unpatch", at: [gw.uid, 1] }); A({ a: "unpatch", at: [ont.uid, 0] });
+A({ a: "patch", from: [gw.uid, 0], to: [sw.uid, 15] });
+ok(derive(s, data).cov === 0, "switch in the WAN port: Wi-Fi drops to 0%");
+gs = guide();
+ok(!!gs.fix, `guide: switch in the WAN port, fix offered (${gs.text})`);
+for (let i = 0; i < 4 && !guide().done; i++) apply(guide());
+der = derive(s, data);
+ok(guide().done && der.online && der.cov > 0.8, `guide: fixed back to ${Math.round(der.cov * 100)}% and online`);
 A({ a: "tabletSpot", spot: "t-hol" }); A({ a: "tabletMount", leveled: true });
 A({ a: "tabletSpot", spot: "t-hol" });
 ok(s.tablet.mount === null && s.tablet.dev, "re-placing the tablet on the same wall works");

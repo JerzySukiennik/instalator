@@ -206,12 +206,15 @@ export function fillPattern(g, rect, y, f, seed) {
     const colAt = (x, z) => {
       const c = base.clone();
       if (type === 'marble') {
-        const w1 = fbm(x * 0.55 + 3, z * 0.55 - 2, 4, 5);
-        const w2 = Math.abs(Math.sin((x * 1.7 + z * 0.9 + w1 * 6.0) * 1.6));
-        const w3 = fbm(x * 1.6, z * 1.6, 3, 9);
-        c.lerp(dark, smooth(0.35, 0.75, w1) * 0.55);
-        c.lerp(base.clone().multiplyScalar(1.35), smooth(0.6, 0.85, w3) * 0.35);
-        c.lerp(vein, (1 - smooth(0.0, 0.09, w2)) * 0.75);
+        const light = C(f.light || '#a7b2a8');
+        const wx = x + (fbm(x * 0.32, z * 0.32, 3, 5) - 0.5) * 3.2, wz = z + (fbm(x * 0.32 + 7, z * 0.32 - 3, 3, 6) - 0.5) * 3.2;
+        const band = Math.sin(wx * 1.25 + wz * 0.65);
+        const fine = Math.sin(wx * 3.7 - wz * 2.1 + fbm(x * 0.9, z * 0.9, 2, 8) * 5.0);
+        const cloud = fbm(x * 0.8 + 2, z * 0.8 - 5, 3, 11);
+        c.lerp(dark, smooth(0.15, 0.95, -band) * 0.62);
+        c.lerp(light, smooth(0.45, 0.98, band) * 0.55 * smooth(0.3, 0.7, cloud));
+        c.lerp(vein, (1 - smooth(0.0, 0.2, Math.abs(fine))) * 0.18 * smooth(-0.2, 0.5, band));
+        c.multiplyScalar(0.97 + noise2(x * 5, z * 5, 3) * 0.06);
       } else if (type === 'concrete') {
         c.multiplyScalar(0.94 + fbm(x * 0.9, z * 0.9, 3, 4) * 0.12);
       } else c.multiplyScalar(0.96 + noise2(x * 6, z * 6, 2) * 0.08);
@@ -229,6 +232,23 @@ export function fillPattern(g, rect, y, f, seed) {
       }
       const v = [[xa, y, za], [xb, y, za], [xb, y, zb], [xa, y, zb]];
       g.quad(v[0], v[3], v[2], v[1], colAt(xa, za), colAt(xa, zb), colAt(xb, zb), colAt(xb, za));
+    }
+    if (type === 'marble') {
+      const nV = Math.round((x1 - x0) * (z1 - z0) * (f.veins ?? 0.12));
+      for (let k = 0; k < nV; k++) {
+        let px = x0 + R() * (x1 - x0), pz = z0 + R() * (z1 - z0), ang = (f.veinDir ?? 0.55) + (R() - 0.5) * 0.6;
+        const steps = 18 + Math.floor(R() * 30), wv = 0.006 + R() * 0.012, light = R() < 0.72;
+        const vc = (light ? C(f.light || '#a7b2a8').clone().lerp(base, 0.35) : vein.clone().lerp(base, 0.45)).multiplyScalar(0.92 + R() * 0.16);
+        for (let s2 = 0; s2 < steps; s2++) {
+          ang += (R() - 0.5) * 0.32;
+          const L = 0.07 + R() * 0.09, nx2 = px + Math.cos(ang) * L, nz2 = pz + Math.sin(ang) * L;
+          if (nx2 < x0 || nx2 > x1 || nz2 < z0 || nz2 > z1) break;
+          const ox = -Math.sin(ang) * wv, oz = Math.cos(ang) * wv;
+          const yv = y + 0.0009;
+          g.face([[px - ox, yv, pz - oz], [nx2 - ox, yv, nz2 - oz], [nx2 + ox, yv, nz2 + oz], [px + ox, yv, pz + oz]], [px, yv - 1, pz], vc);
+          px = nx2; pz = nz2;
+        }
+      }
     }
   } else {
     put([[x0, z0], [x1, z0], [x1, z1], [x0, z1]], base.clone());
@@ -331,7 +351,7 @@ export function generate(spec) {
 
   for (const W of walls) {
     if (!W.ext) { W.side = 'int'; W.out = 0; continue; }
-    const mx = (W.a[0] + W.b[0]) / 2, mz = (W.a[1] + W.b[1]) / 2, off = W.t / 2 + 0.15;
+    const off = W.t / 2 + 0.15;
     let insideP = false, insideN = false;
     for (const f of [0.25, 0.5, 0.75]) {
       const px = W.a[0] + W.d[0] * W.len * f, pz = W.a[1] + W.d[1] * W.len * f;
@@ -341,7 +361,6 @@ export function generate(spec) {
     W.out = W.outSign ?? (insideP && !insideN ? -1 : !insideP && insideN ? 1 : insideP ? -1 : 1);
     const ox = W.n[0] * W.out, oz = W.n[1] * W.out;
     W.side = W.grp || (Math.abs(ox) > Math.abs(oz) ? (ox > 0 ? 'E' : 'W') : (oz > 0 ? 'S' : 'N'));
-    void mx; void mz;
   }
 
   const finishOf = (room) => {
@@ -436,7 +455,6 @@ export function generate(spec) {
     };
 
     for (const pc of pieces) {
-      const ctr = [(pc.u0 + pc.u1) / 2, 0, (pc.y0 + pc.y1) / 2];
       for (const sd of [1, -1]) {
         const us = new Set([pc.u0, pc.u1]);
         for (const b of brk[sd]) if (b > pc.u0 + 0.01 && b < pc.u1 - 0.01) us.add(b);
@@ -458,13 +476,11 @@ export function generate(spec) {
             const pts = [WP(W, ux0, v, y0), WP(W, ux1, v, y0), WP(W, ux1, v, y1), WP(W, ux0, v, y1)];
             const nrm = [W.n[0] * sd, 0, W.n[1] * sd];
             const c00 = cA(ux0, y0), c10 = cA(ux1, y0), c11 = cA(ux1, y1), c01 = cA(ux0, y1);
-            const cx = [pts[0][0] - nrm[0], pts[0][1], pts[0][2] - nrm[2]];
             const a = pts[0], b = pts[1], c = pts[2];
             const nx = (b[1] - a[1]) * (c[2] - a[2]) - (b[2] - a[2]) * (c[1] - a[1]);
             const nz = (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0]);
             if (nx * nrm[0] + nz * nrm[2] >= 0) g.quad(pts[0], pts[1], pts[2], pts[3], c00, c10, c11, c01);
             else g.quad(pts[0], pts[3], pts[2], pts[1], c00, c01, c11, c10);
-            void cx;
           }
           if (!info.exterior && info.room && pc.kind !== 'lintel') {
             faces.push({ W, sd, u0: ux0, u1: ux1, y0: pc.y0, y1: pc.y1, room: info.room, kind: pc.kind, floor: W.floor });
@@ -475,10 +491,9 @@ export function generate(spec) {
             if (fin2.tiles) tileFace(g, W, sd, ux0, ux1, Math.max(pc.y0, y), Math.min(pc.y1, y + (fin2.tiles.h ?? 2.1)), fin2.tiles, y);
             else if (pc.y0 <= y + 0.01 && !info.room.noBase) {
               const bc = C(info.room.base || pal.base);
-              const b0 = WP(W, ux0, sd * (t2 + 0.014), y), b1 = WP(W, ux1, sd * (t2 + 0.014), y + 0.075);
+              const b1 = WP(W, ux1, sd * (t2 + 0.014), y + 0.075);
               const bb = [WP(W, ux0, sd * t2, y), b1];
               g.bx(Math.min(bb[0][0], b1[0]), y, Math.min(bb[0][2], b1[2]), Math.max(bb[0][0], b1[0]), y + 0.075, Math.max(bb[0][2], b1[2]), bc, { top: shade(bc, 1.04) });
-              void b0;
             }
           }
           if (info.exterior && pc.kind !== 'lintel') faces.push({ W, sd, u0: ux0, u1: ux1, y0: pc.y0, y1: pc.y1, room: null, exterior: true, kind: pc.kind, floor: W.floor });
@@ -528,7 +543,6 @@ export function generate(spec) {
           g.face([WP(W, pc.u0, vf, pc.y0), WP(W, pc.u1, vf, pc.y0), WP(W, pc.u1, -W.out * t2, pc.y0), WP(W, pc.u0, -W.out * t2, pc.y0)], WP(W, (pc.u0 + pc.u1) / 2, 0, pc.y0 + 1), revCol((pc.u0 + pc.u1) / 2, pc.op));
         } else g.face([WP(W, pc.u0, -t2, pc.y0), WP(W, pc.u1, -t2, pc.y0), WP(W, pc.u1, t2, pc.y0), WP(W, pc.u0, t2, pc.y0)], WP(W, (pc.u0 + pc.u1) / 2, 0, pc.y0 + 1), revCol((pc.u0 + pc.u1) / 2, pc.op));
       }
-      void ctr;
     }
     for (const o of ops) drawOpening(W, o, G);
     W.ops = ops;
@@ -588,11 +602,7 @@ export function generate(spec) {
   function drawOpening(W, o, G) {
     const g = G.geo, gl = G.glass, t2 = W.t / 2, y = FY(W.floor);
     const width = o.s1 - o.s0, sgn = W.ext ? W.out : 1;
-    const jamb = (u0, u1, v0, v1, y0, y1, col) => {
-      const p = [WP(W, u0, v0, y0), WP(W, u1, v1, y1)];
-      boxW(g, W, u0, u1, v0, v1, y0, y1, col);
-      void p;
-    };
+    const jamb = (u0, u1, v0, v1, y0, y1, col) => boxW(g, W, u0, u1, v0, v1, y0, y1, col);
     if (o.kind === 'window' || o.kind === 'glass') {
       const dark = o.dark ?? (o.kind === 'glass' ? pal.glassDark !== false : !!pal.windowDark);
       const fcol = C(o.frame || (dark ? pal.glassFrame : pal.frame));
@@ -703,7 +713,12 @@ export function generate(spec) {
       lg.bx(leafW * 0.2, leafH * 0.18, z1 - 0.004, leafW * 0.32, leafH * 0.85, z1 + 0.004, C('#9fb3bd'));
       lg.bx(leafW * 0.2, leafH * 0.18, z0 - 0.004, leafW * 0.32, leafH * 0.85, z0 + 0.004, C('#9fb3bd'));
     } else if (o.style === 'panel') {
-      for (const zz of [z0 - 0.003, z1]) lg.bx(0.1, 0.18, zz, leafW - 0.1, leafH - 0.18, zz + 0.003, shade(leafCol, 0.96));
+      for (const [zz, dz] of [[z0, -1], [z1, 1]]) {
+        for (const [ya, yb] of [[0.14, leafH * 0.44], [leafH * 0.5, leafH - 0.14]]) {
+          lg.bx(0.11, ya, Math.min(zz, zz + dz * 0.004), leafW - 0.11, yb, Math.max(zz, zz + dz * 0.004), shade(leafCol, 0.92));
+          lg.bx(0.145, ya + 0.035, Math.min(zz, zz + dz * 0.008), leafW - 0.145, yb - 0.035, Math.max(zz, zz + dz * 0.008), shade(leafCol, 1.02));
+        }
+      }
     } else if (o.style === 'glass') {
       for (const zz of [z0 - 0.003, z1]) lg.bx(0.14, leafH * 0.45, zz, leafW - 0.14, leafH - 0.18, zz + 0.003, C('#c7d6dc'));
     }
@@ -822,7 +837,7 @@ export function generate(spec) {
       if (!r.open) {
         const cg = ceil[fl.index];
         const cc = C(r.ceiling?.color || '#f4f2ee');
-        for (const rc of rectsOf(r.inner)) cg.poly([[rc[0], rc[1]], [rc[2], rc[1]], [rc[2], rc[3]], [rc[0], rc[3]]], fl.y + fl.height, cc, false);
+        for (const rc of rectsOf(r.inner)) cg.poly([[rc[0], rc[1]], [rc[2], rc[1]], [rc[2], rc[3]], [rc[0], rc[3]]], fl.y + fl.height - 0.004, cc, false);
       }
     }
   }
@@ -959,7 +974,7 @@ export function generate(spec) {
     const T = (p) => [x + p[0] * Math.cos(rot) + p[2] * Math.sin(rot), y + p[1], z - p[0] * Math.sin(rot) + p[2] * Math.cos(rot)];
     const bulbs = (res.bulbs || []).map((b) => ({ ...b, pos: T(b.pos) }));
     const circuit = L.circuit || lightCircuit(room.id);
-    const f = makeFixture({ id: L.id || `lampa-${room.id}-${i + 1}`, room: room.id, floor: fl, circuit, kind: res.kind || L.t, bulbs, glow: res.glow ? glow : null, parent: parent ? null : null, lightPos: res.lightPos ? T(res.lightPos) : null, glassCol: res.glassCol, emissive: res.emissive });
+    const f = makeFixture({ id: L.id || `lampa-${room.id}-${i + 1}`, room: room.id, floor: fl, circuit, kind: res.kind || L.t, bulbs, glow: res.glow ? glow : null, lightPos: res.lightPos ? T(res.lightPos) : null, glassCol: res.glassCol, emissive: res.emissive });
     if (parent) parent.extra.push(f.object3d);
   });
 
@@ -1079,8 +1094,6 @@ export function generate(spec) {
         if (!room || room.noSwitch) continue;
         const f = faces.find((ff) => ff.W === W && ff.sd === sd && latchU > ff.u0 + 0.05 && latchU < ff.u1 - 0.05 && ff.room === room);
         if (!f) continue;
-        const swingSide = (o.swing ?? 1) === sd;
-        if (o.kind === 'door' && swingSide && o.leaf !== 'none' && !W.ext) { /* latch side is clear even on swing side */ }
         addSwitch(W.floor, W, sd, latchU, room.id);
       }
     }
@@ -1121,7 +1134,6 @@ export function generate(spec) {
       const lx = dx * c - dz * s, lz = dx * s + dz * c;
       const hw = rec.size[0] / 2 + pad, back = rec.wall ? 0 : -rec.size[2] / 2;
       if (Math.abs(lx) < hw && lz > back - 0.3 && lz < back + rec.size[2] + 0.25) return false;
-      void fn;
     }
     for (const oc of occupied) if (oc.W === W && oc.sd === sd && Math.abs(oc.u - u) < 0.2 && Math.abs(oc.y - y) < 0.25) return false;
     for (const rv of reserved) if (rv.W === W && rv.sd === sd && Math.abs(rv.u - u) < rv.w / 2 + 0.15 && Math.abs(rv.y - y) < rv.h / 2 + 0.15) return false;
@@ -1187,7 +1199,6 @@ export function generate(spec) {
     if (r.open) continue;
     const fy = FY(r.floor);
     const fs = facesOf(r).filter((f) => f.y0 <= fy + 0.01 && f.u1 - f.u0 > 0.7);
-    let n = 0;
     for (const f of fs) {
       const len = f.u1 - f.u0, k = Math.max(1, Math.floor(len / 1.8));
       for (let i = 0; i < k; i++) {
@@ -1208,10 +1219,8 @@ export function generate(spec) {
         if (data.outlets.some((o) => o.room === r.id && Math.hypot(o.pos[0] - p[0], o.pos[2] - p[2]) < 1.2)) tags.push('nearOutlet');
         if (r.kind === 'bath' || r.kind === 'wc' || r.kind === 'kitchen' || r.kind === 'tech') tags.push('wet');
         addMount({ room: r.id, floor: r.floor, kind: 'floor', pos: p, normal: [0, 1, 0], quat: qYaw(YAW(fn[0], fn[1])), tags });
-        n++;
       }
     }
-    void n;
   }
 
   for (const W of walls) {
@@ -1232,10 +1241,8 @@ export function generate(spec) {
         if (o.entrance) tags.push('main');
         addMount({ room: room.id, floor: W.floor, kind: 'door', pos, normal: [fn[0], 0, fn[1]], quat: qYaw(YAW(fn[0], fn[1])), tags, id: `drzwi-${o.id}` });
         if (o.entrance) {
-          const lockP = WP(W, hingeA ? o.s1 - 0.1 : o.s0 + 0.1, sd * (W.t / 2 - (W.ext ? Math.min(0.14, W.t * 0.32) + 0.09 : 0)), fy + 1.05);
           const lv = W.ext ? revealSplit(W) - W.out * 0.09 : sd * W.t / 2;
           const lp = WP(W, hingeA ? o.s1 - 0.105 : o.s0 + 0.105, lv - sd * 0.0, fy + 1.05);
-          void lockP;
           addMount({ room: room.id, floor: W.floor, kind: 'doorLock', pos: lp, normal: [fn[0], 0, fn[1]], quat: qYaw(YAW(fn[0], fn[1])), tags: ['entrance'], id: `zamek-${o.id}` });
           const outSd = W.ext ? W.out : -sd;
           const ofn = [W.n[0] * outSd, W.n[1] * outSd];
@@ -1427,7 +1434,7 @@ export function generate(spec) {
     const ao = ovl[fl.index].mesh();
     if (ao) parent.add(ao);
     const cg = ceil[fl.index];
-    for (const key of ['matte', 'satin', 'metal', 'matte2']) mk(cg.geometry(key), M[key], ceilingGroups[fl.index].group, { cast: false, name: `ceil-${key}-${fl.index}` });
+    for (const key of ['matte', 'satin', 'metal', 'matte2']) mk(cg.geometry(key), key === 'metal' ? M.metal : M.ceiling, ceilingGroups[fl.index].group, { cast: false, name: `ceil-${key}-${fl.index}` });
   }
   const wallGroups = [];
   for (const G of wallG.values()) {

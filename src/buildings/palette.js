@@ -40,6 +40,19 @@ function envTexture() {
   return t;
 }
 
+function bounce(m, k) {
+  const u = { value: k };
+  m.userData.bounce = u;
+  m.onBeforeCompile = (s) => {
+    s.uniforms.uBounce = u;
+    s.fragmentShader = s.fragmentShader
+      .replace('#include <common>', '#include <common>\nuniform float uBounce;')
+      .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\ntotalEmissiveRadiance += diffuseColor.rgb * vec3(1.0, 0.93, 0.84) * uBounce;');
+  };
+  m.customProgramCacheKey = () => 'instalator-bounce';
+  return m;
+}
+
 let shared = null;
 
 export function materials() {
@@ -59,7 +72,8 @@ export function materials() {
     site2: lam({ side: THREE.DoubleSide }),
     leaf: lam({ side: THREE.DoubleSide }),
     tree: lam(),
-    water: null
+    water: null,
+    ceiling: bounce(lam(), 0.42)
   };
   shared.glass.userData.noClipOwner = true;
   return shared;

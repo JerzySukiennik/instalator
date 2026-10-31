@@ -1,0 +1,273 @@
+<!doctype html>
+<!-- Instalator: building viewer (dollhouse cutaway, 2D plan of BuildingData, eye-level close shot) for src/buildings. -->
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Instalator: budynki</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #d9dfe2; overflow: hidden; font: 13px/1.35 -apple-system, system-ui, sans-serif; color: #222; }
+  canvas { display: block; }
+  #plan { position: absolute; inset: 0; background: #f4f1ea; display: none; }
+  #hud { position: absolute; left: 10px; top: 10px; background: rgba(255,255,255,0.86); border-radius: 8px; padding: 8px 10px; max-width: 520px; }
+  #hud a { color: #1f5e8c; margin-right: 6px; text-decoration: none; }
+  #hud b { font-weight: 600; }
+  .shot #hud { display: none; }
+</style>
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.187.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.187.0/examples/jsm/"
+} }
+</script>
+</head>
+<body>
+<canvas id="c"></canvas>
+<canvas id="plan"></canvas>
+<div id="hud"></div>
+<script>addEventListener('error', (e) => { window.__err = String(e.message || e); }); addEventListener('unhandledrejection', (e) => { window.__err = String(e.reason); });</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { BUILDING_IDS, buildBuilding } from '../../src/buildings/index.js';
+import { setupRenderer, previewLight, makeComposer } from '../../src/buildings/preview-light.js';
+
+const Q = new URLSearchParams(location.search);
+const id = Q.get('id') || 'kawalerka', view = Q.get('view') || 'dollhouse', shot = Q.has('shot');
+const floorQ = Q.has('floor') ? +Q.get('floor') : null;
+if (shot) document.body.classList.add('shot');
+const W = innerWidth, H = innerHeight;
+const canvas = document.getElementById('c');
+const renderer = setupRenderer(new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance', preserveDrawingBuffer: true }));
+renderer.setPixelRatio(1);
+renderer.setSize(W, H, false);
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(+(Q.get('fov') || 36), W / H, 0.3, 1500);
+const rig = previewLight(scene, { rig: Q.get('rig') || 'rybna', shadowSize: +(Q.get('shadow') || 4096) });
+const { composer } = makeComposer(renderer, scene, camera, W, H, { bloom: Q.has('lights') ? 0.5 : 0.32 });
+
+const t0 = performance.now();
+const b = await buildBuilding(id);
+const buildMs = Math.round(performance.now() - t0);
+scene.add(b.group);
+const d = b.data;
+window.__b = b;
+
+const topFloor = floorQ ?? d.floors.length - 1;
+for (const fg of b.floorGroups) fg.group.visible = fg.floor <= topFloor;
+if (Q.has('roof') && b.roof) b.roof.group.visible = true;
+if (Q.has('door')) b.setDoorOpen(d.entrance?.door, +Q.get('door'));
+if (Q.get('ctx') === '0' && b.context) b.context.visible = false;
+if (Q.has('lights')) {
+  const vis = b.fixtures.filter((f) => (f.floor ?? 0) <= topFloor);
+  for (const f of vis) f.emissive.emissiveIntensity = 2.4;
+  const pick = vis.filter((f, i) => f.kind !== 'oczko' || i % 2 === 0).slice(0, +(Q.get('nl') || 8));
+  for (const f of pick) {
+    const l = new THREE.PointLight('#ffcf98', f.kind === 'oczko' ? 2.2 : 3.4, 6.5, 1.6);
+    l.position.set(f.lightPos[0], f.lightPos[1] - 0.1, f.lightPos[2]);
+    scene.add(l);
+  }
+}
+
+const rooms = d.rooms.filter((r) => r.floor <= topFloor && r.kind !== 'outdoor');
+let x0 = 1e9, z0 = 1e9, x1 = -1e9, z1 = -1e9;
+for (const r of rooms) for (const [x, z] of r.poly) { x0 = Math.min(x0, x); z0 = Math.min(z0, z); x1 = Math.max(x1, x); z1 = Math.max(z1, z); }
+const fl = d.floors[topFloor];
+const center = new THREE.Vector3((x0 + x1) / 2, fl.y + 0.8, (z0 + z1) / 2);
+if (Q.has('tx')) center.set(+Q.get('tx'), +Q.get('ty'), +Q.get('tz'));
+else if (view === 'dollhouse' && topFloor === d.floors.length - 1 && ((Q.get('preset') && d.views?.[Q.get('preset')]) || d.views?.dollhouse)?.target) center.set(...((Q.get('preset') && d.views?.[Q.get('preset')]) || d.views.dollhouse).target);
+const span = Math.max(x1 - x0, z1 - z0, 6);
+rig.frame(new THREE.Vector3((x0 + x1) / 2, d.floors[0].y, (z0 + z1) / 2), span * 0.75 + 6, Q.has('sunaz') ? +Q.get('sunaz') : d.views?.dollhouse?.sunAz, Q.has('sunel') ? +Q.get('sunel') : d.views?.dollhouse?.sunEl);
+
+function cutaway(mode) {
+  const dir = new THREE.Vector3().subVectors(camera.position, controls ? controls.target : center).setY(0).normalize();
+  const N = { N: [0, -1], S: [0, 1], E: [1, 0], W: [-1, 0] };
+  for (const wg of b.wallGroups) {
+    let planes = null;
+    const fy = d.floors[wg.floor].y;
+    if (mode !== 'none') {
+      if (wg.side === 'int') planes = mode === 'close' || Q.get('int') === 'full' ? null : [new THREE.Plane(new THREE.Vector3(0, -1, 0), fy + 1.3)];
+      else {
+        const n = N[wg.side];
+        const dot = n ? n[0] * dir.x + n[1] * dir.z : 0;
+        if (dot > 0.28) planes = [new THREE.Plane(new THREE.Vector3(0, -1, 0), fy + (mode === 'close' ? 0.35 : 0.95))];
+      }
+    }
+    const mats = [];
+    wg.mesh.traverse((o) => { if (o.isMesh) (Array.isArray(o.material) ? o.material : [o.material]).forEach((m) => { if (!mats.includes(m)) mats.push(m); }); });
+    for (const m of mats) { m.clippingPlanes = planes; m.clipShadows = true; m.needsUpdate = true; }
+  }
+}
+
+let controls = null;
+const dv = (Q.get('preset') && d.views?.[Q.get('preset')]) || d.views?.dollhouse || {};
+if (view === 'dollhouse') {
+  const az = Q.has('az') ? +Q.get('az') : dv.az ?? 0.7, el = Q.has('el') ? +Q.get('el') : dv.el ?? 0.66;
+  const dist = (span * 1.25 + 5) * (Q.has('dist') ? +Q.get('dist') : dv.dist ?? 1);
+  camera.position.set(center.x + Math.sin(az) * Math.cos(el) * dist, center.y + Math.sin(el) * dist, center.z + Math.cos(az) * Math.cos(el) * dist);
+  controls = new OrbitControls(camera, canvas);
+  controls.target.copy(center);
+  controls.update();
+  cutaway('overview');
+  for (const cg of b.ceilingGroups || []) cg.group.visible = false;
+} else if (view === 'close') {
+  const cv = d.views?.close || { pos: [center.x, fl.y + 1.6, center.z + 2], target: [center.x, fl.y + 1.2, center.z - 2] };
+  camera.position.set(...cv.pos);
+  camera.fov = cv.fov || 60;
+  camera.updateProjectionMatrix();
+  controls = new OrbitControls(camera, canvas);
+  controls.target.set(...cv.target);
+  controls.update();
+  for (const cg of b.ceilingGroups || []) cg.group.visible = cg.floor <= topFloor;
+  scene.add(new THREE.HemisphereLight('#fff1dc', '#b8a48a', 0.55));
+  cutaway('none');
+} else {
+  canvas.style.display = 'none';
+}
+
+let dirty = true;
+function render() {
+  if (view === 'plan') return;
+  renderer.info.autoReset = false;
+  renderer.info.reset();
+  if (view === 'dollhouse') cutaway('overview');
+  renderer.render(scene, camera);
+  const stats = { calls: renderer.info.render.calls, tris: renderer.info.render.triangles, buildMs };
+  renderer.info.reset();
+  composer.render();
+  window.__stats = stats;
+  dirty = false;
+}
+if (controls) controls.addEventListener('change', () => { if (!dirty) { dirty = true; requestAnimationFrame(render); } });
+
+function countTris() {
+  let tris = 0, meshes = 0;
+  b.group.traverse((o) => {
+    if (!o.isMesh || !o.geometry) return;
+    const g = o.geometry, n = g.index ? g.index.count / 3 : g.attributes.position.count / 3;
+    tris += o.isInstancedMesh ? n * o.count : n;
+    meshes++;
+  });
+  return { tris: Math.round(tris), meshes };
+}
+
+function hud(extra = '') {
+  const cnt = countTris();
+  const kinds = {};
+  for (const m of d.mounts) kinds[m.kind] = (kinds[m.kind] || 0) + 1;
+  const links = BUILDING_IDS.map((x) => `<a href="?id=${x}&view=${view}">${x}</a>`).join('') + ' | ' + ['dollhouse', 'plan', 'close'].map((v) => `<a href="?id=${id}&view=${v}">${v}</a>`).join('') + ' | ' + d.floors.map((f) => `<a href="?id=${id}&view=${view}&floor=${f.index}">piętro ${f.index}</a>`).join('');
+  document.getElementById('hud').innerHTML = `<b>${d.name}</b> (${d.area} m²) build ${buildMs} ms<br>${links}<br>draw calls ${window.__stats?.calls ?? '-'}, tris ${window.__stats?.tris ?? '-'} (geometry ${cnt.tris}, meshes ${cnt.meshes})<br>mounts ${d.mounts.length}: ${Object.entries(kinds).map(([k, v]) => `${k} ${v}`).join(', ')}<br>tablet spots ${d.tabletSpots.length}, strips ${d.strips.length}, fixtures ${b.fixtures.length}, circuits ${d.circuits.length}${extra}`;
+}
+
+function drawPlan() {
+  const pc = document.getElementById('plan');
+  pc.style.display = 'block';
+  pc.width = W; pc.height = H;
+  const x = pc.getContext('2d');
+  const f = floorQ ?? 0;
+  const rs = d.rooms.filter((r) => r.floor === f);
+  let a0 = 1e9, b0 = 1e9, a1 = -1e9, b1 = -1e9;
+  for (const r of rs) for (const [px, pz] of r.poly) { a0 = Math.min(a0, px); b0 = Math.min(b0, pz); a1 = Math.max(a1, px); b1 = Math.max(b1, pz); }
+  const pad = 70, s = Math.min((W - pad * 2) / (a1 - a0 + 2), (H - pad * 2) / (b1 - b0 + 2));
+  const T = (px, pz) => [pad + (px - a0 + 1) * s, pad + (pz - b0 + 1) * s];
+  const KC = { living: '#efe3c8', kitchen: '#f3dcc0', bath: '#cfe3ea', wc: '#cfe3ea', bed: '#e3d8ef', hall: '#e6e2da', tech: '#d9d9d9', garage: '#d3d3cf', balcony: '#dfe9d2', terrace: '#dfe9d2', office: '#e5ecd6', outdoor: '#e9f0dc' };
+  x.fillStyle = '#f4f1ea'; x.fillRect(0, 0, W, H);
+  x.font = '12px -apple-system, system-ui';
+  for (const r of rs) {
+    x.beginPath();
+    r.poly.forEach(([px, pz], i) => { const [u, v] = T(px, pz); i ? x.lineTo(u, v) : x.moveTo(u, v); });
+    x.closePath(); x.fillStyle = KC[r.kind] || '#eee'; x.fill();
+  }
+  for (const it of d.furniture.filter((q) => q.floor === f)) {
+    x.save();
+    const [u, v] = T(it.pos[0], it.pos[2]);
+    x.translate(u, v); x.rotate(-it.rot);
+    const w = it.size[0] * s, dd = it.size[2] * s;
+    x.fillStyle = it.wall ? 'rgba(90,120,160,0.25)' : 'rgba(120,100,80,0.18)'; x.strokeStyle = 'rgba(80,60,40,0.55)';
+    if (it.wall) { x.fillRect(-w / 2, 0, w, dd); x.strokeRect(-w / 2, 0, w, dd); } else { x.fillRect(-w / 2, -dd / 2, w, dd); x.strokeRect(-w / 2, -dd / 2, w, dd); }
+    x.fillStyle = 'rgba(60,50,40,0.7)'; x.font = '9px -apple-system'; x.fillText(it.kind, -w / 2 + 2, 3);
+    x.restore();
+  }
+  for (const wl of d.walls.filter((q) => q.floor === f)) {
+    const [ax, az] = T(...wl.a), [bx, bz] = T(...wl.b);
+    x.strokeStyle = wl.exterior ? '#2b2724' : '#5a544e'; x.lineWidth = Math.max(2, wl.thick * s); x.lineCap = 'square';
+    x.beginPath(); x.moveTo(ax, az); x.lineTo(bx, bz); x.stroke();
+    for (const o of wl.openings) {
+      const p0 = [ax + (bx - ax) * o.t0, az + (bz - az) * o.t0], p1 = [ax + (bx - ax) * o.t1, az + (bz - az) * o.t1];
+      x.strokeStyle = o.kind === 'door' ? '#f4f1ea' : o.kind === 'glass' ? '#7fc4e6' : '#a9dcf2'; x.lineWidth = Math.max(2, wl.thick * s) + 1; x.lineCap = 'butt';
+      x.beginPath(); x.moveTo(...p0); x.lineTo(...p1); x.stroke();
+      if (o.kind !== 'door') { x.strokeStyle = '#3d8fb8'; x.lineWidth = 1.5; x.beginPath(); x.moveTo(...p0); x.lineTo(...p1); x.stroke(); }
+    }
+  }
+  x.lineCap = 'round';
+  for (const st of d.strips.filter((q) => q.floor === f)) {
+    x.strokeStyle = '#ff7a2f'; x.lineWidth = 3; x.beginPath();
+    st.points.forEach((p, i) => { const [u, v] = T(p[0], p[2]); i ? x.lineTo(u, v) : x.moveTo(u, v); }); x.stroke();
+  }
+  const MC = { ceiling: '#7f8c99', wall: '#3f7fbf', socketE27: '#f2b705', socketGU10: '#f28705', surface: '#5aa35a', floor: '#9b7d5a', radiator: '#d9483b', door: '#7a4fb5', doorLock: '#b5179e', window: '#2fa3c6', outdoorWall: '#2a9d8f', doorbell: '#e76f51', tv: '#264653', gate: '#6d597a', garage: '#6d597a', boiler: '#bc4749', socket: '#444', switch: '#aaa' };
+  for (const m of d.mounts.filter((q) => q.floor === f)) {
+    const [u, v] = T(m.pos[0], m.pos[2]);
+    x.fillStyle = MC[m.kind] || '#000';
+    const r = m.kind === 'ceiling' ? 2.2 : m.kind === 'wall' ? 2.2 : 3.4;
+    x.beginPath(); x.arc(u, v, r, 0, Math.PI * 2); x.fill();
+    if (m.kind === 'radiator' || m.kind === 'outdoorWall' || m.kind === 'doorbell' || m.kind === 'window' || m.kind === 'door') { x.strokeStyle = MC[m.kind]; x.lineWidth = 1.2; x.beginPath(); x.moveTo(u, v); x.lineTo(u + m.normal[0] * 10, v + m.normal[2] * 10); x.stroke(); }
+  }
+  const RC = { good: '#2b9348', ok: '#e9c46a', poor: '#d62828' };
+  for (const t of d.tabletSpots.filter((q) => q.floor === f)) {
+    const [u, v] = T(t.pos[0], t.pos[2]);
+    x.fillStyle = RC[t.rating]; x.strokeStyle = '#000'; x.lineWidth = 1;
+    x.beginPath(); for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + (i * Math.PI) / 5, rr = i % 2 ? 4 : 9; x.lineTo(u + Math.cos(a) * rr, v + Math.sin(a) * rr); } x.closePath(); x.fill(); x.stroke();
+  }
+  const anchor = (a, label, col) => {
+    if (!a || a.floor !== f) return;
+    const [u, v] = T(a.pos[0], a.pos[2]);
+    x.fillStyle = col; x.fillRect(u - 6, v - 6, 12, 12); x.fillStyle = '#000'; x.font = 'bold 11px -apple-system'; x.fillText(label, u + 8, v - 6);
+  };
+  anchor(d.panel, 'rozdzielnica', '#e63946'); anchor(d.rack, 'rack', '#1d3557'); anchor(d.mediaBox, 'skrzynka', '#1d3557'); anchor(d.wan, 'WAN', '#457b9d');
+  if (d.entrance && (d.entrance.floor ?? 0) === f) { const [u, v] = T(d.entrance.pos[0], d.entrance.pos[2]); x.fillStyle = '#000'; x.font = 'bold 12px -apple-system'; x.fillText('wejście', u + 6, v + 4); x.beginPath(); x.arc(u, v, 5, 0, 7); x.fill(); }
+  for (const z of d.zones.filter((q) => q.floor === f)) { const [u, v] = T(z.pos[0], z.pos[2]); x.strokeStyle = '#2a9d8f'; x.setLineDash([4, 3]); x.beginPath(); x.arc(u, v, z.r * s, 0, 7); x.stroke(); x.setLineDash([]); x.fillStyle = '#2a9d8f'; x.fillText(z.kind, u + 4, v); }
+  x.fillStyle = '#222'; x.font = '12px -apple-system';
+  for (const r of rs) { let cx = 0, cz = 0; for (const p of r.poly) { cx += p[0]; cz += p[1]; } cx /= r.poly.length; cz /= r.poly.length; const [u, v] = T(cx, cz); x.font = 'bold 13px -apple-system'; x.fillText(`${r.name}`, u - 30, v - 6); x.font = '11px -apple-system'; x.fillText(`${r.area} m²`, u - 30, v + 8); }
+  x.font = 'bold 15px -apple-system'; x.fillText(`${d.name} | ${d.floors[f].name} | plan z BuildingData`, pad, 32);
+  const leg = Object.entries(MC); x.font = '11px -apple-system';
+  leg.forEach(([k, c], i) => { x.fillStyle = c; x.beginPath(); x.arc(W - 150, 60 + i * 15, 4, 0, 7); x.fill(); x.fillStyle = '#222'; x.fillText(k, W - 140, 64 + i * 15); });
+  window.__stats = { calls: 0, tris: 0, buildMs };
+}
+
+function check() {
+  const out = [];
+  const circ = new Set(d.circuits.map((c) => c.id));
+  for (const f of d.fixtures) if (!circ.has(f.circuit)) out.push(`fixture ${f.id} circuit ${f.circuit} missing`);
+  for (const m of d.mounts) {
+    if ((m.kind === 'socketE27' || m.kind === 'socketGU10') && (!m.fixture || !m.circuit)) out.push(`mount ${m.id} without fixture/circuit`);
+    if (m.kind === 'radiator' && !m.room) out.push(`radiator ${m.id} without room`);
+  }
+  const roomsWithLight = new Set(d.fixtures.map((f) => f.room));
+  for (const r of d.rooms) if (r.kind !== 'outdoor' && !roomsWithLight.has(r.id)) out.push(`room ${r.id} without fixture`);
+  for (const r of d.rooms) if (r.kind !== 'outdoor' && !d.circuits.some((c) => c.kind === 'light' && c.rooms.includes(r.id))) out.push(`room ${r.id} without light circuit`);
+  for (const w of d.walls) for (const o of w.openings) if (o.t0 < 0 || o.t1 > 1 || o.t0 >= o.t1) out.push(`opening ${o.id} bad t`);
+  const ids = new Set(); for (const m of d.mounts) { if (ids.has(m.id)) out.push(`dup mount ${m.id}`); ids.add(m.id); }
+  const need = { kawalerka: ['entrance'], dom: ['entrance', 'driveway', 'garden', 'gate'], gzowo: ['entrance', 'terrace', 'jetty', 'gate'], willa: ['entrance', 'driveway', 'garden', 'gate', 'garage'] }[id] || [];
+  for (const k of need) if (!d.zones.some((z) => z.kind === k)) out.push(`zone ${k} missing`);
+  for (const k of ['panel', 'wan', 'entrance', 'street', 'camera']) if (!d[k]) out.push(`${k} missing`);
+  if (!d.rack && !d.mediaBox) out.push('rack/mediaBox missing');
+  for (const kind of ['ceiling', 'wall', 'socketE27', 'surface', 'floor', 'door', 'doorLock', 'window', 'outdoorWall', 'doorbell', 'tv']) if (!d.mounts.some((m) => m.kind === kind)) out.push(`no mount kind ${kind}`);
+  for (const st of d.strips) if (st.points.length < 2) out.push(`strip ${st.id} too short`);
+  for (const m of d.mounts) if (m.room !== 'outdoor' && !d.rooms.some((r) => r.id === m.room)) out.push(`mount ${m.id} room ${m.room} unknown`);
+  JSON.stringify(d);
+  return out;
+}
+
+const tr0 = performance.now();
+if (view === 'plan') drawPlan(); else render();
+window.__t = { build: buildMs, render: Math.round(performance.now() - tr0) };
+hud();
+window.__check = check();
+const kinds = {}; for (const m of d.mounts) kinds[m.kind] = (kinds[m.kind] || 0) + 1;
+window.__stats = { ...(window.__stats || {}), kinds, mounts: d.mounts.length, tablets: d.tabletSpots.map((t) => t.rating).join(','), strips: d.strips.length, fixtures: b.fixtures.length, area: d.area, geoTris: countTris().tris };
+if (window.__check.length) console.warn('[check]', window.__check.join('\n'));
+console.log('[stats]', JSON.stringify({ ...window.__stats, ...countTris(), mounts: d.mounts.length, tablets: d.tabletSpots.length, strips: d.strips.length, fixtures: b.fixtures.length, area: d.area, check: window.__check.length }));
+window.__ready = true;
+</script>
+</body>
+</html>

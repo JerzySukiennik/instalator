@@ -100,7 +100,7 @@ export default {
     { id: 'garderoba', name: 'Garderoba', kind: 'hall', poly: [[10.0, 2.3], [11.9, 2.3], [11.9, 4.3], [10.0, 4.3]], floorFinish: STONE, wall: '#ecebe7', noOutlets: true },
     { id: 'gabinet', name: 'Gabinet', kind: 'office', poly: [[11.9, 0], [14.6, 0], [14.6, 4.3], [11.9, 4.3]], floorFinish: HERR, wall: '#e3ddd3', accent: [{ wall: 'OK', color: '#55504a' }] },
     { id: 'kuchnia', name: 'Kuchnia', kind: 'kitchen', poly: [[14.6, 0], [19.0, 0], [19.0, 5.2], [14.6, 5.2]], floorFinish: STONE, wall: '#efede9' },
-    { id: 'salon', name: 'Salon z jadalnią', kind: 'living', poly: [[6.3, 4.3], [14.6, 4.3], [14.6, 5.2], [19.0, 5.2], [19.0, 10.6], [6.3, 10.6]], floorFinish: STONE, wall: '#efede9', accent: [{ wall: 'NB', color: '#8a8682' }] },
+    { id: 'salon', name: 'Salon z jadalnią', kind: 'living', poly: [[6.3, 4.3], [14.6, 4.3], [14.6, 5.2], [19.0, 5.2], [19.0, 10.6], [6.3, 10.6]], floorFinish: HERR, wall: '#efede9', accent: [{ wall: 'NB', color: '#8a8682' }] },
     { id: 'taras', name: 'Taras', kind: 'terrace', poly: [[6.3, 10.6], [19.6, 10.6], [19.6, 13.6], [6.3, 13.6]], floorFinish: { type: 'tiles', color: '#c9c3b8', size: [1.2, 0.6], grout: '#aaa398', vary: 0.04 } },
 
     { id: 'galeria', name: 'Galeria', kind: 'hall', floor: 1, poly: [[6.3, 0], [9.2, 0], [9.2, 10.6], [6.3, 10.6], [6.3, 7.9], [7.6, 7.9], [7.6, 4.5], [6.3, 4.5]], floorFinish: HERR, wall: '#efede9' },
@@ -299,7 +299,7 @@ export default {
   street: [3.0, -0.25, -19.0],
   approach: [[3.0, -0.25, -19.0], [6.0, -0.2, -13.8], [8.0, -0.2, -6.0], [8.0, 0.0, -0.9]],
   outdoorAll: false,
-  views: { dollhouse: { az: 0.55, el: 0.62, dist: 0.95, sunAz: 330, sunEl: 47 }, close: { pos: [13.5, 1.6, 9.6], target: [9.0, 1.2, 4.6], fov: 64 } },
+  views: { dollhouse: { az: 0.42, el: 0.64, dist: 1.12, sunAz: 330, sunEl: 47 }, close: { pos: [13.5, 1.6, 9.6], target: [9.0, 1.2, 4.6], fov: 64 } },
   extra(api) {
     const g = api.stat[1];
     g.use('matte');
@@ -337,14 +337,18 @@ function buildSite(api) {
       if ((x > 19.6 && x < 21.0 && z > -0.5 && z < 10.5) || (x > -2.2 && x < -0.6 && z > 0 && z < 10)) out.set('#6b5440');
       return out;
     },
-    hole: (x, z) => x > 0.4 && x < 18.6 && z > 0.4 && z < 10.2
+    hole: (x, z) => (x > 0.4 && x < 18.6 && z > 0.4 && z < 10.2) || (x > 6.6 && x < 20.3 && z > 13.9 && z < 21.3)
   });
   const GRAN = { type: 'tiles', color: '#7b7975', size: [0.3, 0.15], grout: '#5f5d5a', vary: 0.06, bond: 0.5 };
   S.pave([-0.6, -14, 6.0, -0.2], -0.18, GRAN, 61);
   S.pave([6.9, -14, 9.1, -0.2], -0.18, { type: 'tiles', color: '#c9c3b8', size: [1.0, 0.5], grout: '#aaa398', vary: 0.04 }, 62);
   g.use('satin');
   g.bx(6.3, -0.2, 10.6, 20.6, -0.01, 13.6, C('#77746f'));
-  S.pave([6.3, 13.6, 20.6, 21.6], -0.18, { type: 'tiles', color: '#d3cec6', size: [1.0, 0.5], grout: '#b9b4ab', vary: 0.03 }, 63);
+  const DECK = { type: 'tiles', color: '#d3cec6', size: [1.0, 0.5], grout: '#b9b4ab', vary: 0.03 };
+  S.pave([6.3, 13.6, 20.6, 14.6], -0.18, DECK, 63);
+  S.pave([6.3, 19.6, 20.6, 21.6], -0.18, DECK, 64);
+  S.pave([6.3, 14.6, 7.8, 19.6], -0.18, DECK, 65);
+  S.pave([18.2, 14.6, 20.6, 19.6], -0.18, DECK, 66);
   g.use('gloss');
   g.bx(8.0, -1.6, 14.8, 18.0, -0.2, 15.0, C('#d6dfe2'));
   g.bx(8.0, -1.6, 19.2, 18.0, -0.2, 19.4, C('#d6dfe2'));
@@ -389,6 +393,18 @@ function buildSite(api) {
   g.bx(6.45, 1.35, -14.13, 6.65, 1.45, -14.12, C('#3a4652'));
   g.bx(9.2, 0.3, -14.15, 9.55, 0.75, -14.1, C('#2c2f33'));
   S.car(3.0, -7.0, PI, { color: '#5d6873', kind: 'suv' });
+  for (const [x, z] of [[-6.5, 16], [-6.5, 19.2], [-3.4, 16], [-3.4, 19.2]]) {
+    g.use('satin');
+    g.bx(x - 1.1, -0.2, z - 0.6, x + 1.1, 0.25, z - 0.52, C('#8a6648'));
+    g.bx(x - 1.1, -0.2, z + 0.52, x + 1.1, 0.25, z + 0.6, C('#8a6648'));
+    g.bx(x - 1.1, -0.2, z - 0.52, x - 1.02, 0.25, z + 0.52, C('#8a6648'));
+    g.bx(x + 1.02, -0.2, z - 0.52, x + 1.1, 0.25, z + 0.52, C('#8a6648'));
+    g.use('matte');
+    g.bx(x - 1.02, -0.2, z - 0.52, x + 1.02, 0.2, z + 0.52, C('#5e4936'));
+    for (let i = 0; i < 6; i++) g.blob(x - 0.8 + i * 0.32, 0.32, z + (i % 2 ? 0.18 : -0.18), 0.16, 0.13, 0.16, i % 3 ? '#6f9a45' : '#8fb04a', i + Math.round(x * 3 + z), { detail: 0 });
+  }
+  S.item('bench', -5.0, -0.2, 22.2, PI, { w: 1.4, color: '#8a6648' });
+  S.trees([['birch', -9.5, 14.0, 1.0], ['birch', -8.0, 23.5, 0.95], ['apple', -2.5, 25.5, 0.9], ['bush', -10.5, 5.0, 0.9], ['bush', -10.0, 9.0, 0.8], ['grasses', -1.5, 13.5, 1.0], ['grasses', 0.2, 13.0, 0.9], ['flowers', -1.2, 12.0, 1.0], ['flowers', -9.0, 18.0, 0.9]]);
   S.trees([['birch', 22, 2, 1.0], ['birch', 24, 5, 0.9], ['birch', 23, -3, 1.05], ['maple', 28, 26, 1.1], ['maple', -6, 28, 1.0], ['pine', -9, 12, 1.0], ['pine', -8, 20, 1.05], ['pine', 31, 12, 1.0], ['linden', 30, -9, 1.0], ['spruce', -9, -9, 0.9], ['apple', 4, 27, 0.9], ['bush', -3, -11, 0.9], ['bush', 12, -11, 1.0], ['bush', 21.5, 13, 0.9]]);
   const deco = [];
   for (let z = 0.5; z < 10.2; z += 0.95) { deco.push(['grasses', 20.3, z, 0.9 + hash(z, 3) * 0.3]); deco.push(['boxball', -1.4, z, 0.7 + hash(z, 4) * 0.2]); }
@@ -398,7 +414,7 @@ function buildSite(api) {
   S.house({ x: -30, z: 10, w: 16, d: 11, h: 6.4, roof: 'flat', color: '#efede8', r: 0 });
   S.house({ x: 52, z: 14, w: 14, d: 12, h: 6.0, roof: 'hip', color: '#e7e1d6', roofCol: '#4a4b4e', r: 0 });
   S.house({ x: 10, z: -34, w: 15, d: 11, h: 6.2, roof: 'flat', color: '#e9e6e0', r: 0 });
-  const lawn = (x, z) => x > -11.8 && x < 33.8 && z > -13.5 && z < 35.2 && !house(x, z, 0.6) && !drive(x, z) && !walk(x, z) && !deck(x, z);
+  const lawn = (x, z) => x > -11.8 && x < 33.8 && z > -13.5 && z < 35.2 && !house(x, z, 0.6) && !drive(x, z) && !walk(x, z) && !deck(x, z) && !(x > -7.8 && x < -2.1 && z > 15.2 && z < 20.0);
   S.scatter(6500, lawn, 71, 0.85, 1.35, -12, -14, 34, 36);
   S.finish();
 }

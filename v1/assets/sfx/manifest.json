@@ -1,0 +1,212 @@
+{
+  "breaker_on": {
+    "file": "breaker_on.mp3",
+    "license": "CC0 1.0",
+    "author": "sribubba",
+    "source": "https://freesound.org/people/sribubba/sounds/130152/"
+  },
+  "breaker_off": {
+    "file": "breaker_off.mp3",
+    "license": "CC0 1.0",
+    "author": "sribubba",
+    "source": "https://freesound.org/people/sribubba/sounds/130154/"
+  },
+  "main_switch": {
+    "file": "main_switch.mp3",
+    "license": "CC0 1.0",
+    "author": "Deathscyp",
+    "source": "https://freesound.org/people/Deathscyp/sounds/404049/"
+  },
+  "relay_click": {
+    "file": "relay_click.mp3",
+    "license": "CC0 1.0",
+    "author": "JoontheFloof",
+    "source": "https://freesound.org/people/JoontheFloof/sounds/740252/"
+  },
+  "din_snap": {
+    "file": "din_snap.mp3",
+    "license": "CC0 1.0",
+    "author": "slappy13",
+    "source": "https://freesound.org/people/slappy13/sounds/151778/"
+  },
+  "rj45_in": {
+    "file": "rj45_in.mp3",
+    "license": "CC0 1.0",
+    "author": "golakersri23",
+    "source": "https://freesound.org/people/golakersri23/sounds/794506/"
+  },
+  "rj45_out": {
+    "file": "rj45_out.mp3",
+    "license": "CC0 1.0",
+    "author": "golakersri23",
+    "source": "https://freesound.org/people/golakersri23/sounds/794506/"
+  },
+  "drill_short": {
+    "file": "drill_short.mp3",
+    "license": "CC0 1.0",
+    "author": "AlaskaRobotics",
+    "source": "https://freesound.org/people/AlaskaRobotics/sounds/551505/"
+  },
+  "screwdriver": {
+    "file": "screwdriver.mp3",
+    "license": "CC0 1.0",
+    "author": "Fwughox_Official",
+    "source": "https://freesound.org/people/Fwughox_Official/sounds/747175/"
+  },
+  "rack_screw": {
+    "file": "rack_screw.mp3",
+    "license": "CC0 1.0",
+    "author": "aerror",
+    "source": "https://freesound.org/people/aerror/sounds/328766/"
+  },
+  "magnet_snap": {
+    "file": "magnet_snap.mp3",
+    "license": "CC BY 4.0",
+    "author": "designerschoice",
+    "source": "https://freesound.org/people/designerschoice/sounds/852800/"
+  },
+  "peel_sticker": {
+    "file": "peel_sticker.mp3",
+    "license": "CC BY 4.0",
+    "author": "designerschoice",
+    "source": "https://freesound.org/people/designerschoice/sounds/807636/"
+  },
+  "bulb_screw": {
+    "file": "bulb_screw.mp3",
+    "license": "CC0 1.0",
+    "author": "C-V",
+    "source": "https://freesound.org/people/C-V/sounds/521127/"
+  },
+  "cable_zip": {
+    "file": "cable_zip.mp3",
+    "license": "CC0 1.0",
+    "author": "JonCon_Library",
+    "source": "https://freesound.org/people/JonCon_Library/sounds/487524/"
+  },
+  "box_open": {
+    "file": "box_open.mp3",
+    "license": "CC0 1.0",
+    "author": "kyles",
+    "source": "https://freesound.org/people/kyles/sounds/452567/"
+  },
+  "spark": {
+    "file": "spark.mp3",
+    "license": "CC0 1.0",
+    "author": "BMacZero",
+    "source": "https://freesound.org/people/BMacZero/sounds/94132/"
+  },
+  "doorbell_chime": {
+    "file": "doorbell_chime.mp3",
+    "license": "CC0 1.0",
+    "author": "jonahlpayne",
+    "source": "https://freesound.org/people/jonahlpayne/sounds/827464/"
+  },
+  "car_arrive": {
+    "file": "car_arrive.mp3",
+    "license": "CC0 1.0",
+    "author": "jmdh",
+    "source": "https://freesound.org/people/jmdh/sounds/136536/"
+  },
+  "car_door": {
+    "file": "car_door.mp3",
+    "license": "CC0 1.0",
+    "author": "Woodylein",
+    "source": "https://freesound.org/people/Woodylein/sounds/213563/"
+  },
+  "house_door_open": {
+    "file": "house_door_open.mp3",
+    "license": "CC0 1.0",
+    "author": "LilMati",
+    "source": "https://freesound.org/people/LilMati/sounds/704609/"
+  },
+  "house_door_close": {
+    "file": "house_door_close.mp3",
+    "license": "CC0 1.0",
+    "author": "nozefian",
+    "source": "https://freesound.org/people/nozefian/sounds/397918/"
+  },
+  "footsteps_wood": {
+    "file": "footsteps_wood.mp3",
+    "license": "CC0 1.0",
+    "author": "ftpalad",
+    "source": "https://freesound.org/people/ftpalad/sounds/119914/"
+  },
+  "payment": {
+    "file": "payment.mp3",
+    "license": "CC0 1.0",
+    "author": "CapsLok",
+    "source": "https://freesound.org/people/CapsLok/sounds/184438/"
+  },
+  "stamp": {
+    "file": "stamp.mp3",
+    "license": "CC0 1.0",
+    "author": "whammy",
+    "source": "https://freesound.org/people/whammy/sounds/514486/"
+  },
+  "pen_tick": {
+    "file": "pen_tick.mp3",
+    "license": "CC0 1.0",
+    "author": "eizzof",
+    "source": "https://freesound.org/people/eizzof/sounds/190033/"
+  },
+  "fan_hum": {
+    "file": "fan_hum.mp3",
+    "license": "CC0 1.0",
+    "author": "tt_runscript",
+    "source": "https://freesound.org/people/tt_runscript/sounds/732705/"
+  },
+  "amb_birds": {
+    "file": "amb_birds.mp3",
+    "license": "CC0 1.0",
+    "author": "titi2",
+    "source": "https://freesound.org/people/titi2/sounds/509936/"
+  },
+  "amb_river": {
+    "file": "amb_river.mp3",
+    "license": "CC0 1.0",
+    "author": "DarkShroom",
+    "source": "https://freesound.org/people/DarkShroom/sounds/645326/"
+  },
+  "amb_city": {
+    "file": "amb_city.mp3",
+    "license": "CC0 1.0",
+    "author": "pblzr",
+    "source": "https://freesound.org/people/pblzr/sounds/686845/"
+  },
+  "servo_whirr": {
+    "file": "servo_whirr.mp3",
+    "license": "CC0 1.0",
+    "author": "vacuumfan7072",
+    "source": "https://freesound.org/people/vacuumfan7072/sounds/264592/"
+  },
+  "ui_tap": {
+    "file": "ui_tap.mp3",
+    "license": "CC0 1.0",
+    "author": "Kenney (kenney.nl)",
+    "source": "https://kenney.nl/assets/interface-sounds"
+  },
+  "ui_confirm": {
+    "file": "ui_confirm.mp3",
+    "license": "CC0 1.0",
+    "author": "Kenney (kenney.nl)",
+    "source": "https://kenney.nl/assets/interface-sounds"
+  },
+  "ui_back": {
+    "file": "ui_back.mp3",
+    "license": "CC0 1.0",
+    "author": "Kenney (kenney.nl)",
+    "source": "https://kenney.nl/assets/interface-sounds"
+  },
+  "ui_error": {
+    "file": "ui_error.mp3",
+    "license": "CC0 1.0",
+    "author": "Kenney (kenney.nl)",
+    "source": "https://kenney.nl/assets/interface-sounds"
+  },
+  "ui_pop": {
+    "file": "ui_pop.mp3",
+    "license": "CC0 1.0",
+    "author": "Kenney (kenney.nl)",
+    "source": "https://kenney.nl/assets/interface-sounds"
+  }
+}

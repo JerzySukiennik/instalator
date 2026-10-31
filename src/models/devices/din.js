@@ -218,8 +218,8 @@ function narrowPrint(kind, names, txt, D, nose) {
 
 function shellyNarrow(kind) {
   const kit = new Kit();
-  const body = kind === '3em' ? '#f1f1ee' : kind === 'dimmer' ? '#5ccf2e' : '#1b1c1e';
-  const b = dinBody(kit, 1, body, { H: 0.094, D: 0.069, nose: 0.045, zs: 0.031, mat: 'satin' });
+  const body = kind === '3em' ? '#f1f1ee' : kind === 'dimmer' ? '#5ccf2e' : '#141416';
+  const b = dinBody(kit, 1, body, { H: 0.094, D: 0.069, nose: 0.045, zs: 0.031, mat: kind === '2pm' ? 'matte' : 'satin' });
   const { W, H, D, nose } = b;
   const top = '#2eaa4c';
   const bot = kind === '3em' ? '#1e1f21' : '#1f5fd0';
@@ -265,15 +265,16 @@ function shellyScreen() {
 
 function shelly4pm() {
   const kit = new Kit();
-  const b = dinBody(kit, 3, '#1b1c1e', { H: 0.096, D: 0.059, nose: 0.06, zs: 0.028 });
+  const b = dinBody(kit, 3, '#121214', { H: 0.096, D: 0.059, nose: 0.06, zs: 0.028, mat: 'matte' });
+  for (const sx of [-1, 1]) for (const ty of [0.009, -0.009]) kit.box('matte', '#141416', sx * (b.W / 2 + 0.0019), ty, 0.012, 0.0038, 0.0085, 0.016, { r: 0.0012, seg: 1, axis: 'x' });
   const { W, H, D, nose, zs } = b;
-  terminalBlock(kit, 0, H / 2 - 0.0075, 0.0375, W - 0.006, '#202124', 5, 1);
-  kit.box('glass', '#06080c', 0.0035, 0.0055, D + 0.0003, 0.031, 0.036, 0.0006, { r: 0.0016, seg: 2 });
-  kit.display(shellyScreen(), 0.0285, 0.0333, 0.0035, 0.0055, D + 0.00065);
-  kit.quad(shellyLogoMat('#ffffff'), null, 0.034, 0.0115, -W / 2 + 0.0066, 0.006, D + 0.00012, { rz: Math.PI / 2 });
-  for (const [x, t] of [[-0.0075, '^'], [0.0035, 'v'], [0.0145, 'ok']]) kit.box('satin', '#2b2c30', x, -0.0185, D + 0.0003, 0.0068, 0.0034, 0.0006, { r: 0.0012, seg: 2 });
+  terminalBlock(kit, 0, H / 2 - 0.0075, 0.0375, W - 0.006, '#161618', 5, 1);
+  kit.box('glass', '#06080c', 0.0042, 0.0068, D + 0.0003, 0.0352, 0.0405, 0.0006, { r: 0.0016, seg: 2 });
+  kit.display(shellyScreen(), 0.0326, 0.0378, 0.0042, 0.0068, D + 0.00065);
+  kit.quad(shellyLogoMat('#ffffff'), null, 0.034, 0.0115, -W / 2 + 0.0058, 0.006, D + 0.00012, { rz: Math.PI / 2 });
+  for (const [x, t] of [[-0.0068, '^'], [0.0042, 'v'], [0.0152, 'ok']]) kit.box('satin', '#26272b', x, -0.0195, D + 0.0003, 0.0068, 0.0034, 0.0006, { r: 0.0012, seg: 2 });
   const bl = labelMat('shelly4pm-btn', 192, 32, (ctx) => { ctx.clearRect(0, 0, 192, 32); ctx.fillStyle = '#cfd6df'; ctx.font = '600 22px Helvetica, Arial'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('⌃', 34, 18); ctx.fillText('⌄', 96, 12); ctx.fillText('OK', 158, 16); });
-  kit.quad(bl, null, 0.033, 0.0055, 0.0035, -0.0185, D + 0.00065);
+  kit.quad(bl, null, 0.033, 0.0055, 0.0042, -0.0195, D + 0.00065);
   for (let i = 0; i < 4; i++) kit.led('#38d15a', 'status', (m) => kit.cyl(m, null, -0.009 + i * 0.006, -nose / 2 + 0.0022, D + 0.0003, 0.0007, 0.0006, { axis: 'z', seg: 8 }), { intensity: 2 });
   kit.box('matte', '#121314', 0.012, -H / 2 + 0.002, 0.024, 0.012, 0.004, 0.009);
   kit.tube('satin', '#d5d7d9', [[0.012, -H / 2 + 0.001, 0.024], [0.012, -H / 2 - 0.02, 0.022], [0.009, -H / 2 - 0.05, 0.012]], 0.0022, { rs: 6, segs: 8 });
