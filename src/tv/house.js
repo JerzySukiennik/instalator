@@ -458,10 +458,26 @@ export class House {
       const A = this.portWorld(p.a[0], p.a[1]), B = this.portWorld(p.b[0], p.b[1]);
       if (!A || !B) continue;
       const d = A.distanceTo(B);
-      const mid = A.clone().add(B).multiplyScalar(0.5).addScaledVector(n, 0.05 + d * 0.12).add(new THREE.Vector3(0, -0.03 - d * 0.18, 0));
-      const curve = new THREE.CatmullRomCurve3([A.clone(), A.clone().addScaledVector(n, 0.03), mid, B.clone().addScaledVector(n, 0.03), B.clone()], false, "centripetal");
+      const ontEnd = [p.a[0], p.b[0]].some((u) => s.devs.find((x) => x.uid === u)?.id === "ont");
+      let curve;
+      if (ontEnd && d > 0.35 && this.cab) {
+        const [O, R] = s.devs.find((x) => x.uid === p.a[0])?.id === "ont" ? [A, B] : [B, A];
+        const box = new THREE.Box3().setFromObject(this.cab);
+        const lvl = box.max.y + 0.06;
+        const side = O.clone().sub(R).dot(new THREE.Vector3().crossVectors(new THREE.Vector3(0, 1, 0), n)) > 0 ? 1 : -1;
+        const sx = new THREE.Vector3().crossVectors(new THREE.Vector3(0, 1, 0), n).multiplyScalar(side);
+        const wallOff = (v) => v.clone().addScaledVector(n, 0.02);
+        const pts = [O.clone(), wallOff(O), wallOff(new THREE.Vector3(O.x, lvl, O.z))];
+        const corner = R.clone().addScaledVector(sx, 0.05);
+        pts.push(new THREE.Vector3(corner.x, lvl, corner.z).addScaledVector(n, 0.02));
+        pts.push(R.clone().addScaledVector(n, 0.05).add(new THREE.Vector3(0, 0.04, 0)), R.clone().addScaledVector(n, 0.03), R.clone());
+        curve = new THREE.CatmullRomCurve3(pts, false, "catmullrom", 0.05);
+      } else {
+        const mid = A.clone().add(B).multiplyScalar(0.5).addScaledVector(n, 0.05 + d * 0.12).add(new THREE.Vector3(0, -0.03 - d * 0.18, 0));
+        curve = new THREE.CatmullRomCurve3([A.clone(), A.clone().addScaledVector(n, 0.03), mid, B.clone().addScaledVector(n, 0.03), B.clone()], false, "centripetal");
+      }
       const mat = new THREE.MeshStandardMaterial({ color: p.color, roughness: 0.55, flatShading: false });
-      const tube = new THREE.Mesh(new THREE.TubeGeometry(curve, 28, 0.0028, 6), mat);
+      const tube = new THREE.Mesh(new THREE.TubeGeometry(curve, ontEnd ? 64 : 28, 0.0028, 6), mat);
       tube.castShadow = true;
       this.cables.add(tube);
       for (const [P, Q] of [[A, A.clone().addScaledVector(n, 0.03)], [B, B.clone().addScaledVector(n, 0.03)]]) {
