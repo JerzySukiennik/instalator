@@ -155,8 +155,12 @@ export function runDemo(state, data, reduce, opts = {}) {
   const pick = (cap, n = 0) => state.devs.filter((d) => d.paired && BY_ID[d.id]?.caps.includes(cap))[n];
   const cards = [];
   const put = (kind, dev, x, y, w = 1, h = 1) => cards.push({ id: `c${cards.length}`, kind, dev: dev?.uid || null, x, y, w, h });
-  const cam = state.devs.find((d) => BY_ID[d.id]?.caps.includes("camera") && !BY_ID[d.id]?.caps.includes("doorbell")) || state.devs.find((d) => BY_ID[d.id]?.caps.includes("camera"));
-  put("camera", cam, 0, 0, 2, 3);
+  const cams = state.devs.filter((d) => BY_ID[d.id]?.caps.includes("camera") && !BY_ID[d.id]?.caps.includes("doorbell"));
+  const bell = state.devs.find((d) => BY_ID[d.id]?.caps.includes("doorbell"));
+  const cam = cams[0] || bell;
+  put("camera", cam, 0, 0, 2, 2);
+  put("camera", cams[1] || bell || cam, 0, 2, 1, 1);
+  put("camera", bell && bell !== (cams[1] || null) ? bell : cams[2] || cam, 1, 2, 1, 1);
   const pref = ["living", "bed", "office", "kitchen", "hall"];
   const rank = (d) => { const i = pref.indexOf(roomKind({ room: d.room })); return i < 0 ? 99 : i; };
   const mainTrv = state.devs.filter((d) => d.paired && (BY_ID[d.id]?.caps.includes("trv") || BY_ID[d.id]?.caps.includes("thermostat"))).sort((a, b) => rank(a) - rank(b))[0];

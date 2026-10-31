@@ -190,18 +190,20 @@ export class House {
         const lo = Math.min(...used.map((x) => x.u)), hi = Math.max(...used.map((x) => x.u + (BY_ID[x.id]?.u || 1)));
         this.cab.updateWorldMatrix(true, false);
         out.pos = this.cab.localToWorld(this.rackOrigin.clone().add(new THREE.Vector3(0, ((lo + hi) / 2) * U, 0.05)));
-        out.dist = Math.max(0.8, (hi - lo) * U * 1.9 + 0.3);
+        out.dist = Math.max(0.62, ((hi - lo) * U) / 0.72 / 0.611);
       }
     }
     if (kind === "panel" && this.panelEnc && this.rails?.length) {
       const per = this.layout?.per || 12;
-      const x0 = this.rails[0].x0, x1 = x0 + per * 0.0175;
-      const y0 = this.rails[0].y + 0.07, y1 = this.rails[this.rails.length - 1].y - 0.07;
+      const x0 = this.rails[0].x0 - 0.02, x1 = this.rails[0].x0 + per * 0.0175 + 0.02;
+      const usedRows = [...(this.layout?.items || []).map((it) => it.row), ...(this.state?.devs || []).filter((d) => d.place === "din").map((d) => d.row ?? 0)];
+      const last = Math.min(this.rails.length - 1, Math.max(0, ...usedRows));
+      const y0 = this.rails[0].y + 0.075, y1 = this.rails[last].y - 0.075;
       this.panelEnc.updateWorldMatrix(true, false);
       const a = this.panelEnc.localToWorld(new THREE.Vector3(x0, y0, 0)), b = this.panelEnc.localToWorld(new THREE.Vector3(x1, y1, 0));
       out.pos = a.clone().add(b).multiplyScalar(0.5);
       const w = a.distanceTo(new THREE.Vector3(b.x, a.y, b.z)), h = Math.abs(a.y - b.y);
-      out.dist = Math.max(0.42, Math.max(h, w / 1.7) * 1.85 + 0.08);
+      out.dist = Math.max(0.36, Math.max(h / 0.8, w / 0.8 / 1.78) / 0.611);
     }
     return out;
   }
@@ -665,7 +667,7 @@ export class House {
           const n = N[wg.side];
           const dot = n ? n[0] * dir.x + n[1] * dir.z : 0;
           wg._front = wg._front ? dot > 0.12 : dot > 0.36;
-          if (wg._front) h = fy + (mode === "close" ? 0.35 : 1.0);
+          if (wg._front) h = fy + (mode === "close" ? 0.35 : 0.95);
         }
       }
       if (!wg._mats) {
@@ -787,7 +789,7 @@ export class House {
       this.fill.position.copy(cam.position).addScaledVector(right, -0.9).add(new THREE.Vector3(0, 0.75, 0));
       this.fill.intensity += (1.15 - this.fill.intensity) * Math.min(1, dt * 3);
     } else this.fill.intensity += (0 - this.fill.intensity) * Math.min(1, dt * 3);
-    this.R.dimT = this.closeFill ? 0.62 : this.dimReview ? 0.45 : 1;
+    this.R.dimT = this.closeFill ? 0.62 : this.dimReview ? 0.9 : 1;
     for (const m of this.cones.values()) if (m.material.uniforms) m.material.uniforms.t.value = this.t;
     if (this.wifiOn && this.der?.aps?.length) {
       this._ringT = (this._ringT || 0) - dt;

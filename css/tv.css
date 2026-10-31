@@ -221,3 +221,28 @@ body.desk .achieve { max-width: 22rem; top: auto; bottom: 5.4rem; }
 
 #lobby .qr .spin { width: 4.4rem; height: 4.4rem; border-radius: 50%; border: 0.45rem solid var(--line); border-top-color: var(--ink); animation: spin 0.9s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+#checklist, #jobcard { transition: transform 0.35s cubic-bezier(.2, .8, .2, 1), opacity 0.3s; }
+body.closeup #checklist { transform: translateX(115%); opacity: 0; pointer-events: none; }
+body.closeup #jobcard { width: auto; padding: 0.55rem 0.95rem; grid-template-columns: 1fr; opacity: 0.94; }
+body.closeup #jobcard > :not(.bud) { display: none; }
+body.closeup #jobcard .budbar { display: none; }
+body.closeup #jobcard .budline { gap: 1.4rem; }
+body.closeup .achieve { left: 1.4rem; top: auto; bottom: 5.6rem; transform: none; animation: achL 0.55s cubic-bezier(.2, 1.4, .4, 1) both; max-width: 30rem; }
+@keyframes achL { from { opacity: 0; transform: scale(1.2) rotate(-2deg); } }
+#review { left: auto; right: 2.2vw; top: 50%; transform: translateY(-50%); width: min(37rem, 40vw); padding: 1.3rem 1.5rem 1.2rem; animation: rvIn 0.6s cubic-bezier(.2, .9, .3, 1.05); }
+@keyframes rvIn { from { opacity: 0; transform: translate(2rem, -50%); } }
+#review .rv-list { columns: 1; }
+#review .rv-list li { font-size: 1.04rem; padding: 0.16rem 0; }
+#review .rv-list .mk { width: 1.55rem; height: 1.55rem; font-size: 1.1rem; }
+#review .rv-foot { grid-template-columns: auto 1fr; gap: 1rem; margin-top: 0.7rem; padding-top: 0.7rem; }
+#review .rv-foot .q { display: none; }
+#review .stars .ic { width: 2.1rem; height: 2.1rem; }
+#review .rv-money { grid-template-columns: 1fr auto; font-size: 0.95rem; }
+#review .rv-money b { font-size: 1.25rem; }
+#review .rv-money b.pay { font-size: 1.8rem; }
+#review .rv-who { margin: 0.6rem 0 0.2rem; }
+#review .rv-next { margin-top: 0.7rem; }
+#review { max-height: 94vh; overflow: hidden; }
+#review .rv-stamp { width: 8.4rem; height: 8.4rem; right: 1.3rem; top: 3rem; font-size: 1.05rem; }
+#review .rv-who h2 { font-size: 1.9rem; }

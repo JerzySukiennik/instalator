@@ -29,12 +29,14 @@ export class Director {
     this.orbit.radius = span * (opts.zoom || 1.32) + 4;
     this.orbit.height = span * 0.95 + 3.5;
     this.orbit.speed = opts.speed ?? 0.03;
+    this.orbit.shift = (opts.shift || 0) * span;
     if (opts.az != null) this.orbit.az = opts.az;
     this.cutMode = "overview";
     this.R.frame = span * 0.9 + 6;
   }
 
   room(data, room) {
+    this.orbit.shift = 0;
     const b = polyBounds([room.poly]);
     const cx = (b.x0 + b.x1) / 2, cz = (b.z0 + b.z1) / 2;
     const span = Math.max(b.x1 - b.x0, b.z1 - b.z0, 3);
@@ -80,8 +82,10 @@ export class Director {
       const o = this.orbit;
       o.az += o.speed * dt;
       const sway = Math.sin(this.t * 0.11) * 0.06;
-      this.wantTgt.copy(o.center);
-      this.wantPos.set(o.center.x + Math.sin(o.az + sway) * o.radius, o.center.y + o.height, o.center.z + Math.cos(o.az + sway) * o.radius);
+      const sh = o.shift || 0;
+      const rx = Math.cos(o.az) * sh, rz = -Math.sin(o.az) * sh;
+      this.wantTgt.set(o.center.x + rx, o.center.y, o.center.z + rz);
+      this.wantPos.set(o.center.x + rx + Math.sin(o.az + sway) * o.radius, o.center.y + o.height, o.center.z + rz + Math.cos(o.az + sway) * o.radius);
       this.wantFov = 36;
     } else if (this.shot) {
       const s = this.shot;

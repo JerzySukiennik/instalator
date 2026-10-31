@@ -186,7 +186,7 @@ function cctv(g, buf, W, H, key) {
   const im = g.createImageData(W, H);
   const ir = R.mode === "night" || R.mode === "dusk";
   const exp = R.renderer.toneMappingExposure * (ir ? 2.6 : 1.45);
-  const ar = W / H, k = 0.2, rmax = 1 + 1 / (ar * ar), s = 1 / (1 + k * rmax);
+  const ar = W / H, k = 0.34, rmax = 1 + 1 / (ar * ar), s = 1 / (1 + k * rmax);
   let seedN = 0;
   for (const ch of key) seedN = (seedN * 31 + ch.charCodeAt(0)) >>> 0;
   seedN ^= Math.floor(performance.now() / 500);
@@ -204,7 +204,7 @@ function cctv(g, buf, W, H, key) {
   };
   const sample = (fx, fy) => {
     px[0] = px[1] = px[2] = 0;
-    for (const [ox, oy] of [[-0.7, -0.4], [0.7, 0.4], [-0.4, 0.7], [0.4, -0.7]]) { tap(fx + ox, fy + oy); px[0] += one[0] / 4; px[1] += one[1] / 4; px[2] += one[2] / 4; }
+    for (const [ox, oy] of [[-1.1, -0.5], [1.1, 0.5], [-0.5, 1.1], [0.5, -1.1]]) { tap(fx + ox, fy + oy); px[0] += one[0] / 4; px[1] += one[1] / 4; px[2] += one[2] / 4; }
   };
   for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
     const u = ((x + 0.5) / W) * 2 - 1, v = ((y + 0.5) / H) * 2 - 1;
@@ -217,12 +217,19 @@ function cctv(g, buf, W, H, key) {
     const vig = 1 - 0.42 * Math.pow(r2 / rmax, 1.4);
     const n = (rnd() - 0.5) * (ir ? 0.12 : 0.085);
     for (let c = 0; c < 3; c++) {
-      let cc = ir ? l * [0.94, 1, 1.03][c] : l + (px[c] - l) * 0.78;
-      cc = cc * 1.08 - 0.03;
+      let cc = ir ? l * [0.94, 1, 1.03][c] : (l + (px[c] - l) * 0.6) * [0.97, 1.0, 0.94][c];
+      cc = cc * 0.92 + 0.045;
       cc = cc * vig + n;
       im.data[o + c] = Math.max(0, Math.min(255, cc * 268));
     }
     im.data[o + 3] = 255;
+  }
+  const D = im.data;
+  for (let by = 0; by < H; by += 4) for (let bx = 0; bx < W; bx += 4) {
+    let r = 0, gg = 0, b = 0, n = 0;
+    for (let y = by; y < Math.min(H, by + 4); y++) for (let x = bx; x < Math.min(W, bx + 4); x++) { const o = (y * W + x) * 4; r += D[o]; gg += D[o + 1]; b += D[o + 2]; n++; }
+    r /= n; gg /= n; b /= n;
+    for (let y = by; y < Math.min(H, by + 4); y++) for (let x = bx; x < Math.min(W, bx + 4); x++) { const o = (y * W + x) * 4; D[o] = D[o] * 0.62 + r * 0.38; D[o + 1] = D[o + 1] * 0.62 + gg * 0.38; D[o + 2] = D[o + 2] * 0.62 + b * 0.38; }
   }
   g.putImageData(im, 0, 0);
   const t = gameNow();
@@ -281,6 +288,7 @@ function paintTablet(snap) {
 }
 
 function focusTask(id) {
+  document.body.classList.toggle("closeup", id === "panel" || id === "rack" || id === "tablet");
   house.setDoors(id === "panel" || id === "rack");
   house.showWifi(false);
   house.showCones(false);
@@ -478,7 +486,7 @@ async function runHandover() {
       if (r.type === "wifi" || r.type === "wifizone") house.showWifi(true); else house.showWifi(false);
     } });
   }
-  steps.push({ dur: 0.1, run: () => { house.showWifi(false); dir.overview(data, { floor: 0, speed: 0.025 }); hud.bubble(j.client, ""); state.phase = "review"; hud.review(state, () => audio.play("stamp")); audio.play("payment", { delay: 2.4 }); savePortfolio(); sendState(); } });
+  steps.push({ dur: 0.1, run: () => { house.showWifi(false); dir.overview(data, { floor: 0, speed: 0.025 }); hud.bubble(j.client, ""); state.phase = "review"; document.body.classList.remove("closeup"); dir.overview(data, { floor: 0, speed: 0.012, shift: 0.32, zoom: 1.2 }); hud.review(state, () => audio.play("stamp")); audio.play("payment", { delay: 2.4 }); savePortfolio(); sendState(); } });
   script = { steps, i: -1, t: 0 };
 }
 
@@ -588,7 +596,7 @@ async function demo(building, view) {
   await new Promise((r) => setTimeout(r, 120));
   if (view === "night" || view === "dusk") { R.setMode(view, true); dir.overview(data, { floor: 0, speed: 0.02 }); }
   else if (view === "handover") { reduce(state, "demo", { a: "handover" }, data); runHandover(); }
-  else if (view === "review") { reduce(state, "demo", { a: "handover" }, data); state.phase = "review"; R.setMode("dusk", true); dir.overview(data, { floor: 0 }); }
+  else if (view === "review") { reduce(state, "demo", { a: "handover" }, data); state.phase = "review"; R.setMode("dusk", true); dir.overview(data, { floor: 0, speed: 0.012, shift: 0.32, zoom: 1.2 }); }
   else if (view.startsWith("kind:")) { const r = data.rooms.find((x) => x.kind === view.slice(5)); if (r) { state.turn.task = `room:${r.id}`; focusTask(`room:${r.id}`); } }
   else if (view !== "overview") { state.turn.task = view; focusTask(view); }
   if (q.get("az")) dir.orbit.az = Number(q.get("az"));
