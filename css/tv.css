@@ -62,9 +62,9 @@ canvas#tv { position: fixed; inset: 0; width: 100vw; height: 100vh; display: blo
 .job .client b { display: block; font-size: 0.82rem; }
 .job .client span { font-size: 0.66rem; color: var(--ink2); }
 .job .quote { font-size: 0.68rem; line-height: 1.32; color: var(--ink2); margin-top: 0.55rem; font-style: italic; }
-.job .money { display: flex; align-items: baseline; justify-content: space-between; margin-top: 0.7rem; padding-top: 0.6rem; border-top: 1px dashed var(--line); }
+.job .money { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 0.3rem 0.5rem; margin-top: 0.7rem; padding-top: 0.6rem; border-top: 1px dashed var(--line); }
 .job .money b { font-family: var(--mono); font-size: 1.45rem; letter-spacing: -0.02em; }
-.job .plat { font-family: var(--mono); font-size: 0.58rem; text-transform: uppercase; background: var(--ink); color: var(--tape); padding: 0.2em 0.5em; border-radius: 0.25em; }
+.job .plat { font-family: var(--mono); font-size: 0.66rem; text-transform: uppercase; background: var(--ink); color: var(--tape); padding: 0.25em 0.55em; border-radius: 0.25em; white-space: nowrap; }
 .job ul { list-style: none; margin: 0.6rem 0 0; padding: 0; display: flex; flex-direction: column; gap: 0.3rem; font-size: 0.68rem; flex: 1; min-height: 0; overflow: hidden; }
 .job li { display: flex; gap: 0.4rem; align-items: center; }
 .job li .ic { flex: none; color: var(--ink2); width: 0.9rem; height: 0.9rem; }
