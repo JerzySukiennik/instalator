@@ -74,13 +74,15 @@ export function afterPoe(ctx, uid) {
   if (!d || !d.run) return;
   const st = ctx.S.der?.dev[uid];
   if (st && st.pw && st.net) return;
-  const link = netPlan(ctx.S).links.find((l) => d.run.pp && l.from[0] === d.run.pp && l.from[1] === d.run.port);
+  const plan = netPlan(ctx.S);
+  const link = plan.links.find((l) => d.run.pp && l.from[0] === d.run.pp && l.from[1] === d.run.port);
+  const chain = link ? plan.links.filter((l) => l === link || l.why.startsWith("Internet") || l.why.startsWith("Bramka")) : [];
   const step = netStep(ctx.S, ctx.B);
   const where = ctx.B.rack ? "szafy rack" : "skrzynki multimedialnej";
   sheet("Kabel poszedł w ścianie", (sc, s, close) => {
     sc.innerHTML = `<p style="margin:0 0 14px;color:var(--ink2);line-height:1.45">Przewód z <b>${esc(BY_ID[d.id].name)}</b> doszedł do ${where}${d.run.pp ? " i jest podpisany na patch panelu" : ""}. ${link ? "Teraz wystarczy wpiąć go patchcordem do portu PoE w switchu, wtedy dostanie prąd i internet." : `Żeby zadziałał: ${esc(step.text)}`}</p>
-      <div style="display:flex;gap:10px;flex-wrap:wrap">${link ? `<button class="btn y now">Wepnij od razu</button>` : ""}<button class="btn w rk">Pokaż w szafie</button></div>`;
-    if ($(".now", sc)) $(".now", sc).onclick = () => { haptic(true); ctx.send({ a: "patch", from: link.from, to: link.to, color: link.color }); close(); toast("Wpięte! Dioda na switchu się świeci."); };
+      <div style="display:flex;gap:10px;flex-wrap:wrap">${link ? `<button class="btn y now">${chain.length > 1 ? "Wepnij (z bramką i switchem)" : "Wepnij od razu"}</button>` : ""}<button class="btn w rk">Pokaż w szafie</button></div>`;
+    if ($(".now", sc)) $(".now", sc).onclick = () => { close(); chain.forEach((l, i) => setTimeout(() => { haptic(true); ctx.send({ a: "patch", from: l.from, to: l.to, color: l.color }); }, i * 420)); setTimeout(() => toast("Wpięte! Dioda na switchu się świeci."), chain.length * 420); };
     $(".rk", sc).onclick = () => { close(); ctx.stream({ t: "ghost" }); ctx.openTask("rack"); };
   });
 }
