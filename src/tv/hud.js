@@ -54,6 +54,7 @@ export class Hud {
         <div class="sub"><span class="tape">UniFi</span><span class="tape">Hue</span><span class="tape">Shelly</span><span class="tape">tado°</span><span class="tape y">1–4 telefony</span></div>
         <div class="players">${s.players.map((p) => playerPill(p)).join("") || `<span class="tape">Czekam na pierwszy telefon…</span>`}</div>
         ${document.body.classList.contains("desk") ? "" : `<button class="tape y deskbtn click">🖱 Graj na tym komputerze, bez telefonu</button>`}
+        ${resumeHtml()}
       </div>
       ${portfolioHtml()}
       <div class="join card">
@@ -200,6 +201,15 @@ export class Hud {
     h.innerHTML = "";
     h.classList.add("hide");
   }
+}
+
+function resumeHtml() {
+  try {
+    const sv = JSON.parse(localStorage.getItem("instalator.save.v1") || "null");
+    if (!sv || !sv.state?.job || Date.now() - sv.at > 3 * 86400e3) return "";
+    const done = (sv.state.devs || []).filter((d) => d.place !== "fixed").length;
+    return `<button class="tape resumebtn click">▶ Wznów: ${esc(sv.state.job.buildingName)} · ${esc(sv.state.job.client.name)} · ${done} urządz.</button>`;
+  } catch (e) { return ""; }
 }
 
 function portfolioHtml() {

@@ -181,3 +181,5 @@ body.desk #checklist { width: 18rem; }
 .toast { font-size: 0.92rem; }
 body.desk #checklist { width: 20rem; }
 body.desk #jobcard { width: 20rem; }
+
+.resumebtn { display: block; margin-top: 0.7rem; font-size: 0.85rem; border: 0; cursor: pointer; pointer-events: auto; background: var(--ink); color: var(--tape); }

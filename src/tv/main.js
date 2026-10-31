@@ -63,7 +63,51 @@ function padUrl(code) {
   return `${base}?role=pad&room=${code}${extra}`;
 }
 
+const SAVE_KEY = "instalator.save.v1";
+let saveTimer = 0;
+function autosave() {
+  if (q.get("demo") || !["job", "handover", "review", "play"].includes(state.phase)) return;
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    try { localStorage.setItem(SAVE_KEY, JSON.stringify({ at: Date.now(), state: { ...state, phase: state.phase === "handover" ? "job" : state.phase } })); } catch (e) {}
+  }, 1500);
+}
+
+function readSave() {
+  try {
+    const s = JSON.parse(localStorage.getItem(SAVE_KEY) || "null");
+    if (s && s.state?.job && Date.now() - s.at < 3 * 86400e3) return s;
+  } catch (e) {}
+  return null;
+}
+
+async function resumeSave() {
+  const sv = readSave();
+  if (!sv) return;
+  const keep = state.players;
+  Object.assign(state, sv.state);
+  for (const p of state.players) p.online = keep.some((k) => k.cid === p.cid && k.online);
+  for (const p of keep) if (!state.players.some((x) => x.cid === p.cid)) state.players.push(p);
+  if (!state.players.some((p) => p.host && p.online)) { state.players.forEach((p) => (p.host = false)); const h = state.players.find((p) => p.online); if (h) h.host = true; }
+  state.turn.order = state.players.filter((p) => p.online).map((p) => p.cid);
+  state.turn.i = 0;
+  const b = await house.load(state.job.building);
+  data = b.data;
+  tasks = tasksFor(state.job, data);
+  R.setMode(state.phase === "play" ? "night" : "afternoon", true);
+  house.setFloor(0);
+  dir.overview(data, { floor: 0, speed: 0, az: 0.75 });
+  dir.snap();
+  hud.show("hud");
+  host.broadcast({ t: "building", data });
+  sendState();
+  hud.banner(`Wznowione: ${state.job.buildingName}`);
+}
+window.__resume = resumeSave;
+document.addEventListener("click", (e) => { if (e.target.closest && e.target.closest(".resumebtn")) resumeSave(); });
+
 function sendState() {
+  autosave();
   if (pending) return;
   pending = setTimeout(() => {
     pending = 0;
