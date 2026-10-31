@@ -144,6 +144,55 @@ let camAt = 0;
 window.__camImages = camImgs;
 window.__shootCams = () => shootCams(true);
 
+function cctv(g, buf, W, H, key) {
+  const im = g.createImageData(W, H);
+  const ir = R.mode === "night";
+  const exp = R.renderer.toneMappingExposure * (ir ? 2.6 : 1.45);
+  const ar = W / H, k = 0.2, rmax = 1 + 1 / (ar * ar), s = 1 / (1 + k * rmax);
+  let seedN = 0;
+  for (const ch of key) seedN = (seedN * 31 + ch.charCodeAt(0)) >>> 0;
+  seedN ^= Math.floor(performance.now() / 500);
+  const rnd = () => { seedN ^= seedN << 13; seedN >>>= 0; seedN ^= seedN >>> 17; seedN ^= seedN << 5; seedN >>>= 0; return seedN / 4294967296; };
+  const px = [0, 0, 0];
+  const sample = (fx, fy) => {
+    fx = Math.max(0, Math.min(W - 1.001, fx)); fy = Math.max(0, Math.min(H - 1.001, fy));
+    const x0 = fx | 0, y0 = fy | 0, tx = fx - x0, ty = fy - y0;
+    for (let c = 0; c < 3; c++) {
+      const a = buf[((H - 1 - y0) * W + x0) * 4 + c], b = buf[((H - 1 - y0) * W + x0 + 1) * 4 + c];
+      const cc = buf[((H - 2 - y0 < 0 ? 0 : H - 2 - y0) * W + x0) * 4 + c], dd = buf[((H - 2 - y0 < 0 ? 0 : H - 2 - y0) * W + x0 + 1) * 4 + c];
+      px[c] = (a * (1 - tx) + b * tx) * (1 - ty) + (cc * (1 - tx) + dd * tx) * ty;
+    }
+  };
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const u = ((x + 0.5) / W) * 2 - 1, v = ((y + 0.5) / H) * 2 - 1;
+    const r2 = u * u + (v * v) / (ar * ar);
+    const f = (1 + k * r2) * s;
+    sample(((u * f + 1) / 2) * W - 0.5, ((v * f + 1) / 2) * H - 0.5);
+    const o = (y * W + x) * 4;
+    let l = 0;
+    for (let c = 0; c < 3; c++) { let cc = px[c] * exp; cc = cc / (1 + cc); px[c] = Math.pow(cc, 1 / 2.2); l += px[c] * [0.299, 0.587, 0.114][c]; }
+    const vig = 1 - 0.42 * Math.pow(r2 / rmax, 1.4);
+    const n = (rnd() - 0.5) * (ir ? 0.11 : 0.06);
+    for (let c = 0; c < 3; c++) {
+      let cc = ir ? l * [0.94, 1, 1.03][c] : l + (px[c] - l) * 0.78;
+      cc = cc * 1.08 - 0.03;
+      cc = cc * vig + n;
+      im.data[o + c] = Math.max(0, Math.min(255, cc * 268));
+    }
+    im.data[o + 3] = 255;
+  }
+  g.putImageData(im, 0, 0);
+  const t = new Date();
+  const two = (n) => String(n).padStart(2, "0");
+  const stamp = `${two(t.getDate())}.${two(t.getMonth() + 1)}.${t.getFullYear()} ${two(t.getHours())}:${two(t.getMinutes())}:${two(t.getSeconds())}`;
+  g.font = "600 11px 'IBM Plex Mono', monospace";
+  g.lineWidth = 3; g.strokeStyle = "rgba(0,0,0,0.55)"; g.fillStyle = "rgba(255,255,255,0.92)";
+  g.textAlign = "right";
+  g.strokeText(stamp, W - 8, 16); g.fillText(stamp, W - 8, 16);
+  if (ir) { g.strokeText("IR", W - 8, 30); g.fillText("IR", W - 8, 30); }
+  g.textAlign = "left";
+}
+
 function shootCams(force = false) {
   if (!data || (!force && performance.now() - camAt < 2500)) return;
   camAt = performance.now();
@@ -166,14 +215,7 @@ function shootCams(force = false) {
     const cv = camImgs[d.uid] || document.createElement("canvas");
     cv.width = W; cv.height = H;
     const g = cv.getContext("2d");
-    const im = g.createImageData(W, H);
-    const exp = R.renderer.toneMappingExposure * 1.25;
-    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
-      const i = ((H - 1 - y) * W + x) * 4, o = (y * W + x) * 4;
-      for (let k = 0; k < 3; k++) { let c = buf[i + k] * exp; c = c / (1 + c); im.data[o + k] = Math.min(255, Math.pow(c, 1 / 2.2) * 300); }
-      im.data[o + 3] = 255;
-    }
-    g.putImageData(im, 0, 0);
+    cctv(g, buf, W, H, d.uid);
     camImgs[d.uid] = cv;
   }
 }

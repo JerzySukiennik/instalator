@@ -157,7 +157,10 @@ export function runDemo(state, data, reduce, opts = {}) {
   const put = (kind, dev, x, y, w = 1, h = 1) => cards.push({ id: `c${cards.length}`, kind, dev: dev?.uid || null, x, y, w, h });
   const cam = state.devs.find((d) => BY_ID[d.id]?.caps.includes("camera") && !BY_ID[d.id]?.caps.includes("doorbell")) || state.devs.find((d) => BY_ID[d.id]?.caps.includes("camera"));
   put("camera", cam, 0, 0, 2, 3);
-  put("climate", pick("trv"), 2, 0, 1, 3);
+  const pref = ["living", "bed", "office", "kitchen", "hall"];
+  const rank = (d) => { const i = pref.indexOf(roomKind({ room: d.room })); return i < 0 ? 99 : i; };
+  const mainTrv = state.devs.filter((d) => d.paired && (BY_ID[d.id]?.caps.includes("trv") || BY_ID[d.id]?.caps.includes("thermostat"))).sort((a, b) => rank(a) - rank(b))[0];
+  put("climate", mainTrv || pick("trv"), 2, 0, 1, 3);
   put("light", pick("light", 0), 3, 0);
   put("light", state.devs.find((d) => d.paired && d.place === "strip"), 3, 1);
   put("light", pick("light", 2) || pick("light", 1), 3, 2);
@@ -169,4 +172,6 @@ export function runDemo(state, data, reduce, opts = {}) {
   put("scene", null, 2, 5);
   put("sensor", pick("smoke") || pick("contact"), 3, 5);
   act({ a: "dash", cards });
+  const lamp = pick("light", 2) || pick("light", 1);
+  if (lamp && lamp.place !== "strip") lamp.on = false;
 }

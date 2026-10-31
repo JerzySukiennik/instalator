@@ -17,7 +17,7 @@ const F = {
 const LAYOUT = {
   ha: { x: 92, y: 156, r: 12, gap: 10, right: 28, bottom: 22 },
   apple: { x: 262, y: 232, r: 20, gap: 12, right: 30, bottom: 22 },
-  google: { x: 186, y: 230, r: 28, gap: 12, right: 66, bottom: 44 }
+  google: { x: 182, y: 230, r: 28, gap: 12, right: 70, bottom: 58 }
 };
 
 function rr(ctx, x, y, w, h, r) {
@@ -64,7 +64,7 @@ export function cardInfo(snap, data, c) {
   const st = d && snap.der ? snap.der.dev[d.uid] : null;
   const live = !!(st && st.pw && st.net);
   let title = c.title || (d ? roomName(data, d.room) || it?.name : KIND_LABEL[c.kind]);
-  let state = "", on = false, value = null;
+  let state = "", on = false, value = null, active = false, icon = KIND_ICON[c.kind] || "box", extra = null;
   const bri = d?.bri ?? 0.85;
   switch (c.kind) {
     case "light": {
@@ -73,19 +73,53 @@ export function cardInfo(snap, data, c) {
       else if (d && d.place === "din") title = c.title || "Światła";
       state = !d ? "Wł." : !live ? "Niedostępne" : on ? `Wł. · ${Math.round(bri * 100)}%` : "Wył.";
       value = on ? bri : 0;
+      active = on;
       break;
     }
-    case "climate": on = !d || live; value = d?.temp ?? Math.round((20.5 + seed(c.dev || c.id) * 2) * 2) / 2; state = on ? `${fmt(value)} °C · ${Math.round(44 + seed(c.id) * 14)}%` : "Niedostępne"; title = c.title || (d ? roomName(data, d.room) : "Ogrzewanie"); break;
-    case "lock": on = live; state = live ? (d?.locked === false ? "Otwarte" : "Zamknięte") : "Niedostępne"; title = c.title || "Drzwi wejściowe"; break;
-    case "camera": on = live; state = live ? "Na żywo" : "Offline"; title = c.title || zoneName(data, d) || (d ? roomName(data, d.room) : "Kamera"); break;
-    case "energy": on = true; value = 0.38 + seed(String((snap.devs || []).length)) * 1.4; state = `${fmt(value, 2)} kW · dziś ${fmt(6 + seed("d" + (snap.devs || []).length) * 9, 1)} kWh`; title = c.title || "Zużycie prądu"; break;
-    case "network": on = !!snap.der?.online; state = snap.der?.online ? `${(snap.devs || []).filter((x) => snap.der.dev[x.uid]?.net).length} urządzeń online` : "Brak internetu"; title = c.title || "Sieć UniFi"; break;
+    case "climate": {
+      on = !d || live;
+      value = d?.temp ?? Math.round((20.5 + seed(c.dev || c.id) * 2) * 2) / 2;
+      const hum = Math.round(44 + seed(c.id) * 14);
+      state = on ? `${fmt(value)} °C · ${hum}%` : "Niedostępne";
+      extra = { target: Math.round(value + 1), hum };
+      active = on && extra.target > value;
+      title = c.title || (d ? roomName(data, d.room) : "Ogrzewanie");
+      break;
+    }
+    case "lock": on = live; active = live && d?.locked === false; state = live ? (d?.locked === false ? "Otwarte" : "Zamknięte") : "Niedostępne"; title = c.title || "Drzwi wejściowe"; break;
+    case "camera": on = live; active = live; state = live ? "Na żywo" : "Offline"; title = c.title || zoneName(data, d) || (d ? roomName(data, d.room) : "Kamera"); break;
+    case "energy": {
+      on = true;
+      const k = seed(String((snap.devs || []).length));
+      value = 0.38 + k * 1.4;
+      const today = 6 + seed("d" + (snap.devs || []).length) * 9;
+      extra = { kw: value, today, cost: today * 1.01, volts: 229 + k * 6 };
+      state = `${fmt(value, 2)} kW · dziś ${fmt(today, 1)} kWh`;
+      icon = "energy";
+      title = c.title || "Zużycie prądu";
+      break;
+    }
+    case "network": {
+      on = !!snap.der?.online;
+      const n = (snap.devs || []).filter((x) => snap.der?.dev[x.uid]?.net).length;
+      extra = { n, down: 880 + Math.round(seed("n" + n) * 70), up: 70 + Math.round(seed("u" + n) * 30) };
+      state = on ? `${n} urządzeń online` : "Brak internetu";
+      title = c.title || "Sieć UniFi";
+      break;
+    }
     case "scene": on = false; state = "Scena"; title = c.title || "Wieczór"; break;
-    case "media": on = live; state = live ? "Gra · 40%" : d ? "Niedostępne" : "Nic nie gra"; title = c.title || (d ? `${it?.name.replace("Sonos ", "Sonos ")}` : "Muzyka"); break;
-    case "sensor": on = live; state = live ? (it?.caps.includes("leak") ? "Sucho" : it?.caps.includes("smoke") ? "Brak dymu" : it?.caps.includes("contact") ? "Zamknięte" : "Brak ruchu") : "Niedostępne"; title = c.title || (d ? `${it?.caps.includes("leak") ? "Zalanie" : it?.caps.includes("smoke") ? "Dym" : it?.caps.includes("contact") ? "Drzwi" : "Ruch"} · ${roomName(data, d.room)}` : "Czujnik"); break;
+    case "media": on = live; active = live; extra = { track: "Radio 357", sub: "Poranek Radia 357" }; state = live ? "Gra · Radio 357" : d ? "Niedostępne" : "Nic nie gra"; title = c.title || (d ? it?.name : "Muzyka"); break;
+    case "sensor": {
+      on = live;
+      const kind = it?.caps.includes("leak") ? "leak" : it?.caps.includes("smoke") ? "smoke" : it?.caps.includes("contact") ? "contact" : "motion";
+      icon = { leak: "drop", smoke: "smoke", contact: "door", motion: "walk" }[kind];
+      state = live ? { leak: "Zalanie: sucho", smoke: "Dym: nie wykryto", contact: "Drzwi: zamknięte", motion: "Ruch: brak" }[kind] : "Niedostępne";
+      title = c.title || (d ? roomName(data, d.room) : "Czujnik");
+      break;
+    }
     default: break;
   }
-  return { d, it, live, on, title, state, value, color: d?.color };
+  return { d, it, live, on, active, icon, extra, title, state, value, color: d?.color };
 }
 
 export function renderDash(ctx, w, h, snap, data, opts = {}) {
@@ -179,16 +213,27 @@ function haTile(ctx, r, c, info, opts) {
   const lc = c.kind === "light" ? (info.color && saturated(info.color) ? info.color : "#ffb300") : col;
   ctx.fillStyle = info.on ? hexA(lc, 0.2) : "#f0f0f0";
   ctx.beginPath(); ctx.arc(ix, iy, 19, 0, Math.PI * 2); ctx.fill();
-  drawIcon(ctx, KIND_ICON[c.kind] || "box", ix - 12, iy - 12, 24, info.on ? lc : "#9e9e9e", 2);
+  drawIcon(ctx, info.icon, ix - 12, iy - 12, 24, info.on ? lc : "#9e9e9e", 2);
   ctx.fillStyle = "#212121"; ctx.font = `500 15px ${F.ha}`; clipText(ctx, info.title, r.x + 58, iy - 3, r.w - 70);
-  ctx.fillStyle = "#727272"; ctx.font = `400 13px ${F.ha}`; clipText(ctx, info.state, r.x + 58, iy + 16, r.w - 70);
+  ctx.fillStyle = "#727272"; ctx.font = `400 13px ${F.ha}`; clipText(ctx, c.kind === "energy" && r.h > 130 ? "Licznik 3-fazowy · teraz" : info.state, r.x + 58, iy + 16, r.w - 70);
+  if (c.kind === "energy" && r.h > 130 && info.extra) {
+    const e = info.extra;
+    ctx.fillStyle = "#212121"; ctx.font = `400 34px ${F.ha}`; ctx.fillText(`${Math.round(e.kw * 1000)} W`, r.x + 16, r.y + 104);
+    ctx.fillStyle = "#727272"; ctx.font = `400 13px ${F.ha}`;
+    clipText(ctx, `Dziś ${fmt(e.today, 1)} kWh · ${fmt(e.cost, 2)} zł · ${fmt(e.volts, 0)} V`, r.x + 16, r.y + 126, r.w - 32);
+  }
+  if (c.kind === "network" && r.w > 300 && info.extra && info.on) {
+    ctx.fillStyle = "#727272"; ctx.font = `400 13px ${F.ha}`; ctx.textAlign = "right";
+    ctx.fillText(`↓ ${info.extra.down} Mb/s  ↑ ${info.extra.up} Mb/s`, r.x + r.w - 16, iy + 16); ctx.textAlign = "left";
+  }
+  if (c.kind === "media" && r.w > 300 && info.on) mediaControls(ctx, r.x + r.w - 128, iy - 14, "#424242");
   if (c.kind === "light" && r.h > 100) {
     const bx = r.x + 14, by = r.y + r.h - 56, bw = r.w - 28;
     ctx.fillStyle = hexA("#ffc107", 0.2); rr(ctx, bx, by, bw, 42, 10); ctx.fill();
     ctx.fillStyle = info.on ? "#ffc107" : "#e0e0e0"; rr(ctx, bx, by, Math.max(12, bw * (info.value || 0)), 42, 10); ctx.fill();
     ctx.fillStyle = "#fff"; rr(ctx, bx + Math.max(12, bw * (info.value || 0)) - 10, by + 10, 4, 22, 2); ctx.fill();
   }
-  if (c.kind === "energy" && r.h > 100) spark(ctx, r.x + 14, r.y + r.h - 60, r.w - 28, 46, "#039be5");
+  if (c.kind === "energy" && r.h > 100) spark(ctx, r.x + 14, r.y + r.h - (r.h > 130 ? 70 : 60), r.w - 28, r.h > 130 ? 56 : 46, "#039be5");
   if (c.kind === "climate" && !compact) pmRow(ctx, r.x + 14, r.y + r.h - 50, r.w - 28, 38, "#f5f5f5", "#212121", `${fmt(info.value)} °C`, F.ha, 10);
 }
 
@@ -236,19 +281,27 @@ function appleChrome(ctx, w, h, snap) {
 function appleTile(ctx, r, c, info, opts) {
   if (c.kind === "camera") return camTile(ctx, r, info, opts, "apple");
   const col = { light: "#ffd60a", climate: "#ff9f0a", lock: "#30d158", energy: "#30d158", scene: "#ff9f0a", network: "#0a84ff", media: "#ffffff", sensor: "#64d2ff" }[c.kind] || "#0a84ff";
-  const on = info.on || c.kind === "scene";
+  const on = info.active;
   ctx.fillStyle = on ? "rgba(246,244,240,0.94)" : "rgba(48,36,28,0.48)";
   rr(ctx, r.x, r.y, r.w, r.h, 22); ctx.fill();
   if (c.kind === "climate" && r.h > 150) {
-    ctx.fillStyle = "#ff8c00"; ctx.font = `600 64px ${F.apple}`; ctx.fillText(`${Math.round(info.value)}°`, r.x + 20, r.y + 82);
-    ctx.fillStyle = "#1c1c1e"; ctx.font = `600 17px ${F.apple}`; clipText(ctx, info.title, r.x + 20, r.y + r.h - 42, r.w - 34);
-    ctx.fillStyle = "#6e6e73"; ctx.font = `500 15px ${F.apple}`; ctx.fillText("Grzanie do 22°", r.x + 20, r.y + r.h - 20);
+    ctx.fillStyle = on ? "#ff8c00" : "#ffffff"; ctx.font = `600 64px ${F.apple}`; ctx.fillText(`${Math.round(info.value)}°`, r.x + 20, r.y + 82);
+    ctx.fillStyle = on ? "#1c1c1e" : "#ffffff"; ctx.font = `600 17px ${F.apple}`; clipText(ctx, info.title, r.x + 20, r.y + r.h - 42, r.w - 34);
+    ctx.fillStyle = on ? "#6e6e73" : "rgba(255,255,255,0.7)"; ctx.font = `500 15px ${F.apple}`; ctx.fillText(on ? `Grzanie do ${info.extra?.target ?? 22}°` : "Utrzymuje", r.x + 20, r.y + r.h - 20);
+    return;
+  }
+  if (c.kind === "energy" && r.h > 130 && info.extra) {
+    drawIcon(ctx, "energy", r.x + 18, r.y + 18, 24, "#30d158", 2.2);
+    ctx.fillStyle = "#ffffff"; ctx.font = `600 17px ${F.apple}`; ctx.fillText(info.title, r.x + 52, r.y + 36);
+    ctx.font = `600 46px ${F.apple}`; ctx.fillText(`${fmt(info.extra.kw, 2)} kW`, r.x + 18, r.y + 98);
+    ctx.fillStyle = "rgba(255,255,255,0.72)"; ctx.font = `500 15px ${F.apple}`; ctx.fillText(`Dziś ${fmt(info.extra.today, 1)} kWh`, r.x + 18, r.y + 124);
+    spark(ctx, r.x + 18, r.y + r.h - 62, r.w - 36, 46, "#ffffff");
     return;
   }
   const cx = r.x + 30, cy = r.y + (r.h > 110 ? 34 : r.h / 2);
   ctx.fillStyle = on ? (c.kind === "light" && info.color ? info.color : col) : "rgba(255,255,255,0.22)";
   ctx.beginPath(); ctx.arc(cx, cy, 19, 0, Math.PI * 2); ctx.fill();
-  drawIcon(ctx, KIND_ICON[c.kind] || "box", cx - 11, cy - 11, 22, on ? (c.kind === "media" ? "#1c1c1e" : "#ffffff") : "rgba(255,255,255,0.75)", 2.2);
+  drawIcon(ctx, info.icon, cx - 11, cy - 11, 22, on ? (c.kind === "media" ? "#1c1c1e" : "#ffffff") : "rgba(255,255,255,0.75)", 2.2);
   const tx = r.h > 110 ? r.x + 18 : r.x + 60;
   const ty = r.h > 110 ? r.y + r.h - 38 : r.y + r.h / 2 - 3;
   ctx.fillStyle = on ? "#1c1c1e" : "#ffffff"; ctx.font = `600 16px ${F.apple}`; clipText(ctx, info.title, tx, ty, r.x + r.w - tx - 12);
@@ -317,11 +370,19 @@ function googleTile(ctx, r, c, info, opts) {
     return;
   }
   const cy = r.h > 130 ? r.y + 40 : r.y + r.h / 2;
-  drawIcon(ctx, KIND_ICON[c.kind] || "box", r.x + 22, cy - 13, 26, ink, 2.1);
+  drawIcon(ctx, info.icon, r.x + 22, cy - 13, 26, ink, 2.1);
   const tx = r.x + 64;
   ctx.fillStyle = ink; ctx.font = `500 18px ${F.google}`; clipText(ctx, info.title, tx, cy - 3, r.w - (tx - r.x) - 18);
-  ctx.font = `500 15px ${F.google}`; ctx.fillStyle = on ? ink : "#444746"; clipText(ctx, info.state.replace(" · ", " • "), tx, cy + 19, r.w - (tx - r.x) - 18);
-  if (c.kind === "energy" && r.h > 130) spark(ctx, r.x + 20, r.y + r.h - 70, r.w - 40, 50, "#0842a0");
+  ctx.font = `500 15px ${F.google}`; ctx.fillStyle = on ? ink : "#444746"; clipText(ctx, c.kind === "energy" && r.h > 130 ? "Licznik 3-fazowy" : info.state.replace(" · ", " • "), tx, cy + 19, r.w - (tx - r.x) - 18);
+  if (c.kind === "energy" && r.h > 130) {
+    const half = r.w > 320;
+    if (info.extra) {
+      ctx.fillStyle = ink; ctx.font = `400 40px ${F.google}`; ctx.fillText(`${fmt(info.extra.kw, 2)} kW`, r.x + 22, r.y + r.h - 46);
+      ctx.font = `500 15px ${F.google}`; ctx.fillStyle = "#444746"; clipText(ctx, `Dziś ${fmt(info.extra.today, 1)} kWh • ${fmt(info.extra.cost, 2)} zł`, r.x + 22, r.y + r.h - 20, half ? r.w * 0.5 - 30 : r.w - 44);
+    }
+    if (half) spark(ctx, r.x + r.w * 0.52, r.y + r.h - 96, r.w * 0.48 - 22, 76, "#0842a0");
+  }
+  if (c.kind === "media" && r.w > 300 && on) mediaControls(ctx, r.x + r.w - 134, cy - 14, ink);
 }
 
 function camTile(ctx, r, info, opts, p) {
@@ -349,8 +410,17 @@ function camTile(ctx, r, info, opts, p) {
     ctx.font = `600 15px ${F.apple}`; ctx.textAlign = "right"; clipText(ctx, "", 0, 0, 0); ctx.fillText(info.title, r.x + r.w - 14, r.y + r.h - 16); ctx.textAlign = "left";
   } else {
     ctx.fillStyle = "#fff"; ctx.font = `500 16px ${F.ha}`; clipText(ctx, info.title, r.x + 14, r.y + r.h - 16, r.w - 28);
-    if (info.live) { ctx.fillStyle = "rgba(0,0,0,0.45)"; rr(ctx, r.x + r.w - 92, r.y + 12, 80, 26, 13); ctx.fill(); ctx.fillStyle = "#fff"; ctx.font = `500 13px ${F.ha}`; ctx.fillText("NA ŻYWO", r.x + r.w - 80, r.y + 30); }
+    if (info.live) { ctx.fillStyle = "rgba(0,0,0,0.45)"; rr(ctx, r.x + 12, r.y + 12, 80, 26, 13); ctx.fill(); ctx.fillStyle = "#fff"; ctx.font = `500 13px ${F.ha}`; ctx.fillText("NA ŻYWO", r.x + 24, r.y + 30); }
   }
+}
+
+function mediaControls(ctx, x, y, ink) {
+  ctx.fillStyle = ink;
+  ctx.beginPath(); ctx.moveTo(x + 30, y + 6); ctx.lineTo(x + 30, y + 22); ctx.lineTo(x + 18, y + 14); ctx.closePath(); ctx.fill();
+  ctx.fillRect(x + 14, y + 6, 3, 16);
+  ctx.fillRect(x + 52, y + 4, 6, 20); ctx.fillRect(x + 63, y + 4, 6, 20);
+  ctx.beginPath(); ctx.moveTo(x + 86, y + 6); ctx.lineTo(x + 86, y + 22); ctx.lineTo(x + 98, y + 14); ctx.closePath(); ctx.fill();
+  ctx.fillRect(x + 99, y + 6, 3, 16);
 }
 
 function pmRow(ctx, x, y, w, h, bg, ink, label, font, r) {
