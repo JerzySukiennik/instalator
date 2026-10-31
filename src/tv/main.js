@@ -342,7 +342,7 @@ function fx(e) {
       break;
     }
     case "turn": { const n = state.players.find((x) => x.cid === e.cid); if (n) hud.banner(`Tura: ${n.name}`); focusTask(null); audio.play("ui_pop"); break; }
-    case "buy": hud.toast("cart", `${BY_ID[e.id]?.name}${e.n > 1 ? ` ×${e.n}` : ""} · <b>−${fmtZl(e.price)}</b>`); audio.play("payment", { vol: 0.35 }); break;
+    case "buy": hud.toast("cart", `${BY_ID[e.id]?.name}${e.n > 1 ? ` ×${e.n}` : ""} · <b>−${fmtZl(e.price)}</b>`); audio.play("ui_confirm", { vol: 0.4 }); break;
     case "refund": hud.toast("undo", `Zwrot: ${BY_ID[e.id]?.name}`); break;
     case "install": {
       const st = e.style || "tap";
@@ -429,7 +429,6 @@ async function beginJob(job) {
   setTimeout(() => hud.bubble(job.client, job.client.hello), 600);
   setTimeout(() => hud.bubble(job.client, ""), 6500);
   audio.stopAllLoops();
-  audio.loop(job.building === "gzowo" ? "amb_river" : job.building === "kawalerka" ? "amb_city" : "amb_birds", 0.22);
 }
 
 function clientPath() {

@@ -1,5 +1,8 @@
 // Instalator: TV sound — real recorded effects from assets/sfx (manifest-driven), loops for ambience, silent when missing.
 
+const MAXD = { stamp: 0.55, bulb_screw: 1.1, peel_sticker: 0.8, rack_screw: 1.0, screwdriver: 0.9, cable_zip: 1.1, box_open: 0.9, payment: 0.6, car_arrive: 5, footsteps_wood: 3.6, doorbell_chime: 2.6, drill_short: 1.1, servo_whirr: 1.2, fan_hum: 2 };
+const GAP = 0.14;
+
 const GAIN = { house_door_close: 4, screwdriver: 3, stamp: 3, relay_click: 2.6, footsteps_wood: 2.4, spark: 2.4, peel_sticker: 2.4, pen_tick: 2, din_snap: 1.8, rj45_in: 1.6, rj45_out: 1.6, breaker_on: 1.5, breaker_off: 1.5, bulb_screw: 1.6 };
 
 export class Audio {
@@ -40,18 +43,30 @@ export class Audio {
     return p;
   }
 
-  async play(name, { vol = 1, rate = 1, delay = 0 } = {}) {
+  async play(name, { vol = 1, rate = 1, delay = 0, max = null } = {}) {
     await this.ready;
     if (!this.ctx || this.ctx.state !== "running") return;
     const b = await this.load(name);
     if (!b) return;
+    const now = this.ctx.currentTime, at = now + delay;
+    this.last = this.last || {};
+    this.live = this.live || {};
+    if (this.last[name] != null && Math.abs(at - this.last[name]) < GAP) return;
+    if ((this.live[name] || 0) >= 2) return;
+    this.last[name] = at;
     const src = this.ctx.createBufferSource();
     src.buffer = b;
-    src.playbackRate.value = rate * (0.96 + Math.random() * 0.08);
+    src.playbackRate.value = rate * (0.97 + Math.random() * 0.06);
     const g = this.ctx.createGain();
-    g.gain.value = vol * (GAIN[name] || 1);
+    const v = vol * (GAIN[name] || 1);
+    const dur = Math.min(b.duration, max ?? MAXD[name] ?? 1.6);
+    g.gain.setValueAtTime(v, at);
+    if (dur < b.duration) { g.gain.setValueAtTime(v, at + Math.max(0, dur - 0.12)); g.gain.linearRampToValueAtTime(0.0001, at + dur); }
     src.connect(g).connect(this.master);
-    src.start(this.ctx.currentTime + delay);
+    this.live[name] = (this.live[name] || 0) + 1;
+    src.onended = () => { this.live[name] = Math.max(0, (this.live[name] || 1) - 1); };
+    src.start(at);
+    src.stop(at + dur + 0.02);
   }
 
   async loop(name, vol = 0.3) {
