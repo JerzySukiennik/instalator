@@ -283,6 +283,7 @@ function hooksScene() {
     const d = buildDevice(id);
     d.position.set(o[0], o[1] + u * U, o[2]);
     if (id === 'usw-pro-max-24-poe') d.userData.ports.forEach((p, i) => { if (p.led && i < 24 && i % 3 !== 2) { p.led.emissiveIntensity = 1.2; p.led.emissive.set(['#3d8bff', '#a35bff', '#21c8a8', '#ffb020'][i % 4]); } });
+    if (id === 'patch-panel-24') d.userData.ports.forEach((p, i) => { if (p.led && i % 5 !== 4) p.led.emissiveIntensity = 2.2; });
     if (id === 'rack-shelf') { const g = buildDevice('ucg-max'); g.position.set(...d.userData.shelf.origin); d.add(g); }
     rack.add(d);
   }
@@ -300,9 +301,11 @@ function hooksScene() {
   wall.receiveShadow = true;
   root.add(panel, rack, box, wall);
   scene.add(root);
-  const cam = new THREE.PerspectiveCamera(30, W / H, 0.05, 20);
-  cam.position.set(0.25, 1.55, 2.6);
-  cam.lookAt(0.0, 1.2, 0);
+  const cam = new THREE.PerspectiveCamera(30, W / H, 0.02, 20);
+  const focus = Q.get('focus');
+  if (focus === 'panel') { cam.position.set(0.05, 1.28, 0.95); cam.lookAt(-0.05, 1.2, 0); }
+  else if (focus === 'rack') { cam.position.set(1.0, 1.5, 1.75); cam.lookAt(0.6, 1.22, 0.18); }
+  else { cam.position.set(0.25, 1.55, 2.6); cam.lookAt(0.0, 1.2, 0); }
   const sph = new THREE.Sphere(new THREE.Vector3(0, 1.2, 0), 1.2);
   lightFor(sph);
   floor.visible = false;

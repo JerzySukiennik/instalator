@@ -214,7 +214,7 @@ function patchPanel24() {
   for (let i = 0; i < 24; i++) {
     const px = x0 + i * pitch;
     holes.push(rectPts(px, py, 0.0148, 0.0198));
-    kit.box('matte', '#1d1e20', px, py, ZF - 0.006, 0.0146, 0.0196, 0.012);
+    kit.box('matte', '#1d1e20', px, py, ZF - T - 0.0062, 0.0146, 0.0196, 0.0116);
     const face = new THREE.Shape(rectPts(px, py, 0.0146, 0.0196));
     face.holes.push(new THREE.Path(rj45Pts(px, py - 0.0012, false)));
     kit.add('matte', '#202123', new THREE.ShapeGeometry(face).translate(0, 0, ZF - T + 0.0002));

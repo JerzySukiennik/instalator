@@ -274,7 +274,7 @@ function paintTablet(snap) {
   tabletTex.needsUpdate = true;
   if (disp && disp.mesh) {
     if (disp.mesh.material.map !== tabletTex) {
-      disp.mesh.material = new THREE.MeshBasicMaterial({ map: tabletTex, toneMapped: false });
+      disp.mesh.material = new THREE.MeshBasicMaterial({ map: tabletTex, toneMapped: false, color: new THREE.Color(0.78, 0.78, 0.78) });
     }
   }
 }
@@ -288,7 +288,7 @@ function focusTask(id) {
   if (!id) { dir.overview(data, { floor: house.floorShown < 9 ? house.floorShown : 0, speed: 0 }); return; }
   if (id === "panel" || id === "rack") {
     const f = house.focusPoint(id);
-    if (f) { house.setFloor(f.floor); dir.closeup(f.pos.clone().add(new THREE.Vector3(0, id === "rack" ? 0.1 : 0, 0)), f.normal, id === "rack" ? 1.55 : 1.15, 0.12); }
+    if (f) { house.setFloor(f.floor); dir.closeup(f.pos.clone().add(new THREE.Vector3(0, id === "rack" && !f.dist ? 0.1 : 0, 0)), f.normal, f.dist || (id === "rack" ? 1.55 : 0.95), id === "rack" ? 0.06 : 0.1); }
     if (id === "rack") house.setXray(true);
     return;
   }
@@ -296,7 +296,15 @@ function focusTask(id) {
   if (id === "outdoor") { house.setFloor(99); house.showCones(true); dir.overview(data, { zoom: 1.7, speed: 0 }); return; }
   if (id === "tablet") {
     const spot = (data.tabletSpots || []).find((s) => s.id === state.tablet.spot);
-    if (spot) { const qn = new THREE.Quaternion(...spot.quat); dir.closeup(new THREE.Vector3(...spot.pos), new THREE.Vector3(0, 0, 1).applyQuaternion(qn), 1.1, 0.05, 30); house.setFloor(spot.floor ?? 0); }
+    if (spot) {
+      const qn = new THREE.Quaternion(...spot.quat);
+      const n = new THREE.Vector3(0, 0, 1).applyQuaternion(qn);
+      let at = new THREE.Vector3(...spot.pos);
+      const tob = house.tabletObj;
+      if (tob) { tob.updateWorldMatrix(true, true); at = new THREE.Box3().setFromObject(tob).getCenter(new THREE.Vector3()); }
+      dir.closeup(at, n, 0.62, 0.02, 30);
+      house.setFloor(spot.floor ?? 0);
+    }
     else dir.overview(data, { floor: 0 });
     return;
   }
@@ -305,6 +313,8 @@ function focusTask(id) {
     if (room) { house.setFloor(room.floor); dir.room(data, room); house.showCones(true); }
   }
 }
+
+let punchAt = 0, punchT = 0;
 
 function fx(e) {
   const p = e.cid ? state.players.find((x) => x.cid === e.cid) : null;
@@ -332,6 +342,19 @@ function fx(e) {
       if (d && d.pos && state.turn.task && !["panel", "rack"].includes(state.turn.task)) {
         const fl = data.floors[d.floor ?? 0];
         if (d.place === "mount" && !String(state.turn.task).startsWith("room:")) dir.look(new THREE.Vector3(d.pos[0] + 2.4, (fl?.y || 0) + 3.2, d.pos[2] + 3.2), new THREE.Vector3(...d.pos), 34, 0.05);
+        else if (d.place === "mount" && d.kind !== "socketE27" && d.kind !== "socketGU10" && performance.now() - punchAt > 4000) {
+          punchAt = performance.now();
+          const task = state.turn.task;
+          const p0 = new THREE.Vector3(...d.pos);
+          const q = new THREE.Quaternion(...(d.quat || [0, 0, 0, 1]));
+          const n = d.normal ? new THREE.Vector3(...d.normal) : new THREE.Vector3(0, 0, 1).applyQuaternion(q);
+          const ceiling = d.kind === "ceiling" || n.y < -0.5;
+          const flat = n.clone().setY(0);
+          const camP = ceiling || flat.lengthSq() < 0.01 ? p0.clone().add(new THREE.Vector3(0.95, -0.6, 0.95)) : p0.clone().addScaledVector(flat.normalize(), 1.05).add(new THREE.Vector3(0.22, 0.28, 0));
+          dir.look(camP, p0, 34, 0.02);
+          clearTimeout(punchT);
+          punchT = setTimeout(() => { if (state.turn.task === task) focusTask(task); }, 1800);
+        }
       }
       break;
     }

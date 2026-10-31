@@ -47,7 +47,10 @@ export class Renderer {
     this.focus = new THREE.Vector3();
     this.frame = 18;
     this.maxPx = 2.2e6;
-    this.composer = new EffectComposer(r);
+    this.dim = 1;
+    this.dimT = 1;
+    const aa = Number(new URLSearchParams(location.search).get("aa") ?? 4);
+    this.composer = new EffectComposer(r, new THREE.WebGLRenderTarget(16, 16, { type: THREE.HalfFloatType, samples: aa }));
     this.composer.addPass(new RenderPass(this.scene, this.camera));
     this.bloom = new UnrealBloomPass(new THREE.Vector2(960, 540), 0.22, 0.55, 0.92);
     this.composer.addPass(this.bloom);
@@ -93,9 +96,10 @@ export class Renderer {
     this.scene.fog.far = m.fog[1];
     this.hemi.color.copy(m.hemiSky);
     this.hemi.groundColor.copy(m.hemiGround);
-    this.hemi.intensity = m.hemi;
+    this.dim += ((this.dimT ?? 1) - (this.dim ?? 1)) * Math.min(1, k * 4) || 0;
+    this.hemi.intensity = m.hemi * (this.dim ?? 1);
     this.sun.color.copy(m.sun);
-    this.sun.intensity = m.sunI;
+    this.sun.intensity = m.sunI * (0.5 + 0.5 * (this.dim ?? 1));
     this.renderer.toneMappingExposure = m.exp;
     this.bloom.strength = m.bloom;
   }

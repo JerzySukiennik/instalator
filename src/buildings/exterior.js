@@ -115,9 +115,11 @@ function tuftGeo() {
     const bx = (R() - 0.5) * 0.08, bz = (R() - 0.5) * 0.08;
     const tip = [bx + Math.cos(a) * lean, h, bz + Math.sin(a) * lean];
     const ca = Math.cos(a + 1.57) * w, sa = Math.sin(a + 1.57) * w;
-    g.tri([bx - ca, 0, bz - sa], [bx + ca, 0, bz + sa], tip, '#c9cdc0', '#c9cdc0', '#ffffff');
+    g.tri([bx - ca, 0, bz - sa], [bx + ca, 0, bz + sa], tip, '#dfe3d6', '#dfe3d6', '#ffffff');
   }
   const geo = g.geometry('t');
+  const nrm = geo.attributes.normal;
+  for (let i = 0; i < nrm.count; i++) nrm.setXYZ(i, 0, 1, 0);
   treeCache.set('tuft', geo);
   return geo;
 }
@@ -437,7 +439,7 @@ export function makeSite(api, o = {}) {
         tufts.forEach((it, i) => {
           mesh.setMatrixAt(i, m4.compose(p.set(it.x, it.y, it.z), q.setFromAxisAngle(up, hash(it.x, it.z) * TAU), sc.set(it.s, it.s * (0.8 + hash(it.z, it.x) * 0.6), it.s)));
           lawnColor(it.x, it.z, tint);
-          tint.multiplyScalar(0.93);
+          tint.multiplyScalar(0.97);
           mesh.setColorAt(i, tint);
         });
         mesh.receiveShadow = true;

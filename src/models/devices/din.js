@@ -5,7 +5,7 @@ import { CLEAR, labelMat, displayMat, roundRect } from './mat.js';
 import { rectPts, rj45Pts, cupGeo } from './ports.js';
 
 export const MOD = 0.0175;
-const HAGER_GREY = '#e2e3df';
+const HAGER_GREY = '#f2f2ef';
 const HAGER_DARK = '#c9cbc7';
 
 function profilePts(H, D, nose, zs, ch = 0.0015) {
@@ -77,11 +77,12 @@ function mcb(curve, amps) {
   screw(kit, 0, -H / 2 + 0.0095, zs);
   kit.box('satin', '#cbe7e8', 0, -nose / 2 + 0.0072, D + 0.0008, W - 0.002, 0.0128, 0.0016, { r: 0.0008, seg: 1 });
   cupLever(kit, W, D, -0.002);
-  const lv = lever(kit, 0, -0.002, D - 0.004, { mark: '#f2f2f0' });
-  const pm = hagerPrint('mcb-' + curve + amps, W, nose, [
-    { logo: true, x: 0.0015, y: nose - 0.0058, w: W - 0.003, s: 0.0026 },
-    { t: (curve === 'C' ? 'MCN1' : 'MBN1') + String(amps).padStart(2, '0'), x: W / 2, y: nose - 0.0094, s: 0.002, align: 'center', color: '#5a5f64' },
-    { t: curve + amps, x: W / 2, y: nose - 0.0128, s: 0.0029, align: 'center', weight: 700, color: '#3b4045' },
+  const lv = lever(kit, 0, -0.002, D - 0.004, { color: '#26282c', tip: '#1c1d20', mark: '#f2f2f0' });
+  const pm = hagerPrint('mcb2-' + curve + amps, W, nose, [
+    { logo: true, x: 0.0015, y: nose - 0.0052, w: W - 0.003, s: 0.0024 },
+    { t: curve + amps, x: W / 2, y: nose - 0.0103, s: 0.0047, align: 'center', weight: 800, color: '#25292d' },
+    { rect: [W - 0.007, 0.0026], x: 0.0035, y: nose - 0.0168, color: '#3b4045' },
+    { t: '6000', x: W / 2, y: nose - 0.0155, s: 0.0019, align: 'center', weight: 700, color: '#ffffff' },
   ]);
   kit.quad(pm, null, W, nose, 0, 0, D + 0.00012);
   kit.ud.lever = lv;
@@ -102,12 +103,13 @@ function rcd() {
   kit.box('satin', '#cbe7e8', 0, -nose / 2 + 0.0072, D + 0.0008, W - 0.002, 0.0128, 0.0016, { r: 0.0008, seg: 1 });
   kit.box('satin', '#2f8fd6', MOD / 2, nose / 2 - 0.0085, D + 0.0012, 0.0085, 0.0062, 0.0024, { r: 0.0012, seg: 2 });
   kit.box('matte', '#3c3e40', -MOD / 2, -0.002, D - 0.0011, MOD - 0.005, 0.016, 0.0024);
-  kit.box('matte', '#3d3f41', MOD / 2 - 0.002, -0.004, D + 0.0002, 0.0028, 0.0022, 0.0004);
-  const lv = lever(kit, -MOD / 2, -0.002, D - 0.004, {});
+  kit.box('matte', '#2b2d30', MOD / 2 - 0.002, -0.004, D + 0.0001, 0.0042, 0.0034, 0.0003, { r: 0.0006, seg: 1 });
+  kit.led('#36e070', 'status', (m) => kit.box(m, null, MOD / 2 - 0.002, -0.004, D + 0.0003, 0.0032, 0.0024, 0.0003, { r: 0.0005, seg: 1 }), { intensity: 2.2 });
+  const lv = lever(kit, -MOD / 2, -0.002, D - 0.004, { color: '#26282c', tip: '#1c1d20', mark: '#f2f2f0' });
   const pm = hagerPrint('rcd-cda240', W, nose, [
     { logo: true, x: W / 2 + 0.001, y: nose - 0.0045, w: MOD - 0.003, s: 0.0026 },
     { t: 'CDA240J', x: 0.0015, y: nose - 0.0075, s: 0.0021, color: '#c43c6a' },
-    { t: '40A/30mA', x: W / 2 + 0.0008, y: nose - 0.0105, s: 0.0019, color: '#5a5f64' },
+    { t: '40A 30mA', x: 0.0015, y: nose - 0.0104, s: 0.0021, color: '#25292d', weight: 800 },
     { t: 'T', x: W * 0.75, y: nose - 0.0085, s: 0.0035, align: 'center', color: '#ffffff', weight: 700 },
   ]);
   kit.quad(pm, null, W, nose, 0, 0, D + 0.00012);
@@ -127,10 +129,10 @@ function mainSwitch() {
   const lk = new Kit();
   lk.push(0, 0, 0, -0.42, 0, 0);
   for (const x of [-MOD / 2, MOD / 2]) {
-    lk.box('satin', '#9a9d9f', x, 0, 0.0068, 0.0122, 0.0076, 0.0136, { r: 0.0012, seg: 2, axis: 'x' });
-    lk.box('satin', '#2d9a54', x, 0.0012, 0.01365, 0.0046, 0.0034, 0.0003);
+    lk.box('satin', '#c42f2b', x, 0, 0.0068, 0.0122, 0.0076, 0.0136, { r: 0.0012, seg: 2, axis: 'x' });
+    lk.box('satin', '#f2f2ef', x, 0.0012, 0.01365, 0.0046, 0.0034, 0.0003);
   }
-  lk.box('satin', '#8b8e90', 0, 0, 0.0115, 0.006, 0.006, 0.0032);
+  lk.box('satin', '#a92723', 0, 0, 0.0115, 0.006, 0.006, 0.0032);
   lk.pop();
   const lg = lk.build();
   const piv = new THREE.Group();
@@ -142,7 +144,7 @@ function mainSwitch() {
   const pm = hagerPrint('isolator-sbn240', W, nose, [
     { logo: true, x: W / 2 + 0.001, y: nose - 0.0045, w: MOD - 0.003, s: 0.0026 },
     { t: 'SBN240', x: 0.0015, y: nose - 0.0075, s: 0.0021, color: '#5a5f64' },
-    { t: '40A', x: 0.0015, y: nose - 0.0103, s: 0.0024, color: '#3b4045', weight: 700 },
+    { t: '40A', x: 0.0015, y: nose - 0.0112, s: 0.0042, color: '#25292d', weight: 800 },
   ]);
   kit.quad(pm, null, W, nose, 0, 0, D + 0.00012);
   kit.ud.lever = piv;
@@ -293,29 +295,81 @@ function railSlotsMat(slots) {
   }, { metal: 0.6, rough: 0.4 });
 }
 
+function stub(kit, col, x, ya, yb, z) {
+  kit.cyl('satin', col, x, (ya + yb) / 2, z, 0.0012, Math.abs(ya - yb), { seg: 5, open: true });
+}
+
 function panelEnclosure(opts = {}) {
   const rows = Math.max(1, Math.min(4, opts.rows || 2));
   const slots = Math.max(6, Math.min(24, opts.slotsPerRow || opts.slots || 12));
   const kit = new Kit();
   const W = 0.138 + slots * MOD, H = 0.2555 + rows * 0.125, D = 0.0945;
-  const ow = W - 0.034, oh = H - 0.034, zr = -0.072, zc = -0.0255;
+  const ow = W - 0.034, oh = H - 0.034, zr = -0.072, zb = -(D - 0.012);
   const rowY = (i) => (rows - 1) / 2 * 0.125 - i * 0.125;
-  kit.add('satin', '#e6e7e5', cupGeo(rectPts(0, 0, ow, oh), D - 0.012), { face: (cx, cy, cz, nx, ny, nz) => (nz > 0.9 ? '#eeeeec' : null) });
+  const RW = slots * MOD;
+  kit.add('satin', '#6f747a', cupGeo(rectPts(0, 0, ow, oh), D - 0.012), { face: (cx, cy, cz, nx, ny, nz) => (nz > 0.9 ? '#25282c' : null) });
   kit.shape('satin', '#f6f6f3', rrPts(W, H, 0.004, 2), 0.014, 0, 0, 0, { holes: [rectPts(0, 0, ow, oh)], bevel: 0.002 });
-  const coverHoles = [];
-  const rails = [];
-  const x0 = -slots * MOD / 2;
+  kit.box('matte', '#1f2226', 0, 0, zb + 0.0009, ow - 0.026, oh - 0.026, 0.0016);
+  const perf = labelMat('panel-backplate', 256, 256, (ctx) => {
+    ctx.clearRect(0, 0, 256, 256);
+    ctx.fillStyle = 'rgba(0,0,0,0.92)';
+    for (let i = 0; i < 12; i++) for (let j = 0; j < 12; j++) { ctx.beginPath(); ctx.arc(11 + i * 21.3, 11 + j * 21.3, 3.6, 0, Math.PI * 2); ctx.fill(); }
+  }, { rough: 0.6 });
+  kit.quad(perf, null, ow - 0.04, oh - 0.04, 0, 0, zb + 0.0019);
   const rs = railSlotsMat(slots);
+  const fingers = labelMat('duct-fingers-' + slots, 1024, 64, (ctx) => {
+    ctx.clearRect(0, 0, 1024, 64);
+    ctx.fillStyle = 'rgba(20,21,23,0.9)';
+    for (let x = 4; x < 1020; x += 16) { ctx.fillRect(x, 0, 7, 13); ctx.fillRect(x, 51, 7, 13); }
+  }, { rough: 0.7 });
+  const strip = labelMat('panel-label-' + slots, slots * 40, 40, (ctx) => {
+    ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, slots * 40, 40);
+    ctx.strokeStyle = '#9aa0a6'; ctx.lineWidth = 2.5;
+    for (let k = 0; k <= slots; k++) { ctx.beginPath(); ctx.moveTo(k * 40, 4); ctx.lineTo(k * 40, 36); ctx.stroke(); }
+  }, { rough: 0.8 });
+  const dw = RW + 0.07, dh = 0.026, dd = 0.03, zd = zb + 0.0017 + dd / 2;
+  const ducts = [rowY(0) + 0.0625];
+  for (let i = 0; i < rows; i++) ducts.push(rowY(i) - 0.0625);
+  for (const y of ducts) {
+    kit.box('satin', '#a9adb2', 0, y, zd, dw, dh, dd, { r: 0.0012, seg: 1 });
+    kit.quad(fingers, null, dw, dh, 0, y, zd + dd / 2 + 0.0002);
+  }
+  const rails = [];
+  const x0 = -RW / 2;
+  const WIRE = { L: '#6b3d1d', N: '#2f62cf', PE: '#a9b83a', G: '#7c8086', K: '#202124' };
   for (let i = 0; i < rows; i++) {
     const y = rowY(i);
-    coverHoles.push(rectPts(0, y, slots * MOD + 0.002, 0.0462));
-    kit.box('metal', '#c1c4c7', 0, y, zr - 0.0037, slots * MOD + 0.03, 0.035, 0.0075);
-    kit.box('metal', '#a8abaf', 0, y, zr - 0.0002, slots * MOD + 0.03, 0.025, 0.0006);
-    kit.quad(rs, null, slots * MOD + 0.02, 0.012, 0, y, zr + 0.0002);
-    kit.box('satin', '#f1f1ef', 0, y + 0.0385, zc + 0.0036, slots * MOD + 0.002, 0.012, 0.0004);
-    rails.push({ y: +y.toFixed(5), x0: +x0.toFixed(5), z: zr, slots, label: { y: +(y + 0.0385).toFixed(5), x0: +x0.toFixed(5), w: +(slots * MOD).toFixed(4), h: 0.012, z: +(zc + 0.0039).toFixed(4) } });
+    kit.box('metal', '#c1c4c7', 0, y, zr - 0.0037, RW + 0.03, 0.035, 0.0075);
+    kit.box('metal', '#a8abaf', 0, y, zr - 0.0002, RW + 0.03, 0.025, 0.0006);
+    kit.quad(rs, null, RW + 0.02, 0.012, 0, y, zr + 0.0002);
+    for (const sx of [-1, 1]) kit.box('alu', '#6b7077', sx * (RW / 2 + 0.019), y, (zb + zr) / 2, 0.008, 0.03, zr - zb - 0.0075);
+    for (const [sx, col] of [[-1, '#a9b83a'], [1, '#2f62cf']]) {
+      const tx = sx * (RW / 2 + 0.0075);
+      kit.box('satin', col, tx, y, zr + 0.022, 0.0062, 0.05, 0.044, { r: 0.0008, seg: 1 });
+      kit.cyl('metal', '#c2bba8', tx, y + 0.018, zr + 0.0442, 0.0018, 0.001, { axis: 'z', seg: 8 });
+      kit.cyl('metal', '#c2bba8', tx, y - 0.018, zr + 0.0442, 0.0018, 0.001, { axis: 'z', seg: 8 });
+      stub(kit, sx < 0 ? WIRE.PE : WIRE.N, tx, y + 0.026, ducts[i] - dh / 2, zr + 0.03);
+    }
+    const yTop = ducts[i] - dh / 2, yBot = ducts[i + 1] + dh / 2;
+    for (let k = 0; k < slots; k++) {
+      const x = x0 + (k + 0.5) * MOD;
+      stub(kit, WIRE.L, x, yTop, y + 0.0435, zr + 0.031);
+      stub(kit, k % 3 === 2 ? WIRE.K : WIRE.G, x, y - 0.0435, yBot, zr + 0.031);
+    }
+    kit.quad(strip, null, RW, 0.0115, 0, ducts[i + 1] + 0.0055, zd + dd / 2 + 0.0004);
+    rails.push({ y: +y.toFixed(5), x0: +x0.toFixed(5), z: zr, slots, label: { y: +(ducts[i + 1] + 0.0055).toFixed(5), x0: +x0.toFixed(5), w: +RW.toFixed(4), h: 0.0115, z: +(zd + dd / 2 + 0.0005).toFixed(4) } });
   }
-  kit.shape('satin', '#f4f4f2', rectPts(0, 0, ow - 0.002, oh - 0.002), 0.0024, 0, 0, zc, { holes: coverHoles });
+  const top = oh / 2, yd = ducts[0] + dh / 2;
+  const cables = [[-0.06, WIRE.G, 0.0042], [-0.035, WIRE.G, 0.0042], [-0.012, '#f0f0ee', 0.0045], [0.012, WIRE.G, 0.0042], [0.034, WIRE.L, 0.0018], [0.044, WIRE.N, 0.0018], [0.054, WIRE.PE, 0.0018]];
+  for (const [x, col, r] of cables) {
+    kit.tube('satin', col, [[x * 1.3, top + 0.01, zb + 0.022], [x * 1.15, top - 0.02, zb + 0.02], [x, yd + 0.012, zb + 0.016], [x * 0.9, yd - 0.004, zb + 0.014]], r, { rs: 5, segs: 6 });
+  }
+  kit.box('rubber', '#202124', 0, top - 0.002, zb + 0.02, 0.17, 0.006, 0.03, { r: 0.002, seg: 1 });
+  if (opts.cover) {
+    const coverHoles = [];
+    for (let i = 0; i < rows; i++) coverHoles.push(rectPts(0, rowY(i), RW + 0.002, 0.0462));
+    kit.shape('satin', '#f4f4f2', rectPts(0, 0, ow - 0.002, oh - 0.002), 0.0024, 0, 0, -0.0255, { holes: coverHoles });
+  }
   const door = new Kit();
   const dW = ow - 0.003, dH = oh - 0.003;
   door.shape('satin', '#f6f6f3', rectPts(dW / 2, 0, dW, dH), 0.004, 0, 0, 0, { holes: [rrPts(dW - 0.04, dH - 0.04, 0.006, 2, dW / 2, 0)] });

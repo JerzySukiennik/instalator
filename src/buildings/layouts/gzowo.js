@@ -5,7 +5,7 @@ import { P } from '../palette.js';
 import { makeSite, lawnColor, jetty, boat, kayak } from '../exterior.js';
 
 const PI = Math.PI, H = 2.72;
-const MARBLE = { type: 'marble', color: '#7d9887', dark: '#516b5c', light: '#c6d4c8', vein: '#a5805f', veinCol: '#eef0e6', veinMix: 0.08, veinW: 0.011, veinLight: 0.85, veins: 0.16, darkK: 0.45, lightK: 0.5, size: [1.2, 0.6], cell: 0.12, mat: 'marble' };
+const MARBLE = { type: 'marble', color: '#7d9887', dark: '#516b5c', light: '#c6d4c8', vein: '#a5805f', veinCol: '#e9ece2', veinMix: 0.2, veinW: 0.01, veinLight: 0.85, veins: 0.13, darkK: 0.45, lightK: 0.5, size: [1.2, 0.6], cell: 0.12, mat: 'marble' };
 const OSB = { color: '#cfc6b5', flakes: { cols: ['#bcb09b', '#ddd5c6', '#a99c86', '#c9bfac', '#e4ddd0'], n: 105, joint: '#a1957f' } };
 
 export default {
@@ -69,10 +69,9 @@ export default {
     { t: 'armchair', room: 'salon', x: 0.05, z: 0.85, r: -PI / 2 + 0.45, color: '#c9b9a3', leg: '#1a1b1d' },
     { t: 'rug', room: 'salon', x: 3.6, z: 1.35, r: 0, w: 3.2, d: 2.3, color: '#cfc6b6', border: '#5e6b5f', pattern: 'border', seed: 8 },
     { t: 'bench', room: 'salon', x: 3.6, z: 0.4, r: 0, w: 1.6, d: 0.36, color: '#d4ad7a', leg: '#bfe84a', cushion: '#5b5f63' },
-    { t: 'bookshelf', room: 'salon', x: -5.95, z: -1.1, r: PI / 2, w: 0.9, h: 1.6, shelves: 4, color: '#1d1e20' },
+    { t: 'bookshelf', room: 'salon', x: -6.05, z: -2.95, r: PI / 2, w: 0.9, h: 1.6, shelves: 4, color: '#1d1e20' },
     { t: 'plant', room: 'salon', x: -5.75, z: 0.55, kind: 'monstera', s: 1.1, pot: '#2f3236' },
     { t: 'plant', room: 'salon', x: 5.75, z: 3.75, kind: 'ficus', s: 0.95, pot: '#ece9e4' },
-    { t: 'sideboard', room: 'salon', x: -0.9, z: -3.95, r: 0, w: 1.7, d: 0.42, h: 0.62, color: '#1d1e20', doors: 3, decor: false },
     { t: 'box', room: 'salon', x: -1.7, z: 1.95, w: 0.4, d: 0.3, h: 0.12, color: '#2c3446', mat: 'matte', noData: true },
     { t: 'sideTable', room: 'salon', x: -3.65, z: 2.55, r: 0, rad: 0.2, h: 0.5, top: '#d4ad7a', leg: '#1d1e20' },
     { t: 'tableLamp', room: 'salon', x: -3.65, z: 2.55, r: 0, y: 0.5, lampBody: '#1d1e20', shadeCol: '#efe6d6' },

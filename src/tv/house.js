@@ -143,6 +143,8 @@ export class House {
     if (d.panel) {
       this.panelObj = this.anchorObj(d.panel);
       const enc = this.model("panel-enclosure", { rows: lay.rows, slotsPerRow: lay.per });
+      const bb = new THREE.Box3().setFromObject(enc);
+      enc.position.z = -bb.min.z + 0.004;
       this.panelObj.add(enc);
       this.panelEnc = enc;
       this.rails = enc.userData.rails || Array.from({ length: lay.rows }, (_, i) => ({ y: 0.5 - i * 0.14 - 0.12, x0: -lay.per * 0.0175 / 2, z: 0.07 }));
@@ -180,7 +182,27 @@ export class House {
     if (!a) return null;
     const q = fromQuat(a.quat, a.normal);
     const n = new THREE.Vector3(0, 0, 1).applyQuaternion(q);
-    return { pos: new THREE.Vector3(...a.pos), normal: n, floor: a.floor ?? 0 };
+    const out = { pos: new THREE.Vector3(...a.pos), normal: n, floor: a.floor ?? 0, dist: null };
+    if (kind === "rack" && d.rack && this.cab && this.rackOrigin && this.state) {
+      const used = this.state.devs.filter((x) => x.place === "rack");
+      if (used.length) {
+        const lo = Math.min(...used.map((x) => x.u)), hi = Math.max(...used.map((x) => x.u + (BY_ID[x.id]?.u || 1)));
+        this.cab.updateWorldMatrix(true, false);
+        out.pos = this.cab.localToWorld(this.rackOrigin.clone().add(new THREE.Vector3(0, ((lo + hi) / 2) * U, 0.05)));
+        out.dist = Math.max(0.8, (hi - lo) * U * 1.9 + 0.3);
+      }
+    }
+    if (kind === "panel" && this.panelEnc && this.rails?.length) {
+      const per = this.layout?.per || 12;
+      const x0 = this.rails[0].x0, x1 = x0 + per * 0.0175;
+      const y0 = this.rails[0].y + 0.07, y1 = this.rails[this.rails.length - 1].y - 0.07;
+      this.panelEnc.updateWorldMatrix(true, false);
+      const a = this.panelEnc.localToWorld(new THREE.Vector3(x0, y0, 0)), b = this.panelEnc.localToWorld(new THREE.Vector3(x1, y1, 0));
+      out.pos = a.clone().add(b).multiplyScalar(0.5);
+      const w = a.distanceTo(new THREE.Vector3(b.x, a.y, b.z)), h = Math.abs(a.y - b.y);
+      out.dist = Math.max(0.42, Math.max(h, w / 1.7) * 1.85 + 0.08);
+    }
+    return out;
   }
 
   sync(s, der) {
@@ -246,8 +268,13 @@ export class House {
       obj = this.model(d.id, {});
       obj.position.set(...d.pos);
       obj.quaternion.copy(fromQuat(d.quat, d.normal));
+      if (d.kind !== "socketE27" && d.kind !== "socketGU10") {
+        const sz = new THREE.Box3().setFromObject(obj).getSize(new THREE.Vector3());
+        if (Math.max(sz.x, sz.y, sz.z) < 0.3) obj.scale.multiplyScalar(1.6);
+      }
       this.root.add(obj);
     }
+    obj.userData.device = true;
     const v = { obj, d, born: this.t };
     if (d.fixture) {
       v.fixture = this.fixtures.find((f) => f.id === d.fixture) || null;
@@ -282,6 +309,9 @@ export class House {
       const off = ceiling ? new THREE.Vector3(0, -0.25, 0) : n.multiplyScalar(0.18);
       this.anims.push({ t: 0, dur: 0.6, step: (k) => { obj.position.copy(p0).addScaledVector(off, 1 - ease(k)); obj.scale.copy(s0).multiplyScalar(Math.max(0.01, k < 1 ? back(k) : 1)); } });
       this.dust(p0);
+      setTimeout(() => this.ring(p0, ceiling ? new THREE.Vector3(0, -1, 0) : new THREE.Vector3(0, 0, 1).applyQuaternion(q0)), 520);
+      const leds = obj.userData.leds || [];
+      if (leds.length) this.anims.push({ t: 0, dur: 1.8, step: (k) => { for (const l of leds) if (l.material && l.role !== "display") l.material.emissiveIntensity = k < 0.35 ? 0 : (Math.sin(k * 30) > 0 ? 2.4 : 0.2) * (k < 1 ? 1 : 0) + (k >= 1 ? 1.4 : 0); } });
     }
   }
 
@@ -366,9 +396,11 @@ export class House {
   }
 
   syncRuns(s) {
+    this.runLines.traverse((o) => { if (o.geometry) o.geometry.dispose(); });
     this.runLines.clear();
     if (!this.xray) return;
-    for (const d of s.devs) if (d.run) this.runLines.add(this.runMesh(d, 1));
+    let i = 0;
+    for (const d of s.devs) if (d.run) this.runLines.add(this.runMesh(d, 1, i++));
   }
 
   portWorld(uid, idx) {
@@ -440,26 +472,32 @@ export class House {
     }
   }
 
-  runPath(d) {
+  runPath(d, i = 0) {
     const a = this.data.rack || this.data.mediaBox;
     if (!a) return [];
     const fl = this.data.floors[d.floor ?? 0] || { y: 0, height: 2.7 };
     const top = fl.y + fl.height - 0.12;
     const p0 = new THREE.Vector3(...d.pos);
-    const end = new THREE.Vector3(...a.pos);
+    let end = new THREE.Vector3(...a.pos);
+    if (this.cab) {
+      const box = new THREE.Box3().setFromObject(this.cab);
+      const c = box.getCenter(new THREE.Vector3());
+      const sp = ((i % 6) - 2.5) * 0.009, row = Math.floor(i / 6) * 0.009;
+      end = new THREE.Vector3(c.x + sp, box.max.y + 0.005, c.z - row);
+    }
     const af = this.data.floors[a.floor ?? 0] || fl;
     const topA = af.y + af.height - 0.12;
     return [p0, new THREE.Vector3(p0.x, top, p0.z), new THREE.Vector3(end.x, top, p0.z), new THREE.Vector3(end.x, topA, end.z), end];
   }
 
-  runMesh(d, k) {
-    const pts = this.runPath(d);
-    const geo = new THREE.BufferGeometry().setFromPoints(pts);
-    const col = BY_ID[d.id]?.caps.includes("camera") ? "#f2c14e" : "#4f9be8";
-    const line = new THREE.Line(geo, new THREE.LineBasicMaterial({ color: col, transparent: true, opacity: 0.95, depthTest: false }));
-    line.renderOrder = 10;
-    if (k < 1) geo.setDrawRange(0, 0);
-    return line;
+  runMesh(d, k, i = 0) {
+    const pts = this.runPath(d, i);
+    const curve = new THREE.CurvePath();
+    for (let j = 0; j < pts.length - 1; j++) if (pts[j].distanceTo(pts[j + 1]) > 1e-4) curve.add(new THREE.LineCurve3(pts[j], pts[j + 1]));
+    const col = BY_ID[d.id]?.caps.includes("camera") ? "#e3b23c" : "#3f7fd6";
+    const mesh = new THREE.Mesh(new THREE.TubeGeometry(curve, Math.max(8, curve.curves.length * 6), 0.0045, 5), new THREE.MeshStandardMaterial({ color: col, roughness: 0.55 }));
+    if (k < 1) mesh.geometry.setDrawRange(0, 0);
+    return mesh;
   }
 
   animateRun(uid) {
@@ -584,10 +622,66 @@ export class House {
     }
   }
 
+  occlude(cam, focus) {
+    const hidden = this._occ || (this._occ = new Set());
+    const keep = new Set();
+    if (cam && focus && this.closeFill && this.b) {
+      const walls = new Set();
+      for (const wg of this.b.wallGroups || []) wg.mesh.traverse((o) => walls.add(o));
+      for (const fg of this.b.floorGroups || []) (fg.mesh || fg).traverse?.((o) => walls.add(o));
+      const dirv = focus.clone().sub(cam.position);
+      const len = dirv.length();
+      dirv.normalize();
+      const right = new THREE.Vector3().crossVectors(dirv, new THREE.Vector3(0, 1, 0)).normalize();
+      const up = new THREE.Vector3().crossVectors(right, dirv).normalize();
+      const rc = this._rc || (this._rc = new THREE.Raycaster());
+      for (const [ox, oy] of [[0, 0], [0.22, 0.16], [-0.22, 0.16], [0.22, -0.16], [-0.22, -0.16], [0, 0.3]]) {
+        const tgt = focus.clone().addScaledVector(right, ox).addScaledVector(up, oy);
+        const dv = tgt.sub(cam.position);
+        const l = dv.length();
+        rc.set(cam.position, dv.normalize());
+        rc.far = l - 0.12;
+        for (const h of rc.intersectObject(this.b.group || this.root, true)) {
+          let o = h.object;
+          if (walls.has(o) || !o.visible) continue;
+          if (o.userData.device || o.parent?.userData?.device) continue;
+          keep.add(o);
+        }
+      }
+      for (const f of this.fixtures || []) {
+        const o = f.object3d;
+        if (!o || !f.lightPos) continue;
+        const dx = f.lightPos[0] - focus.x, dz = f.lightPos[2] - focus.z;
+        if (Math.hypot(dx, dz) < 2.4 && f.lightPos[1] > focus.y + 0.25) keep.add(o);
+      }
+      void len;
+    }
+    for (const o of hidden) if (!keep.has(o)) { o.visible = true; hidden.delete(o); }
+    for (const o of keep) if (!hidden.has(o)) { o.visible = false; hidden.add(o); }
+  }
+
+  ring(pos, normal) {
+    const g = new THREE.RingGeometry(0.06, 0.075, 40);
+    const m = new THREE.MeshBasicMaterial({ color: "#7fe0a6", transparent: true, opacity: 0.9, depthWrite: false, side: THREE.DoubleSide, toneMapped: false });
+    const r = new THREE.Mesh(g, m);
+    r.position.copy(pos).addScaledVector(normal, 0.02);
+    r.lookAt(r.position.clone().add(normal));
+    r.renderOrder = 5;
+    this.root.add(r);
+    this.anims.push({ t: 0, dur: 1.1, step: (k) => { r.scale.setScalar(1 + k * 5.5); m.opacity = 0.9 * (1 - k); if (k >= 1) { this.root.remove(r); g.dispose(); m.dispose(); } } });
+  }
+
   update(dt, focus, cam) {
     this.t += dt;
-    if (cam && this.closeFill) { this.fill.position.copy(cam.position).add(new THREE.Vector3(0.2, 0.35, 0)); this.fill.intensity += (2.2 - this.fill.intensity) * Math.min(1, dt * 3); }
-    else this.fill.intensity += (0 - this.fill.intensity) * Math.min(1, dt * 3);
+    if (cam && this.closeFill) {
+      const fwd = new THREE.Vector3(); cam.getWorldDirection(fwd);
+      const right = new THREE.Vector3().crossVectors(fwd, new THREE.Vector3(0, 1, 0)).normalize();
+      this.fill.position.copy(cam.position).addScaledVector(right, -0.9).add(new THREE.Vector3(0, 0.75, 0));
+      this.fill.intensity += (1.15 - this.fill.intensity) * Math.min(1, dt * 3);
+    } else this.fill.intensity += (0 - this.fill.intensity) * Math.min(1, dt * 3);
+    this.R.dimT = this.closeFill ? 0.62 : 1;
+    this._occT = (this._occT || 0) - dt;
+    if (this._occT <= 0) { this._occT = 0.2; this.occlude(cam, focus); }
     for (let i = this.anims.length - 1; i >= 0; i--) {
       const a = this.anims[i];
       a.t += dt;

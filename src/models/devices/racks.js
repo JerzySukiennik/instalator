@@ -59,8 +59,8 @@ function cabinet(units) {
     kit.box('metal', '#a9acb0', s * 0.2405, 0, zr - 0.02, 0.002, ru + 0.03, 0.038);
     kit.quad(rail, null, 0.012, ru, x, 0, zr + 0.0002);
   }
-  kit.box('alu', '#9da1a6', 0, y1 - t - 0.0028, zr - 0.035, W - 0.07, 0.004, 0.018, { r: 0.0012, seg: 1 });
-  kit.led('#dbe6ff', 'strip', (m) => kit.box(m, null, 0, y1 - t - 0.0049, zr - 0.035, W - 0.08, 0.0008, 0.012), { intensity: 2.4 });
+  kit.box('alu', '#9da1a6', 0, y1 - 0.0515, D - 0.034, W - 0.07, 0.004, 0.016, { r: 0.0012, seg: 1 });
+  kit.led('#dbe6ff', 'strip', (m) => kit.box(m, null, 0, y1 - 0.0537, D - 0.034, W - 0.08, 0.0009, 0.011), { intensity: 2.6 });
   kit.ao({ axis: 2, lo: 0.0, hi: D * 0.85, k: 0.42 });
   const door = new Kit();
   const dW = W - 0.004, dH = H - 0.004, fw = 0.032;
