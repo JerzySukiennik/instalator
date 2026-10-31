@@ -105,6 +105,7 @@ export class House {
   }
 
   clear() {
+    this._trees = null;
     this.ready = false;
     if (this.b) this.root.remove(this.b.group);
     for (const v of this.vis.values()) v.obj.parent && v.obj.parent.remove(v.obj);
@@ -570,9 +571,14 @@ export class House {
       const it = BY_ID[d.id];
       if (!it?.caps.includes("camera") || !d.aim) continue;
       const fov = (it.cam.fov * Math.PI) / 180, r = it.cam.range;
-      const geo = new THREE.CircleGeometry(r, 24, -fov / 2, fov);
+      const geo = new THREE.CircleGeometry(r, 32, -fov / 2, fov);
       geo.rotateX(-Math.PI / 2);
-      const m = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: "#f2c14e", transparent: true, opacity: 0.22, depthWrite: false, side: THREE.DoubleSide }));
+      const mat = new THREE.ShaderMaterial({ uniforms: { col: { value: new THREE.Color("#f2c14e") }, r: { value: r }, t: { value: 0 } }, vertexShader: CONE_VS, fragmentShader: CONE_FS, transparent: true, depthWrite: false, side: THREE.DoubleSide });
+      const m = new THREE.Mesh(geo, mat);
+      const edge = [new THREE.Vector3(0, 0, 0)];
+      for (let i = 0; i <= 24; i++) { const a = -fov / 2 + (fov * i) / 24; edge.push(new THREE.Vector3(Math.cos(a) * r, 0.002, -Math.sin(a) * r)); }
+      edge.push(new THREE.Vector3(0, 0, 0));
+      m.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(edge), new THREE.LineBasicMaterial({ color: "#f7d56b", transparent: true, opacity: 0.9 })));
       const fl = this.data.floors[d.floor ?? 0] || { y: 0 };
       m.position.set(d.pos[0], fl.y + 0.05, d.pos[2]);
       m.rotation.y = Math.atan2(d.aim[0], d.aim[2]) - Math.PI / 2;
@@ -660,6 +666,50 @@ export class House {
     for (const o of keep) if (!hidden.has(o)) { o.visible = false; hidden.add(o); }
   }
 
+  fadeTrees(cam) {
+    if (!this.b || !cam) return;
+    if (!this._trees) {
+      this._trees = [];
+      this.b.group.traverse((o) => {
+        if (o.isInstancedMesh && /^trees-/.test(o.name) && !/flowers|grasses|reeds/.test(o.name)) {
+          o.geometry.computeBoundingBox();
+          const bb = o.geometry.boundingBox, H = bb.max.y - bb.min.y, Rr = Math.max(bb.max.x - bb.min.x, bb.max.z - bb.min.z) / 2;
+          this._trees.push({ mesh: o, orig: o.instanceMatrix.array.slice(), hid: new Uint8Array(o.count), cy: bb.min.y + H * 0.62, rad: Math.max(Rr, H * 0.3) * 1.1 });
+        }
+      });
+      const xs = this.data.rooms.flatMap((r) => r.poly.map((q) => q[0])), zs = this.data.rooms.flatMap((r) => r.poly.map((q) => q[1]));
+      const x0 = Math.min(...xs), x1 = Math.max(...xs), z0 = Math.min(...zs), z1 = Math.max(...zs);
+      this._houseTargets = [];
+      for (const fx of [0, 0.5, 1]) for (const fz of [0, 0.5, 1]) this._houseTargets.push(new THREE.Vector3(x0 + (x1 - x0) * fx, 1.0, z0 + (z1 - z0) * fz));
+    }
+    const P = cam.position, seg = new THREE.Vector3(), w = new THREE.Vector3(), c = new THREE.Vector3();
+    for (const T of this._trees) {
+      const a = T.mesh.instanceMatrix.array, o = T.orig;
+      let dirty = false;
+      for (let i = 0; i < T.mesh.count; i++) {
+        const k = i * 16;
+        const sc = Math.hypot(o[k], o[k + 1], o[k + 2]);
+        c.set(o[k + 12], o[k + 13] + T.cy * sc, o[k + 14]);
+        const rad = T.rad * sc;
+        let hide = false;
+        if (!this.closeFill) for (const t of this._houseTargets) {
+          seg.copy(t).sub(P);
+          const L = seg.length(); seg.divideScalar(L);
+          w.copy(c).sub(P);
+          const tt = w.dot(seg);
+          if (tt < 1 || tt > L - 2) continue;
+          if (w.addScaledVector(seg, -tt).length() < rad) { hide = true; break; }
+        }
+        if ((T.hid[i] === 1) !== hide) {
+          T.hid[i] = hide ? 1 : 0;
+          if (hide) { for (let j = 0; j < 16; j++) a[k + j] = 0; } else for (let j = 0; j < 16; j++) a[k + j] = o[k + j];
+          dirty = true;
+        }
+      }
+      if (dirty) T.mesh.instanceMatrix.needsUpdate = true;
+    }
+  }
+
   ring(pos, normal) {
     const g = new THREE.RingGeometry(0.06, 0.075, 40);
     const m = new THREE.MeshBasicMaterial({ color: "#7fe0a6", transparent: true, opacity: 0.9, depthWrite: false, side: THREE.DoubleSide, toneMapped: false });
@@ -680,8 +730,30 @@ export class House {
       this.fill.intensity += (1.15 - this.fill.intensity) * Math.min(1, dt * 3);
     } else this.fill.intensity += (0 - this.fill.intensity) * Math.min(1, dt * 3);
     this.R.dimT = this.closeFill ? 0.62 : 1;
+    for (const m of this.cones.values()) if (m.material.uniforms) m.material.uniforms.t.value = this.t;
+    if (this.wifiOn && this.der?.aps?.length) {
+      this._ringT = (this._ringT || 0) - dt;
+      if (this._ringT <= 0) {
+        this._ringT = 1.9;
+        for (const ap of this.der.aps) {
+          if ((ap.floor ?? 0) > this.floorShown) continue;
+          const fl = this.data.floors[ap.floor ?? 0] || { y: 0 };
+          const g = new THREE.RingGeometry(0.92, 1, 64);
+          g.rotateX(-Math.PI / 2);
+          const mat = new THREE.MeshBasicMaterial({ color: "#e9fff4", transparent: true, opacity: 0.55, depthWrite: false, toneMapped: false });
+          const ring = new THREE.Mesh(g, mat);
+          ring.position.set(ap.x, fl.y + 0.06, ap.z);
+          ring.renderOrder = 7;
+          this.overlay.add(ring);
+          const R = Math.min(9, (ap.r || 10) * 0.8);
+          this.anims.push({ t: 0, dur: 2.6, step: (k) => { ring.scale.setScalar(0.2 + k * R); mat.opacity = 0.55 * (1 - k); if (k >= 1) { this.overlay.remove(ring); g.dispose(); mat.dispose(); } } });
+        }
+      }
+    }
     this._occT = (this._occT || 0) - dt;
     if (this._occT <= 0) { this._occT = 0.2; this.occlude(cam, focus); }
+    this._treeT = (this._treeT || 0) - dt;
+    if (this._treeT <= 0) { this._treeT = 0.35; this.fadeTrees(cam); }
     for (let i = this.anims.length - 1; i >= 0; i--) {
       const a = this.anims[i];
       a.t += dt;
@@ -727,12 +799,20 @@ function capify(m) {
   m.needsUpdate = true;
 }
 
+const HEAT = [[0, 120, 120, 120, 60], [0.05, 222, 120, 74, 105], [0.18, 236, 166, 62, 130], [0.28, 216, 206, 72, 140], [0.42, 124, 200, 84, 150], [0.62, 52, 176, 92, 162], [0.95, 22, 150, 128, 178], [1.6, 20, 118, 160, 190]];
+
 function heatColor(v) {
-  if (v >= 0.42) return [62, 175, 98, 150];
-  if (v >= 0.28) return [128, 196, 84, 135];
-  if (v >= 0.18) return [222, 196, 72, 125];
-  if (v > 0.05) return [222, 150, 70, 95];
-  return [120, 120, 120, 70];
+  if (v <= HEAT[0][0]) return HEAT[0].slice(1);
+  for (let i = 1; i < HEAT.length; i++) {
+    if (v <= HEAT[i][0]) {
+      const a = HEAT[i - 1], b = HEAT[i], k = (v - a[0]) / (b[0] - a[0]);
+      return [1, 2, 3, 4].map((j) => Math.round(a[j] + (b[j] - a[j]) * k));
+    }
+  }
+  return HEAT[HEAT.length - 1].slice(1);
 }
+
+const CONE_VS = "varying vec2 vP; void main() { vP = position.xz; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }";
+const CONE_FS = "uniform vec3 col; uniform float r; uniform float t; varying vec2 vP; void main() { float d = length(vP) / r; float a = 0.3 * pow(1.0 - d, 1.7) + 0.1 * (1.0 - d) * smoothstep(0.02, 0.0, abs(fract(d * 3.0 - t * 0.6) - 0.5) - 0.47); gl_FragColor = vec4(col, a * smoothstep(1.0, 0.94, d)); }";
 
 export { derive };
