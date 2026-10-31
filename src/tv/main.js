@@ -12,6 +12,7 @@ import { derive } from "../shared/sim.js";
 import { BY_ID, fmtZl } from "../shared/catalog.js";
 import { PROTO, netMode } from "../shared/protocol.js";
 import { renderDash } from "../dash/render.js";
+import { buildClient, Walker } from "./client.js";
 
 const q = new URLSearchParams(location.search);
 const canvas = document.getElementById("tv");
@@ -30,6 +31,7 @@ let tabletTex = null;
 let tabletCanvas = null;
 let script = null;
 const ghosts = new Map();
+let walker = null;
 const pings = [];
 
 window.addEventListener("pointerdown", () => audio.unlock(), { once: false });
@@ -204,7 +206,7 @@ function fx(e) {
     case "react": if (p) { hud.react(p, e.e); audio.play("ui_pop", { vol: 0.35 }); } break;
     case "ping": if (p) addPing(e, p.color); break;
     case "handover": runHandover(); break;
-    case "play": hud.clearHandover(); R.setMode("night"); dir.overview(data, { floor: 0, speed: 0.04 }); break;
+    case "play": hud.clearHandover(); if (walker) { R.scene.remove(walker.obj); walker = null; } R.setMode("night"); dir.overview(data, { floor: 0, speed: 0.04 }); break;
     case "control": audio.play("relay_click", { vol: 0.5 }); break;
     default: break;
   }
@@ -241,14 +243,52 @@ async function beginJob(job) {
   audio.loop(job.building === "gzowo" ? "amb_river" : job.building === "kawalerka" ? "amb_city" : "amb_birds", 0.22);
 }
 
+function clientPath() {
+  const e = data.entrance;
+  if (!e) return null;
+  const E = new THREE.Vector3(...e.pos);
+  let n = new THREE.Vector3(0, 0, 1).applyQuaternion(new THREE.Quaternion(...(e.quat || [0, 0, 0, 1])));
+  if (data.street) { const t = new THREE.Vector3(...data.street.pos).sub(E).setY(0); if (t.lengthSq() > 1) n = t.normalize(); }
+  n.y = 0; n.normalize();
+  const fy = data.floors[0]?.y || 0;
+  const outside = E.clone().addScaledVector(n, 1.3).setY(fy);
+  const start = data.street ? new THREE.Vector3(...data.street.pos).setY(fy) : E.clone().addScaledVector(n, 9).setY(fy);
+  const inside = E.clone().addScaledVector(n, -1.4).setY(fy);
+  const spot = (data.tabletSpots || []).find((s) => s.id === state.tablet.spot);
+  let end = inside.clone().addScaledVector(n, -1.2);
+  if (spot && (spot.floor ?? 0) === 0) {
+    const sn = new THREE.Vector3(0, 0, 1).applyQuaternion(new THREE.Quaternion(...spot.quat));
+    end = new THREE.Vector3(...spot.pos).addScaledVector(sn.setY(0).normalize(), 0.75).setY(fy);
+  }
+  return { start, outside, door: E.clone().setY(fy), inside, end, n };
+}
+
 async function runHandover() {
   const j = state.job;
   const res = state.review.res;
   R.setMode("dusk");
   hud.show("handover");
   const steps = [];
-  steps.push({ dur: 3.4, run: () => { const e = data.entrance; if (e) dir.look(new THREE.Vector3(e.pos[0] + 4, 2.6, e.pos[2] + 7), new THREE.Vector3(...e.pos).add(new THREE.Vector3(0, 1, 0)), 40); hud.bubble(j.client, "Dzień dobry! To co, pokażecie, co tu się teraz dzieje?"); audio.play("car_arrive"); } });
-  steps.push({ dur: 2.2, run: () => { audio.play("doorbell_chime"); } });
+  const P = clientPath();
+  if (walker) { R.scene.remove(walker.obj); walker = null; }
+  if (P) {
+    const fig = buildClient(j.client.look);
+    fig.position.copy(P.start);
+    R.scene.add(fig);
+    walker = new Walker(fig);
+  }
+  const follow = (k = 1) => { if (!walker) return; dir.track(walker.obj, P.n.clone().multiplyScalar(4.4 * k).add(new THREE.Vector3(P.n.z * 2.6, 3.0, -P.n.x * 2.6))); };
+  steps.push({ dur: 3.6, run: () => { audio.play("car_arrive"); if (P) { walker.go([P.outside.toArray()]); house.setFloor(0); } follow(); hud.bubble(j.client, "Dzień dobry! To co, pokażecie, co tu się teraz dzieje?"); } });
+  steps.push({ dur: 2.4, run: () => { audio.play("doorbell_chime"); follow(0.8); } });
+  steps.push({ dur: 3.2, run: () => {
+    const lock = state.devs.some((d) => BY_ID[d.id]?.caps.includes("lock") && d.paired);
+    hud.bubble(j.client, lock ? "O, drzwi same się otworzyły z telefonu!" : "Wchodzę!");
+    audio.play("house_door_open");
+    if (house.b?.setDoorOpen) try { house.b.setDoorOpen("entrance", 1); } catch (e) {}
+    if (P) walker.go([P.door.toArray(), P.inside.toArray(), P.end.toArray()]);
+    follow(0.7);
+  } });
+  steps.push({ dur: 2.8, run: () => { audio.play("footsteps_wood", { vol: 0.8 }); if (walker) dir.track(walker.obj, new THREE.Vector3(2.4, 2.6, 2.4).applyAxisAngle(new THREE.Vector3(0, 1, 0), Math.atan2(P.n.x, P.n.z))); } });
   for (const r of j.reqs) {
     const st = res.find((x) => x.id === r.id);
     steps.push({ dur: 2.3, run: () => {
@@ -367,6 +407,23 @@ async function demo(building, view) {
   setTimeout(() => { window.__demoReady = true; }, 900);
 }
 
+function addDesk() {
+  if (document.getElementById("desk")) return;
+  document.body.classList.add("desk");
+  const box = document.createElement("div");
+  box.id = "desk";
+  const base = padUrl(host.code).replace("&net=local", "");
+  box.innerHTML = `<div class="dk"><span>Twoje narzędzia</span><button id="deskx">schowaj</button></div><iframe allow="autoplay" src="${base}&net=local&desk=1"></iframe>`;
+  document.body.appendChild(box);
+  document.getElementById("deskx").onclick = () => { box.remove(); document.body.classList.remove("desk"); refresh(lastSnap || snapshotFor(state, data)); R.resize(); };
+  audio.unlock();
+  document.getElementById("snd")?.remove();
+  setTimeout(() => R.resize(), 50);
+  refresh(lastSnap || snapshotFor(state, data));
+}
+
+document.addEventListener("click", (e) => { if (e.target.closest && e.target.closest(".deskbtn")) addDesk(); });
+
 function addEmulators(n) {
   const box = document.createElement("div");
   box.id = "emu";
@@ -392,6 +449,7 @@ function loop(now) {
     }
   }
   if (lastSnap && data && (state.phase === "play" || state.turn.task === "tablet") && performance.now() - camAt > 2500) paintTablet(lastSnap);
+  if (walker) walker.update(dt);
   dir.update(dt);
   house.closeFill = dir.cutMode === "close";
   house.update(dt, dir.tgt, R.camera);
@@ -408,6 +466,18 @@ function loop(now) {
   fpsAcc += dt; fpsN++;
   if (fpsAcc > 1) { window.__fps = Math.round(fpsN / fpsAcc); fpsAcc = 0; fpsN = 0; }
   requestAnimationFrame(loop);
+}
+
+function soundHint() {
+  if (document.getElementById("snd")) return;
+  const b = document.createElement("button");
+  b.id = "snd";
+  b.className = "tape y";
+  b.textContent = "🔈 Kliknij tutaj, żeby był dźwięk";
+  b.style.cssText = "position:fixed;left:50%;bottom:1.2rem;transform:translateX(-50%);z-index:9;border:0;cursor:pointer;font-size:0.8rem";
+  b.onclick = () => { audio.unlock(); b.remove(); };
+  document.body.appendChild(b);
+  window.addEventListener("pointerdown", () => b.remove(), { once: true });
 }
 
 async function boot() {
@@ -429,10 +499,12 @@ async function boot() {
     return;
   }
   await lobbyScene();
+  if (!q.get("emu")) soundHint();
   sendState();
   refresh(snapshotFor(state, null));
   requestAnimationFrame(loop);
   if (q.get("emu")) addEmulators(Number(q.get("emu")) || 1);
+  if (q.get("desk")) addDesk();
 }
 
 boot().catch((e) => { console.error(e); document.getElementById("ui").innerHTML = `<div class="card" style="margin:20vh auto;width:30rem;padding:1.4rem;pointer-events:auto">Nie udało się wystartować: ${e.message}</div>`; });

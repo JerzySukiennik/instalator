@@ -10,6 +10,7 @@ import { renderDash, gridRect, cardRect, cardInfo } from "../dash/render.js";
 
 const q = new URLSearchParams(location.search);
 const app = document.getElementById("app");
+if (q.get("desk")) document.body.classList.add("desk");
 const room = (q.get("room") || "").toUpperCase();
 const cid = (() => {
   try {
@@ -38,7 +39,7 @@ function joinView(err) {
     <span class="tape k" style="align-self:flex-start">pokój ${esc(room || "?")}</span>
     <h1>Instala&shy;tor</h1>
     <div style="color:var(--ink2);line-height:1.4">Twój telefon to narzędzia: wkręcasz, wiercisz, pstrykasz bezpieczniki i projektujesz tablet. Wszystko widać na telewizorze.</div>
-    <input id="nm" maxlength="14" placeholder="Twoje imię" value="${esc(q.get("name") || savedName())}" autocomplete="off">
+    <input id="nm" maxlength="14" placeholder="Twoje imię" value="${esc(q.get("name") || savedName() || (q.get("desk") ? "Tata" : ""))}" autocomplete="off">
     <button class="btn y" id="go">Dołącz ${icon("plus", 20, 2.4)}</button>
     ${err ? `<div class="tape" style="background:var(--err);color:#fff">${esc(err)}</div>` : ""}
   </div>`);
@@ -52,6 +53,8 @@ function joinView(err) {
     connect(name);
   };
   $("#go").onclick = go;
+  $("#nm").addEventListener("keydown", (e) => { if (e.key === "Enter") go(); });
+  if (q.get("desk")) setTimeout(() => $("#nm")?.focus(), 200);
   if (q.get("emu") && q.get("name")) setTimeout(go, 300);
 }
 
@@ -207,7 +210,7 @@ function watchView(handover = false) {
   app.innerHTML = `${topBar(ctx.me.name, handover ? "Odbiór" : "Kibicujesz")}
     <div class="body">
       <div class="watch card" style="background:var(--card);border-radius:18px;padding:16px;border:1px solid var(--line)">
-        ${handover ? `<div class="tape y">odbiór u klienta</div><div class="who">Patrzcie na telewizor</div><div class="what">Klient sprawdza listę.</div>` : `<div class="tape">teraz robi</div><div class="who" style="color:${act?.color || "inherit"}">${esc(act?.name || "…")}</div><div class="what">${t ? esc(t.name) : "wybiera zadanie"}</div>`}
+        ${handover ? `<div class="tape y">odbiór u klienta</div><div class="who">${q.get("desk") ? "Patrz na dom obok" : "Patrzcie na telewizor"}</div><div class="what">Klient sprawdza listę.</div>` : `<div class="tape">teraz robi</div><div class="who" style="color:${act?.color || "inherit"}">${esc(act?.name || "…")}</div><div class="what">${t ? esc(t.name) : "wybiera zadanie"}</div>`}
       </div>
       <div class="h">Reakcje na telewizorze</div>
       <div class="reacts">${REACTIONS.map((e) => `<button data-e="${e}">${e}</button>`).join("")}</div>

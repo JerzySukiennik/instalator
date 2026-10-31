@@ -62,9 +62,21 @@ export class Director {
     this.cutMode = "overview";
   }
 
+  track(obj, offset) {
+    this.mode = "track";
+    this.trackObj = obj;
+    this.trackOff = offset.clone();
+    this.cutMode = "overview";
+  }
+
   update(dt) {
     this.t += dt;
-    if (this.mode === "orbit") {
+    if (this.mode === "track" && this.trackObj) {
+      const p = this.trackObj.position;
+      this.wantTgt.set(p.x, p.y + 1.1, p.z);
+      this.wantPos.copy(p).add(this.trackOff);
+      this.wantFov = 40;
+    } else if (this.mode === "orbit") {
       const o = this.orbit;
       o.az += o.speed * dt;
       const sway = Math.sin(this.t * 0.11) * 0.06;

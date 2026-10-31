@@ -218,3 +218,9 @@ input { font: inherit; }
 .stat.idle { background: var(--paper); color: var(--ink2); border: 1px solid var(--line); }
 .spot { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center; }
 .bigtick { font-size: 64px; text-align: center; margin: 16px 0 6px; }
+
+body.desk { font-size: 15px; }
+body.desk .join h1 { font-size: 46px; }
+body.desk .btn, body.desk .task, body.desk .item, body.desk .vjob, body.desk .row button, body.desk .din, body.desk .port, body.desk .platc, body.desk .pcard { cursor: pointer; }
+body.desk .task:hover, body.desk .vjob:hover, body.desk .item:hover { border-color: var(--ink2); }
+.join .btn { flex: none; }

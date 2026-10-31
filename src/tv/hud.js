@@ -44,7 +44,7 @@ export class Hud {
 
   lobby(s, code, url) {
     const el = $("#lobby", this.root);
-    const key = `${code}|${s.players.map((p) => p.name + p.online + p.host).join(",")}`;
+    const key = `${code}|${document.body.classList.contains("desk")}|${s.players.map((p) => p.name + p.online + p.host).join(",")}`;
     if (el.dataset.key === key) return;
     el.dataset.key = key;
     el.innerHTML = `
@@ -53,6 +53,7 @@ export class Hud {
         <h1>Instalator</h1>
         <div class="sub"><span class="tape">UniFi</span><span class="tape">Hue</span><span class="tape">Shelly</span><span class="tape">tado°</span><span class="tape y">1–4 telefony</span></div>
         <div class="players">${s.players.map((p) => playerPill(p)).join("") || `<span class="tape">Czekam na pierwszy telefon…</span>`}</div>
+        ${document.body.classList.contains("desk") ? "" : `<button class="tape y deskbtn click">🖱 Graj na tym komputerze, bez telefonu</button>`}
       </div>
       <div class="join card">
         <div class="qr">${qrSvg(url)}</div>
@@ -68,9 +69,9 @@ export class Hud {
     if (el.dataset.key !== key) {
       el.dataset.key = key;
       el.innerHTML = `
-        <div class="top"><h2>Zlecenia na dziś</h2><span class="tape y">Głosujcie na telefonach</span></div>
+        <div class="top"><h2>Zlecenia na dziś</h2><span class="tape y">${document.body.classList.contains("desk") ? "Wybierz w panelu po prawej" : "Głosujcie na telefonach"}</span></div>
         <div class="grid">${s.board.jobs.map((j, i) => jobCard(j, i, thumbs?.[j.building])).join("")}</div>
-        <div class="foot"><span class="tape">Gospodarz: przelosuj albo bierzemy</span></div>`;
+        <div class="foot"><span class="tape">${document.body.classList.contains("desk") ? "Przelosuj albo bierzemy" : "Gospodarz: przelosuj albo bierzemy"}</span></div>`;
     }
     s.board.jobs.forEach((j, i) => {
       const v = $(`.job[data-i="${i}"] .votes`, el);

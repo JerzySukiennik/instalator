@@ -33,7 +33,7 @@ if (mode === "tv") {
   pad.on("console", (m) => { if (m.type() === "error") logs.push(`[pad error] ${m.text()}`); });
   await pad.goto(`${BASE}?role=pad&net=local&room=${code}&name=Tata&emu=1`, { waitUntil: "load" });
   await pad.waitForTimeout(2200);
-  if (padJS) { try { const r = await pad.evaluate(padJS); if (r !== undefined) logs.push("[padjs] " + JSON.stringify(r)); } catch (e) { logs.push("[padjs error] " + e.message); } }
+  if (padJS) { try { const r = await pad.evaluate(`(async () => { ${padJS} })()`); if (r !== undefined) logs.push("[padjs] " + JSON.stringify(r)); } catch (e) { logs.push("[padjs error] " + e.message); } }
   await pad.waitForTimeout(Number(process.env.PWAIT || 1500));
   await pad.screenshot({ path: out });
   if (process.env.TVOUT) await tv.screenshot({ path: process.env.TVOUT });

@@ -54,11 +54,12 @@ export class Renderer {
     this.composer.addPass(new OutputPass());
     this.resize();
     addEventListener("resize", () => this.resize());
+    new ResizeObserver(() => this.resize()).observe(canvas);
     this.setMode("day", true);
   }
 
   resize() {
-    const w = innerWidth, h = innerHeight;
+    const w = this.canvas.clientWidth || innerWidth, h = this.canvas.clientHeight || innerHeight;
     const pr = Math.min(devicePixelRatio || 1, Math.sqrt(this.maxPx / (w * h)));
     this.renderer.setPixelRatio(pr);
     this.renderer.setSize(w, h, false);

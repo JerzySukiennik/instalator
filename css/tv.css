@@ -139,3 +139,18 @@ canvas#tv { position: fixed; inset: 0; width: 100vw; height: 100vh; display: blo
 
 #emu { position: fixed; right: 0.8rem; bottom: 0.8rem; display: flex; gap: 0.8rem; pointer-events: auto; z-index: 5; }
 #emu iframe { width: 300px; height: 620px; border: 0; border-radius: 26px; box-shadow: 0 0.8rem 2rem rgba(0, 0, 0, 0.5); background: #000; }
+
+body.desk canvas#tv { width: calc(100vw - 25rem); }
+body.desk #ui { right: 25rem; }
+#desk { position: fixed; top: 0; right: 0; bottom: 0; width: 25rem; background: #16191b; display: flex; flex-direction: column; z-index: 6; box-shadow: -0.4rem 0 1.6rem rgba(0, 0, 0, 0.35); }
+#desk iframe { flex: 1; width: 100%; border: 0; display: block; background: #e9e5dc; }
+#desk .dk { display: flex; align-items: center; justify-content: space-between; padding: 0.45rem 0.8rem; color: var(--tape); font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.08em; text-transform: uppercase; }
+#desk .dk button { background: none; border: 1px solid #3a4045; color: var(--tape); border-radius: 0.3rem; font: inherit; padding: 0.25rem 0.5rem; cursor: pointer; }
+.deskbtn { margin-top: 1.6rem; font-size: 0.95rem; border: 0; cursor: pointer; pointer-events: auto; }
+.deskbtn:hover { filter: brightness(1.06); }
+body.desk #lobby { grid-template-columns: 1fr auto; padding: 6vh 3vw; gap: 2vw; }
+body.desk #lobby h1 { font-size: 5rem; }
+body.desk #lobby .join { width: 15rem; padding: 1.1rem; }
+body.desk #lobby .code { font-size: 2.2rem; }
+body.desk #jobcard { width: 19rem; }
+body.desk #checklist { width: 18rem; }
