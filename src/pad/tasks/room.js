@@ -5,7 +5,7 @@ import { icon } from "../../shared/icons.js";
 import { $, el, haptic, toast } from "../ui.js";
 import { Plan } from "../plan.js";
 import { runGesture } from "../gestures.js";
-import { frame, invList, tray, deviceSheet } from "./common.js";
+import { frame, invList, tray, deviceSheet, afterPoe } from "./common.js";
 
 const OUT = ["outdoorWall", "doorbell", "gate", "garage"];
 
@@ -88,17 +88,21 @@ export function mount(root, ctx, taskId, h) {
     else ctx.send({ a: "install", id, mount: m.id, style: g === "screw" ? "screw" : g === "peel" ? "peel" : g === "drill" ? "drill" : "tap" });
     haptic(true);
     if (it.caps.includes("camera")) {
-      setTimeout(() => {
+      setTimeout(async () => {
         const d = ctx.S.devs.filter((x) => x.mount === m.id).pop();
-        if (d) aim(d, m);
+        if (d) { await aim(d, m); setTimeout(() => afterPoe(ctx, d.uid), 300); }
       }, 450);
+    } else if (it.power === "poe") {
+      setTimeout(() => { const d = ctx.S.devs.filter((x) => x.mount === m.id).pop(); if (d) afterPoe(ctx, d.uid); }, 800);
     }
     if (!((ctx.S.inv[id] || 1) - 1)) sel = null;
   });
 
   plan.on("device", (d) => {
     const it = BY_ID[d.id];
-    deviceSheet(ctx, d, it.caps.includes("camera") ? { label: "Ustaw kąt", run: () => aim(d, (ctx.B.mounts || []).find((m) => m.id === d.mount)) } : null);
+    const st = ctx.S.der?.dev[d.uid];
+    const off = it.power === "poe" && !(st && st.pw && st.net);
+    deviceSheet(ctx, d, off ? { label: "Podłącz do sieci", run: () => afterPoe(ctx, d.uid) } : it.caps.includes("camera") ? { label: "Ustaw kąt", run: () => aim(d, (ctx.B.mounts || []).find((m) => m.id === d.mount)) } : null);
   });
 
   plan.on("tap", (p) => {

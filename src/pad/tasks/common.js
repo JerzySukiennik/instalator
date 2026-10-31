@@ -2,9 +2,10 @@
 
 import { BY_ID, fmtZl, pairStatus } from "../../shared/catalog.js";
 import { icon } from "../../shared/icons.js";
-import { $, el, esc, haptic, sheet } from "../ui.js";
+import { $, el, esc, haptic, sheet, toast } from "../ui.js";
 import { catIcon } from "../plan.js";
 import { openShop } from "./shop.js";
+import { netPlan, netStep } from "../../shared/netguide.js";
 
 export function frame(root, ctx, title, sub, h, opts = {}) {
   const solo = ctx.S.players.filter((p) => p.online).length <= 1;
@@ -65,6 +66,22 @@ export function deviceSheet(ctx, d, extra) {
       <div style="display:flex;gap:10px;flex-wrap:wrap">${extra ? `<button class="btn y sm ex">${esc(extra.label)}</button>` : ""}<button class="btn w sm rm">${icon("undo", 18, 2)} Zdejmij</button></div>`;
     $(".rm", sc).onclick = () => { haptic(); ctx.send({ a: "uninstall", uid: d.uid }); close(); };
     if (extra) $(".ex", sc).onclick = () => { close(); extra.run(); };
+  });
+}
+
+export function afterPoe(ctx, uid) {
+  const d = ctx.S.devs.find((x) => x.uid === uid);
+  if (!d || !d.run) return;
+  const st = ctx.S.der?.dev[uid];
+  if (st && st.pw && st.net) return;
+  const link = netPlan(ctx.S).links.find((l) => d.run.pp && l.from[0] === d.run.pp && l.from[1] === d.run.port);
+  const step = netStep(ctx.S, ctx.B);
+  const where = ctx.B.rack ? "szafy rack" : "skrzynki multimedialnej";
+  sheet("Kabel poszedł w ścianie", (sc, s, close) => {
+    sc.innerHTML = `<p style="margin:0 0 14px;color:var(--ink2);line-height:1.45">Przewód z <b>${esc(BY_ID[d.id].name)}</b> doszedł do ${where}${d.run.pp ? " i jest podpisany na patch panelu" : ""}. ${link ? "Teraz wystarczy wpiąć go patchcordem do portu PoE w switchu, wtedy dostanie prąd i internet." : `Żeby zadziałał: ${esc(step.text)}`}</p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">${link ? `<button class="btn y now">Wepnij od razu</button>` : ""}<button class="btn w rk">Pokaż w szafie</button></div>`;
+    if ($(".now", sc)) $(".now", sc).onclick = () => { haptic(true); ctx.send({ a: "patch", from: link.from, to: link.to, color: link.color }); close(); toast("Wpięte! Dioda na switchu się świeci."); };
+    $(".rk", sc).onclick = () => { close(); ctx.stream({ t: "ghost" }); ctx.openTask("rack"); };
   });
 }
 

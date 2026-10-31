@@ -6,7 +6,7 @@ import { icon } from "../../shared/icons.js";
 import { $, el, haptic, toast } from "../ui.js";
 import { Plan } from "../plan.js";
 import { runGesture } from "../gestures.js";
-import { frame, invList, tray, deviceSheet } from "./common.js";
+import { frame, invList, tray, deviceSheet, afterPoe } from "./common.js";
 
 export function mount(root, ctx, taskId, h) {
   const body = frame(root, ctx, "Wi-Fi", "Przeciągnij punkt dostępowy, patrz na zasięg", h, { flush: true, cats: ["siec"] });
@@ -80,6 +80,7 @@ export function mount(root, ctx, taskId, h) {
     if (!r.ok) return;
     ctx.send({ a: "install", id: ghost.id, mount: m.id, style: "drill" });
     haptic(true);
+    setTimeout(() => { const d = ctx.S.devs.filter((x) => x.mount === m.id).pop(); if (d) afterPoe(ctx, d.uid); }, 800);
     ghost = null;
     if ((ctx.S.inv[sel] || 1) <= 1) sel = null;
     refresh();
@@ -99,7 +100,7 @@ export function mount(root, ctx, taskId, h) {
   });
   plan.on("ghostDrop", () => { haptic(); draw(); });
   plan.on("mount", (m) => { if (sel) { ghost = { id: sel, x: m.pos[0], z: m.pos[2], snap: m }; place(); } });
-  plan.on("device", (d) => deviceSheet(ctx, d));
+  plan.on("device", (d) => { const st = ctx.S.der?.dev[d.uid]; deviceSheet(ctx, d, BY_ID[d.id].power === "poe" && !(st && st.pw && st.net) ? { label: "Podłącz do sieci", run: () => afterPoe(ctx, d.uid) } : null); });
   refresh();
   return { update() { refresh(); }, destroy() { ctx.stream({ t: "ghost" }); } };
 }

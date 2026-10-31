@@ -5,6 +5,8 @@ import { portCount } from "../../shared/sim.js";
 import { icon } from "../../shared/icons.js";
 import { $, el, esc, haptic, toast, sheet } from "../ui.js";
 import { frame, invList, tray } from "./common.js";
+import { netStep, netPlan } from "../../shared/netguide.js";
+import { openShop } from "./shop.js";
 
 const COLORS = ["#3f7fd6", "#f3cf45", "#3e9b5f", "#eeeeee", "#8b6bd6", "#80868b"];
 
@@ -20,7 +22,7 @@ export function mount(root, ctx, taskId, h) {
   const media = !ctx.B.rack;
   const body = frame(root, ctx, media ? "Skrzynka multimedialna" : "Szafa rack", "Montuj sprzęt, potem przeciągaj kable", h, { cats: ["siec", "centrale", "kamery"] });
   let sel = null, color = COLORS[0];
-  body.innerHTML = `<div class="h"><span id="inet"></span><span id="poe"></span></div><div class="rackwrap" style="position:relative"></div><div class="h">Kolor kabla<span class="colors"></span></div><div class="tray" style="border:0;background:none;padding:0;margin:0 -14px"></div><div class="h">UniFi: adopcja</div><div class="list adopt"></div>`;
+  body.innerHTML = `<div class="guide"></div><div class="h"><span id="inet"></span><span id="poe"></span></div><div class="rackwrap" style="position:relative"></div><div class="h">Kolor kabla<span class="colors"></span></div><div class="tray" style="border:0;background:none;padding:0;margin:0 -14px"></div><div class="h">UniFi: adopcja</div><div class="list adopt"></div>`;
   const wrap = $(".rackwrap", body), trayHost = $(".tray", body);
   const colorsHost = $(".colors", body);
   colorsHost.innerHTML = COLORS.map((c) => `<button data-c="${c}" style="background:${c}"></button>`).join("");
@@ -29,6 +31,36 @@ export function mount(root, ctx, taskId, h) {
 
   const patchAt = (uid, p) => ctx.S.patches.find((x) => (x.a[0] === uid && x.a[1] === p) || (x.b[0] === uid && x.b[1] === p));
   const runAt = (uid, p) => ctx.S.devs.find((d) => d.run && d.run.pp === uid && d.run.port === p);
+
+  let step = null;
+  const isHint = (uid, i) => !!(step && step.link && ((step.link.from[0] === uid && step.link.from[1] === i) || (step.link.to[0] === uid && step.link.to[1] === i)));
+  const autoPlace = (id) => {
+    const it = BY_ID[id];
+    if (it.where === "shelf") { ctx.send({ a: "shelfPut", id }); return; }
+    if (it.where !== "rack" || !ctx.B.rack) return;
+    const units = ctx.B.rack.units || 9, n = it.u || 1;
+    const occ = new Set();
+    for (const d of ctx.S.devs) if (d.place === "rack") for (let k = 0; k < (BY_ID[d.id].u || 1); k++) occ.add(d.u + k);
+    for (let u = units - n; u >= 0; u--) {
+      let ok = true;
+      for (let k = 0; k < n; k++) if (occ.has(u + k)) ok = false;
+      if (ok) { ctx.send({ a: "rackPut", id, u }); return; }
+    }
+    toast("W szafie nie ma już miejsca.");
+  };
+  const runAll = (links) => {
+    links.forEach((l, i) => setTimeout(() => { haptic(true); ctx.send({ a: "patch", from: l.from, to: l.to, color: l.color }); }, i * 420));
+  };
+  const drawGuide = () => {
+    step = netStep(ctx.S, ctx.B);
+    const g = $(".guide", body);
+    const btns = step.buy ? `<button class="btn y sm gbuy">${icon("cart", 18, 2)} Kup</button>` : step.place ? `<button class="btn y sm gplace">${icon("drill", 18, 2)} Zamontuj</button>` : step.link ? `<button class="btn y sm glink">Podłącz</button>${step.all.length > 1 ? `<button class="btn w sm gall">Podłącz wszystko (${step.all.length})</button>` : ""}` : "";
+    g.innerHTML = `<div class="gcard ${step.done ? "ok" : ""}"><span class="gn">${step.done ? icon("check", 18, 3) : step.n}</span><div class="gt">${esc(step.text)}</div>${btns ? `<div class="gb">${btns}</div>` : ""}</div>`;
+    if ($(".gbuy", g)) $(".gbuy", g).onclick = () => openShop(ctx, ["siec", "centrale", "kamery"]);
+    if ($(".gplace", g)) $(".gplace", g).onclick = () => { haptic(true); autoPlace(step.place); };
+    if ($(".glink", g)) $(".glink", g).onclick = () => runAll([step.link]);
+    if ($(".gall", g)) $(".gall", g).onclick = () => runAll(step.all);
+  };
 
   const portsHtml = (d, opts = {}) => {
     const it = BY_ID[d.id] || {};
@@ -42,13 +74,14 @@ export function mount(root, ctx, taskId, h) {
       const lbl = d.id === "ont" ? "LAN" : wan && i === 0 ? "WAN" : run ? short(ctx, run) : opts.nums ? String(i + 1) : "";
       const etl = it.etherlight && pt ? `box-shadow:0 0 6px ${pt.color}` : "";
       const need = !pt && ((run && !it.caps?.includes("switch")) || (d.id === "ont") || (wan && i === 0) || (!it.caps?.includes("switch") && !it.caps?.includes("patch") && d.id !== "mb-keystone" && !wan && n === 1));
-      s += `<span class="port ${pt ? "used" : ""} ${need ? "need" : ""} ${i - wan < poe && i >= wan ? "poe" : ""} ${pt && ctx.S.der?.dev[d.uid]?.pw ? "led" : ""}" data-uid="${d.uid}" data-p="${i}" style="${pt ? `--c:${pt.color};` : ""}${etl}"><span class="pl">${esc(lbl)}</span></span>`;
+      s += `<span class="port ${pt ? "used" : ""} ${need ? "need" : ""} ${isHint(d.uid, i) ? "hint" : ""} ${i - wan < poe && i >= wan ? "poe" : ""} ${pt && ctx.S.der?.dev[d.uid]?.pw ? "led" : ""}" data-uid="${d.uid}" data-p="${i}" style="${pt ? `--c:${pt.color};` : ""}${etl}"><span class="pl">${esc(lbl)}</span></span>`;
     }
     return s;
   };
 
   const draw = () => {
     const S = ctx.S;
+    drawGuide();
     $("#inet", body).innerHTML = S.der?.online ? `<span class="tape" style="background:var(--ok);color:#fff">internet działa</span>` : `<span class="tape">brak internetu</span>`;
     const used = Object.entries(S.der?.poeUsed || {}).map(([u, w]) => `${w}/${BY_ID[S.devs.find((d) => d.uid === u)?.id]?.poeOut || 0} W`).join(" · ");
     $("#poe", body).textContent = used ? `PoE ${used}` : "";
@@ -126,6 +159,10 @@ export function mount(root, ctx, taskId, h) {
       const a = center(p.a[0], p.a[1]), b = center(p.b[0], p.b[1]);
       if (!a || !b) continue;
       s += `<path d="${cablePath(a, b)}" stroke="rgba(0,0,0,0.35)" stroke-width="6" fill="none" stroke-linecap="round"/><path d="${cablePath(a, b)}" stroke="${p.color}" stroke-width="4" fill="none" stroke-linecap="round"/>`;
+    }
+    if (step && step.link && !live) {
+      const a = center(step.link.from[0], step.link.from[1]), b = center(step.link.to[0], step.link.to[1]);
+      if (a && b) s += `<path d="${cablePath(a, b)}" stroke="#f3cf45" stroke-width="3" fill="none" stroke-linecap="round" stroke-dasharray="5 6" opacity="0.95"><animate attributeName="stroke-dashoffset" from="22" to="0" dur="0.8s" repeatCount="indefinite"/></path>`;
     }
     if (live) s += `<path d="${cablePath(live.a, live.b)}" stroke="${color}" stroke-width="5" fill="none" stroke-linecap="round" stroke-dasharray="${live.hot ? "0" : "6 4"}"/><circle cx="${live.b[0]}" cy="${live.b[1]}" r="9" fill="${color}" stroke="#fff" stroke-width="2"/>`;
     svg.innerHTML = s;
