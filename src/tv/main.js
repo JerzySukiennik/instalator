@@ -32,6 +32,7 @@ let tabletCanvas = null;
 let script = null;
 const ghosts = new Map();
 let walker = null;
+let peeking = false, peekTimer = 0;
 let online = false;
 const pings = [];
 
@@ -192,7 +193,16 @@ function fx(e) {
     }
     case "cable": setTimeout(() => house.animateRun(e.uid), 400); hud.toast("net", `Kabel w ścianie · ${e.len} m · <b>−${fmtZl(e.cost)}</b>`); audio.play("cable_zip", { vol: 0.6, delay: 0.5 }); break;
     case "rack": case "shelf": audio.play("rack_screw"); break;
-    case "patch": audio.play("rj45_in"); break;
+    case "patch": {
+      audio.play("rj45_in");
+      if (state.phase === "job" && state.turn.task !== "rack") {
+        clearTimeout(peekTimer);
+        if (!peeking) focusTask("rack");
+        peeking = true;
+        peekTimer = setTimeout(() => { peeking = false; focusTask(state.turn.task); }, 2600);
+      }
+      break;
+    }
     case "unpatch": audio.play("rj45_out"); break;
     case "adopt": audio.play("ui_confirm"); break;
     case "breaker": audio.play(e.key === "main" ? "main_switch" : e.on ? "breaker_on" : "breaker_off"); break;
