@@ -4,6 +4,7 @@ import * as THREE from 'three';
 import { Geo, C, shade, mixc, clamp, smooth, hash, rng, noise2, fbm } from './geo.js';
 import { P, materials, wallMaterial, wallGlassMaterial, fixtureMaterial } from './palette.js';
 import { KIT, LIGHTS, bulbInto } from './furniture.js';
+import { clearanceScene, checkSpot, checkSurface, addObstacle, boxAt, wallBox, tabletZone, inTabletZone } from './clearance.js';
 
 export const r3 = (v) => Math.round(v * 1000) / 1000;
 const OPEN = new Set(['balcony', 'terrace', 'outdoor']);
@@ -287,7 +288,6 @@ export function generate(spec) {
   const fixtures = [];
   const doors = new Map();
   const occupied = [];
-  const reserved = [];
   const mountIds = new Map();
   const addMount = (m) => {
     const base = `${m.kind}-${m.room}`;
@@ -775,7 +775,15 @@ export function generate(spec) {
   for (const W of walls) drawWall(W);
 
   for (const W of walls) {
-    const ops = W.ops.map((o) => ({ id: o.id, t0: r3(clamp(o.s0 / W.len, 0, 1)), t1: r3(clamp(o.s1 / W.len, 0, 1)), kind: o.kind === 'arch' ? 'door' : o.kind, sill: r3(o.sill ?? 0), head: r3(o.head ?? 2.05), s0: r3(o.s0), s1: r3(o.s1) }));
+    const ops = W.ops.map((o) => {
+      const r = { id: o.id, t0: r3(clamp(o.s0 / W.len, 0, 1)), t1: r3(clamp(o.s1 / W.len, 0, 1)), kind: o.kind === 'arch' ? 'door' : o.kind, sill: r3(o.sill ?? 0), head: r3(o.head ?? 2.05), s0: r3(o.s0), s1: r3(o.s1) };
+      if (o.kind === 'door' && o.leaf !== 'none' && !o.garage) {
+        const hingeA = (o.hinge || 'a') === 'a', swing = o.swing ?? (W.ext ? -W.out : 1), fw = 0.045, s = hingeA ? 1 : -1;
+        const hp = WP(W, hingeA ? o.s0 + fw : o.s1 - fw, (swing * W.t) / 2, 0);
+        r.leaf = { hinge: [r3(hp[0]), r3(hp[2])], closed: [r3(W.d[0] * s), r3(W.d[1] * s)], open: [r3(W.n[0] * swing), r3(W.n[1] * swing)], w: r3(o.s1 - o.s0 - 2 * fw - 0.006), max: o.maxAngle ?? 95 };
+      }
+      return r;
+    });
     data.walls.push({ id: W.id, floor: W.floor, a: W.a.map(r3), b: W.b.map(r3), thick: W.t, exterior: W.ext, side: W.side, len: r3(W.len), openings: ops });
   }
 
@@ -903,7 +911,8 @@ export function generate(spec) {
     const T = (p) => [x + p[0] * Math.cos(rot) + p[2] * Math.sin(rot), y + p[1], z - p[0] * Math.sin(rot) + p[2] * Math.cos(rot)];
     const rec = { it, id, room, fl, x, y, z, rot, meta, size, wall, T };
     items.push(rec);
-    if (!meta.noData) data.furniture.push({ id, kind: meta.kind || it.t, floor: fl, room: room.id, pos: [r3(x), r3(y), r3(z)], rot: r3(rot), size: size.map(r3), wall: !!wall });
+    const cen = wall ? T([0, 0, size[2] / 2]) : meta.center ? T(meta.center) : [x, y, z];
+    if (!meta.noData) data.furniture.push({ id, kind: meta.kind || it.t, floor: fl, room: room.id, pos: [r3(cen[0]), r3(y + (meta.y0 || 0)), r3(cen[2])], rot: r3(rot), size: size.map(r3), wall: !!wall });
     if (!wall && !meta.noShadow && size[0] * size[2] > 0.08) {
       const off = meta.center || [0, 0, 0];
       const c = T(off);
@@ -913,6 +922,17 @@ export function generate(spec) {
   }
 
   (spec.items || []).forEach((it, i) => { try { placeItem(it, i); } catch (e) { console.warn('[buildings] item failed', it.t, e); } });
+
+  (spec.stairs || []).forEach((st, i) => {
+    const fy = FY(st.floor), R = (floors[st.floor + 1] ? FY(st.floor + 1) : fy + FH(st.floor)) - fy, L = st.n * (st.run || 0.27), d = st.dir;
+    const cx = st.x + (d[0] * L) / 2, cz = st.z + (d[1] * L) / 2, rot = Math.atan2(d[0], d[1]);
+    const room = indoorAt(st.floor, cx, cz) || anyRoomAt(st.floor, cx, cz) || rooms.find((r) => r.floor === st.floor);
+    if (!room) return;
+    const size = [st.w + 0.1, R + (st.rail ? 0.95 : 0.1), L + 0.06], c = Math.cos(rot), s = Math.sin(rot);
+    const id = st.id || `schody-${room.id}${i ? '-' + (i + 1) : ''}`;
+    items.push({ it: { t: 'stairs' }, id, room, fl: st.floor, x: cx, y: fy, z: cz, rot, meta: { kind: 'stairs' }, size, wall: null, T: (p) => [cx + p[0] * c + p[2] * s, fy + p[1], cz - p[0] * s + p[2] * c] });
+    data.furniture.push({ id, kind: 'stairs', floor: st.floor, room: room.id, pos: [r3(cx), r3(fy), r3(cz)], rot: r3(rot), size: size.map(r3), wall: false });
+  });
 
   const circuitById = new Map(data.circuits.map((c) => [c.id, c]));
   const lightCircuit = (roomId) => (data.circuits.find((c) => c.kind === 'light' && c.rooms.includes(roomId)) || {}).id;
@@ -1123,25 +1143,8 @@ export function generate(spec) {
   }
 
   const blockers = (fl) => items.filter((rec) => rec.fl === fl);
-  function wallFree(f, u, y, pad = 0.18) {
-    const W = f.W, sd = f.sd, fn = [W.n[0] * sd, W.n[1] * sd];
-    const pos = WP(W, u, sd * W.t / 2, y);
-    for (const rec of blockers(f.floor)) {
-      const top = rec.y + rec.size[1];
-      const bottom = rec.y;
-      if (y < bottom - 0.08 || y > top + 0.08) continue;
-      const c = Math.cos(rec.rot), s = Math.sin(rec.rot);
-      const dx = pos[0] - rec.x, dz = pos[2] - rec.z;
-      const lx = dx * c - dz * s, lz = dx * s + dz * c;
-      const hw = rec.size[0] / 2 + pad, back = rec.wall ? 0 : -rec.size[2] / 2;
-      if (Math.abs(lx) < hw && lz > back - 0.3 && lz < back + rec.size[2] + 0.25) return false;
-    }
-    for (const oc of occupied) if (oc.W === W && oc.sd === sd && Math.abs(oc.u - u) < 0.2 && Math.abs(oc.y - y) < 0.25) return false;
-    for (const rv of reserved) if (rv.W === W && rv.sd === sd && Math.abs(rv.u - u) < rv.w / 2 + 0.15 && Math.abs(rv.y - y) < rv.h / 2 + 0.15) return false;
-    return true;
-  }
 
-  function anchor(spec2, kind, w, h) {
+  function anchor(spec2, kind) {
     if (!spec2) return null;
     const room = roomById.get(spec2.room);
     const fl = room.floor, fy = FY(fl);
@@ -1149,30 +1152,95 @@ export function generate(spec) {
     if (!s) { console.warn('[buildings] anchor wall not found', kind, spec2); return null; }
     const y = fy + spec2.y;
     const pos = WP(s.W, s.u, s.sd * s.W.t / 2, y);
-    reserved.push({ W: s.W, sd: s.sd, u: s.u, y, w, h });
     const q = qYaw(YAW(s.fn[0], s.fn[1]));
     return { room: room.id, floor: fl, pos: pos.map(r3), quat: q, normal: [r3(s.fn[0]), 0, r3(s.fn[1])] };
   }
-  if (spec.panel) data.panel = { ...anchor(spec.panel, 'panel', 0.45, 0.65), rows: spec.panel.rows || 3, slotsPerRow: spec.panel.slotsPerRow || 12, phases: spec.panel.phases || 1 };
-  if (spec.rack) data.rack = { ...anchor(spec.rack, 'rack', 0.62, 0.7), units: spec.rack.units || 9 };
-  if (spec.mediaBox) data.mediaBox = anchor(spec.mediaBox, 'mediaBox', 0.38, 0.52);
-  if (spec.wan) data.wan = anchor(spec.wan, 'wan', 0.25, 0.25);
+  if (spec.panel) data.panel = { ...anchor(spec.panel, 'panel'), rows: spec.panel.rows || 3, slotsPerRow: spec.panel.slotsPerRow || 12, phases: spec.panel.phases || 1 };
+  if (spec.rack) data.rack = { ...anchor(spec.rack, 'rack'), units: spec.rack.units || 9 };
+  if (spec.mediaBox) data.mediaBox = anchor(spec.mediaBox, 'mediaBox');
+  if (spec.wan) data.wan = anchor(spec.wan, 'wan');
 
+  const itemBoxes = (rec) => {
+    const m = rec.meta || {}, y0 = m.y0 || 0, out = [];
+    const boxes = m.boxes || [[-rec.size[0] / 2, y0, rec.wall ? 0 : -rec.size[2] / 2, rec.size[0] / 2, y0 + rec.size[1], rec.wall ? rec.size[2] : rec.size[2] / 2]];
+    const cen = !rec.wall && m.center && !m.boxes ? m.center : [0, 0, 0];
+    for (const b of boxes) {
+      const p = rec.T([(b[0] + b[3]) / 2 + cen[0], 0, (b[2] + b[5]) / 2 + cen[2]]);
+      out.push(boxAt(rec.id, rec.it.t, rec.fl, [p[0], p[2]], rec.rot, b[3] - b[0], b[5] - b[2], rec.y + b[1], rec.y + b[4]));
+    }
+    return out;
+  };
+  const obstacles = [];
+  for (const rec of items) obstacles.push(...itemBoxes(rec));
+  const CS = clearanceScene(data, { furniture: false, extra: obstacles });
+  const spotAt = (f, u, y, kind, id) => {
+    const fn = [f.W.n[0] * f.sd, f.W.n[1] * f.sd];
+    return { id, kind, floor: f.floor, room: f.room ? f.room.id : null, pos: WP(f.W, u, (f.sd * f.W.t) / 2, y), normal: [fn[0], 0, fn[1]] };
+  };
+  const faceAt = (W, sd, u, y, room) => faces.find((ff) => ff.W === W && ff.sd === sd && (room ? ff.room === room : ff.exterior) && u >= ff.u0 - 1e-6 && u <= ff.u1 + 1e-6 && y >= ff.y0 && y <= ff.y1);
+  const slide = (W, sd, room, u, y, kind, lo, hi, ok = () => true) => {
+    for (let k = 0; k <= 2 * Math.ceil(Math.max(u - lo, hi - u) / 0.05); k++) {
+      const uu = u + Math.ceil(k / 2) * 0.05 * (k % 2 ? 1 : -1);
+      if (uu < lo - 1e-6 || uu > hi + 1e-6 || !ok(uu)) continue;
+      const f = faceAt(W, sd, uu, y, room);
+      if (!f) continue;
+      const sp = spotAt(f, uu, y, kind, null);
+      if (!checkSpot(CS, sp)) return { sp, u: uu, f };
+    }
+    return null;
+  };
+
+  for (const t of spec.tablets || []) {
+    const room = roomById.get(t.room);
+    if (!room) continue;
+    const fl = room.floor, fy = FY(fl);
+    if (t.kind === 'wall') {
+      const s = snapWall(fl, t.x, t.z, t.nx ?? null, t.nz ?? null, 0.8, room.id, false);
+      if (!s) { console.warn('[buildings] tablet wall missing', t.id); continue; }
+      const y = fy + (t.y ?? 1.45);
+      const got = slide(s.W, s.sd, room, s.u, y, 'tablet', s.u - 2.5, s.u + 2.5);
+      if (!got) { console.warn('[buildings] tablet spot dropped (no clear wall)', t.id, checkSpot(CS, spotAt(s.f, s.u, y, 'tablet', t.id))); continue; }
+      if (Math.abs(got.u - s.u) > 1e-6) console.warn('[buildings] tablet spot moved', t.id, r3(got.u - s.u), checkSpot(CS, spotAt(s.f, s.u, y, 'tablet', t.id)));
+      addObstacle(CS, wallBox(t.id, 'tablet', fl, got.sp.pos, got.sp.normal, 0.3, 0.25, 0.03));
+      data.tabletSpots.push({ id: t.id, room: room.id, floor: fl, kind: 'wall', pos: got.sp.pos.map(r3), quat: qYaw(YAW(s.fn[0], s.fn[1])), normal: [r3(s.fn[0]), 0, r3(s.fn[1])], rating: t.rating, why: t.why });
+    } else {
+      const sp = { id: t.id, room: room.id, floor: fl, kind: 'surface', pos: [r3(t.x), r3(fy + t.y), r3(t.z)], quat: qYaw(t.r || 0), normal: [0, 1, 0], rating: t.rating, why: t.why };
+      const why = checkSurface(CS, sp);
+      if (why) console.warn('[buildings] surface tablet spot not clear', t.id, why);
+      data.tabletSpots.push(sp);
+    }
+  }
+
+  const tabletZones = data.tabletSpots.map(tabletZone);
+  for (let i = data.mounts.length - 1; i >= 0; i--) {
+    const m = data.mounts[i];
+    if (m.kind === 'surface' && tabletZones.some((z) => z.floor === m.floor && inTabletZone(z, m.pos))) data.mounts.splice(i, 1);
+  }
+
+  const placed = [];
+  const spaced = (W, sd, y, gap) => (uu) => !placed.some((p) => p.W === W && p.sd === sd && Math.abs(p.y - y) < 0.01 && Math.abs(p.u - uu) < gap);
+  const spans = [];
   for (const f of faces) {
+    const s = spans.find((q) => q.W === f.W && q.sd === f.sd && q.room === f.room && !!q.exterior === !!f.exterior && q.kind === f.kind && Math.abs(q.y0 - f.y0) < 1e-6 && Math.abs(q.y1 - f.y1) < 1e-6 && Math.abs(q.u1 - f.u0) < 1e-6);
+    if (s) s.u1 = f.u1; else spans.push({ ...f });
+  }
+  const wallRecs = [];
+  for (const f of spans) {
     if (f.exterior || f.kind === 'sill' && f.y1 - f.y0 < 1.0) continue;
     const H = FH(f.floor), fy = FY(f.floor);
     const len = f.u1 - f.u0;
-    if (len < 0.6) continue;
+    if (len < 0.5) continue;
     const n = Math.max(1, Math.round(len / 1.25));
     for (let k = 0; k < n; k++) {
-      const u = f.u0 + ((k + 0.5) * len) / n;
+      const a = f.u0 + (k * len) / n, b = f.u0 + ((k + 1) * len) / n;
       for (const hh of [1.1, 2.2]) {
-        if (hh > H - 0.15) continue;
         const yy = fy + hh;
-        if (yy < f.y0 + 0.05 || yy > f.y1 - 0.05) continue;
-        if (!wallFree(f, u, yy)) continue;
-        const pos = WP(f.W, u, f.sd * f.W.t / 2, yy), fn = [f.W.n[0] * f.sd, f.W.n[1] * f.sd];
-        addMount({ room: f.room.id, floor: f.floor, kind: 'wall', pos, normal: [fn[0], 0, fn[1]], quat: qYaw(YAW(fn[0], fn[1])), tags: [hh > 2 ? 'high' : 'mid', f.W.ext ? 'outerWall' : 'innerWall'] });
+        if (yy + 0.32 > fy + H || yy < f.y0 + 0.05 || yy > f.y1 - 0.05) continue;
+        const got = slide(f.W, f.sd, f.room, (a + b) / 2, yy, 'wall', a, b, spaced(f.W, f.sd, yy, 0.45));
+        if (!got) continue;
+        placed.push({ W: f.W, sd: f.sd, y: yy, u: got.u });
+        const m = addMount({ room: f.room.id, floor: f.floor, kind: 'wall', pos: got.sp.pos, normal: got.sp.normal, quat: qYaw(YAW(got.sp.normal[0], got.sp.normal[2])), tags: [hh > 2 ? 'high' : 'mid', f.W.ext ? 'outerWall' : 'innerWall'] });
+        wallRecs.push({ m, f });
       }
     }
   }
@@ -1274,7 +1342,22 @@ export function generate(spec) {
   const zones = (spec.zones || []).map((z) => ({ id: z.id, kind: z.kind, floor: z.floor ?? 0, pos: [r3(z.pos[0]), r3(z.pos.length === 3 ? z.pos[1] : FY(z.floor ?? 0) + 0.5), r3(z.pos.length === 3 ? z.pos[2] : z.pos[1])], r: z.r ?? 3 }));
   data.zones = zones;
 
-  for (const f of faces) {
+  const outdoorRecs = [];
+  const outdoorTags = (f, sp) => {
+    const tags = [f.W.side], pos = sp.pos, fn = [sp.normal[0], sp.normal[2]];
+    for (const z of zones) {
+      const dx = z.pos[0] - pos[0], dz = z.pos[2] - pos[2], dist = Math.hypot(dx, dz);
+      if (dist < 18 && (dx * fn[0] + dz * fn[1]) > -0.2 * dist) tags.push(z.kind);
+    }
+    return [...new Set(tags)];
+  };
+  const slideOut = (f, a, b, yy, self = null) => slide(f.W, f.sd, null, (a + b) / 2, yy, 'outdoorWall', a, b, (uu) => {
+    if (placed.some((p) => p !== self && p.W === f.W && p.sd === f.sd && Math.abs(p.y - yy) < 0.01 && Math.abs(p.u - uu) < 0.6)) return false;
+    const pos = WP(f.W, uu, (f.sd * f.W.t) / 2, yy);
+    return !(spec.outdoorSkip && spec.outdoorSkip(pos, [f.W.n[0] * f.sd, f.W.n[1] * f.sd]));
+  });
+
+  for (const f of spans) {
     if (!f.exterior) continue;
     const fl = f.floor;
     if (fl !== (spec.outdoorFloor ?? 0) && !spec.outdoorAll) continue;
@@ -1284,15 +1367,12 @@ export function generate(spec) {
     if (len < 0.5) continue;
     const n = Math.max(1, Math.round(len / 2.6));
     for (let k = 0; k < n; k++) {
-      const u = f.u0 + ((k + 0.5) * len) / n;
-      const pos = WP(f.W, u, f.sd * f.W.t / 2, yy), fn = [f.W.n[0] * f.sd, f.W.n[1] * f.sd];
-      if (spec.outdoorSkip && spec.outdoorSkip(pos, fn)) continue;
-      const tags = [f.W.side];
-      for (const z of zones) {
-        const dx = z.pos[0] - pos[0], dz = z.pos[2] - pos[2], dist = Math.hypot(dx, dz);
-        if (dist < 18 && (dx * fn[0] + dz * fn[1]) > -0.2 * dist) tags.push(z.kind);
-      }
-      addMount({ room: 'outdoor', floor: fl, kind: 'outdoorWall', pos, normal: [fn[0], 0, fn[1]], quat: qYaw(YAW(fn[0], fn[1])), tags: [...new Set(tags)] });
+      const a = f.u0 + (k * len) / n, b = f.u0 + ((k + 1) * len) / n;
+      const got = slideOut(f, a, b, yy);
+      if (!got) continue;
+      placed.push({ W: f.W, sd: f.sd, y: yy, u: got.u });
+      const m = addMount({ room: 'outdoor', floor: fl, kind: 'outdoorWall', pos: got.sp.pos, normal: got.sp.normal, quat: qYaw(YAW(got.sp.normal[0], got.sp.normal[2])), tags: outdoorTags(f, got.sp) });
+      outdoorRecs.push({ m, f, a, b, yy, u: got.u });
     }
   }
 
@@ -1301,21 +1381,6 @@ export function generate(spec) {
     const pos = ex.pos.length === 3 ? ex.pos : [ex.pos[0], FY(fl) + (ex.y ?? 1.2), ex.pos[1]];
     const n = ex.normal || [0, 0, 1];
     addMount({ id: ex.id, room: ex.room || 'outdoor', floor: fl, kind: ex.kind, pos, normal: n, quat: Math.abs(n[1]) > 0.9 ? qYaw(ex.yaw || 0) : qYaw(YAW(n[0], n[2])), tags: ex.tags || [], circuit: ex.circuit });
-  }
-
-  for (const t of spec.tablets || []) {
-    const room = roomById.get(t.room);
-    if (!room) continue;
-    const fl = room.floor, fy = FY(fl);
-    if (t.kind === 'wall') {
-      const s = snapWall(fl, t.x, t.z, t.nx ?? null, t.nz ?? null, 0.8, room.id, false);
-      if (!s) { console.warn('[buildings] tablet wall missing', t.id); continue; }
-      const pos = WP(s.W, s.u, s.sd * s.W.t / 2, fy + (t.y ?? 1.45));
-      reserved.push({ W: s.W, sd: s.sd, u: s.u, y: pos[1], w: 0.3, h: 0.25 });
-      data.tabletSpots.push({ id: t.id, room: room.id, floor: fl, kind: 'wall', pos: pos.map(r3), quat: qYaw(YAW(s.fn[0], s.fn[1])), normal: [r3(s.fn[0]), 0, r3(s.fn[1])], rating: t.rating, why: t.why });
-    } else {
-      data.tabletSpots.push({ id: t.id, room: room.id, floor: fl, kind: 'surface', pos: [r3(t.x), r3(fy + t.y), r3(t.z)], quat: qYaw(t.r || 0), normal: [0, 1, 0], rating: t.rating, why: t.why });
-    }
   }
 
   for (const st of spec.stairs || []) drawStairs(st);
@@ -1409,9 +1474,10 @@ export function generate(spec) {
       parent.add(m);
     }
   };
+  const siteObs = [];
   const api = {
     spec, data, floors, rooms, roomById, M, pal, P, stat, siteGroup, roofGroup, ceilingGroups, floorGroups, ctx, faces, walls, addGeo, Geo,
-    FY, FH, wg, makeFixture, addMount, qYaw, boxPts, placeItem, snapWall, WP
+    FY, FH, wg, makeFixture, addMount, qYaw, boxPts, placeItem, snapWall, WP, addObstacle: (ob) => siteObs.push(ob)
   };
   const safe = (name, fn) => { try { fn(); } catch (e) { console.warn(`[buildings] ${spec.id} ${name} failed`, e); } };
   if (spec.ceilingDecor) safe('ceilingDecor', () => spec.ceilingDecor(api, ceil));
@@ -1461,6 +1527,19 @@ export function generate(spec) {
   if (spec.site) safe('site', () => spec.site(api));
   if (spec.roof) safe('roof', () => spec.roof(api));
 
+  if (siteObs.length) {
+    for (const ob of siteObs) { addObstacle(CS, ob); obstacles.push(ob); }
+    for (const R of outdoorRecs) {
+      if (!checkSpot(CS, R.m)) continue;
+      const self = placed.find((p) => p.W === R.f.W && p.sd === R.f.sd && Math.abs(p.y - R.yy) < 0.01 && Math.abs(p.u - R.u) < 1e-6);
+      const got = slideOut(R.f, R.a, R.b, R.yy, self);
+      if (got) { R.m.pos = got.sp.pos.map(r3); R.m.tags = outdoorTags(R.f, got.sp); if (self) self.u = got.u; R.u = got.u; }
+      else { data.mounts.splice(data.mounts.indexOf(R.m), 1); if (self) placed.splice(placed.indexOf(self), 1); }
+    }
+    for (const R of wallRecs) if (checkSpot(CS, R.m)) data.mounts.splice(data.mounts.indexOf(R.m), 1);
+    for (const t of data.tabletSpots) if (t.kind === 'wall') { const why = checkSpot(CS, t); if (why) console.warn('[buildings] tablet spot blocked by site geometry', t.id, why); }
+  }
+
   for (const s of spec.strips || []) data.strips.push({ id: s.id, room: s.room, floor: s.floor ?? roomById.get(s.room)?.floor ?? 0, kind: s.kind, points: s.points.map((p) => p.map(r3)) });
   data.street = spec.street ? { pos: spec.street.map(r3) } : null;
   data.approach = (spec.approach || []).map((p) => p.map(r3));
@@ -1477,5 +1556,5 @@ export function generate(spec) {
     dd.setK(clamp(k, 0, 1) * dd.max);
   };
 
-  return { id: spec.id, name: spec.name, group: root, data, wallGroups, floorGroups, fixtures, setDoorOpen, ceilingGroups, roof: { group: roofGroup }, site: siteGroup, context: api.context || null };
+  return { id: spec.id, name: spec.name, group: root, data, wallGroups, floorGroups, fixtures, setDoorOpen, ceilingGroups, roof: { group: roofGroup }, site: siteGroup, context: api.context || null, obstacles };
 }

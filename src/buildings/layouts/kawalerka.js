@@ -55,7 +55,7 @@ export default {
     { t: 'plant', room: 'pokoj', x: 6.25, z: 2.55, kind: 'snake', pot: '#c47a55' },
     { t: 'picture', room: 'pokoj', x: 0.0, z: 3.92, r: PI / 2, y: 1.25, w: 0.9, h: 0.6, art: 'landscape', frame: '#c39a6b' },
     { t: 'picture', room: 'pokoj', x: 2.6, z: 5.5, r: PI, y: 1.35, w: 0.4, h: 0.5, art: 'abstract' },
-    { t: 'clock', room: 'aneks', x: 4.02, z: 1.4, r: PI / 2, y: 1.75, rad: 0.14 },
+    { t: 'clock', room: 'aneks', x: 4.02, z: 1.62, r: PI / 2, y: 1.75, rad: 0.14 },
     { t: 'curtain', room: 'pokoj', x: 1.6, z: 5.5, r: PI, y: 0.0, w: 2.0, h: 2.5, color: '#c9b9a0' },
     { t: 'curtain', room: 'pokoj', x: 5.42, z: 5.5, r: PI, y: 0.0, w: 2.3, h: 2.5, color: '#c9b9a0' },
     { t: 'wardrobe', room: 'przedpokoj', x: 3.6, z: 0.95, r: -PI / 2, w: 1.2, d: 0.58, h: 2.35, color: '#ece8e0', mirror: 0, handles: 'bar' },
@@ -96,8 +96,8 @@ export default {
   mediaBox: { room: 'przedpokoj', x: 2.06, z: 0.42, y: 0.78, nx: 1, nz: 0 },
   wan: { room: 'przedpokoj', x: 2.06, z: 0.42, y: 0.3, nx: 1, nz: 0 },
   tablets: [
-    { id: 'tablet-przedpokoj', room: 'przedpokoj', kind: 'wall', x: 2.3, z: 2.0, nx: 0, nz: -1, y: 1.45, rating: 'good', why: 'Przy wejściu, obok skrzynki multimedialnej: krótki kabel PoE, widać go od drzwi.' },
-    { id: 'tablet-pokoj', room: 'pokoj', kind: 'wall', x: 3.76, z: 2.12, nx: 0, nz: 1, y: 1.4, rating: 'ok', why: 'Między salonem a kuchnią, ale tuż przy drzwiach i trzeba dociągnąć zasilanie.' },
+    { id: 'tablet-aneks', room: 'aneks', kind: 'wall', x: 4.02, z: 0.95, nx: 1, nz: 0, y: 1.45, rating: 'good', why: 'W aneksie na ścianie od przedpokoju, między lodówką a zegarem: środek mieszkania, gniazdo kuchenne obok, kabel ze skrzynki multimedialnej to niecałe 2 m.' },
+    { id: 'tablet-pokoj', room: 'pokoj', kind: 'wall', x: 6.6, z: 4.9, nx: -1, nz: 0, y: 1.4, rating: 'ok', why: 'Obok telewizora: widać go z kanapy, ale daleko od wejścia, a kabel trzeba przeciągnąć przez cały pokój.' },
     { id: 'tablet-blat', room: 'aneks', kind: 'surface', x: 5.55, z: 0.3, y: 0.9, r: 0, rating: 'ok', why: 'Na blacie pod ręką, ale łatwo go zachlapać przy zlewie.' },
     { id: 'tablet-lozko', room: 'pokoj', kind: 'wall', x: 0.0, z: 2.75, nx: 1, nz: 0, y: 1.4, rating: 'poor', why: 'Przy łóżku: daleko od wejścia, na zimnej ścianie szczytowej, kabel przez cały pokój.' }
   ],

@@ -3,6 +3,7 @@
 export const CLEAR = { w: 0.5, h: 0.6, depth: 0.8, cam: 0.62 };
 export const ANCHOR_BOX = { panel: [0.45, 0.65, 0.14], rack: [0.62, 0.7, 0.62], mediaBox: [0.38, 0.52, 0.16], wan: [0.25, 0.25, 0.08] };
 const OPEN = new Set(['balcony', 'terrace', 'outdoor']);
+const NOT_SURFACE = new Set(['door', 'lamp', 'switch', 'outlet', 'tablet', 'tree', ...Object.keys(ANCHOR_BOX)]);
 
 export function obb(cx, cz, ux, uz, hu, hv) {
   const vx = -uz, vz = ux;
@@ -18,7 +19,18 @@ function pip(x, z, poly) {
   return ins;
 }
 
+function circ(P) {
+  if (P._c) return P._c;
+  let cx = 0, cz = 0, r = 0;
+  for (const p of P) { cx += p[0]; cz += p[1]; }
+  cx /= P.length; cz /= P.length;
+  for (const p of P) r = Math.max(r, Math.hypot(p[0] - cx, p[1] - cz));
+  return (P._c = [cx, cz, r]);
+}
+
 function sat(A, B) {
+  const ca = circ(A), cb = circ(B);
+  if (Math.hypot(ca[0] - cb[0], ca[1] - cb[1]) > ca[2] + cb[2]) return false;
   for (const P of [A, B]) {
     for (let i = 0; i < P.length; i++) {
       const p = P[i], q = P[(i + 1) % P.length];
@@ -41,8 +53,7 @@ export function boxAt(id, what, floor, c, rot, sx, sz, y0, y1) {
 }
 
 export function furnitureBox(f) {
-  const r = f.rot || 0, off = f.wall ? f.size[2] / 2 : 0;
-  return boxAt(f.id, f.kind, f.floor, [f.pos[0] + Math.sin(r) * off, f.pos[2] + Math.cos(r) * off], r, f.size[0], f.size[2], f.pos[1], f.pos[1] + f.size[1]);
+  return boxAt(f.id, f.kind, f.floor, [f.pos[0], f.pos[2]], f.rot || 0, f.size[0], f.size[2], f.pos[1], f.pos[1] + f.size[1]);
 }
 
 export function wallBox(id, what, floor, pos, normal, w, h, d) {
@@ -169,10 +180,53 @@ export function checkSpot(S, s, o = {}) {
   return null;
 }
 
+export function checkSurface(S, s, o = {}) {
+  const F = S.get(s.floor ?? 0);
+  if (!F) return 'no floor';
+  const Wd = o.w ?? CLEAR.w, Hh = o.h ?? CLEAR.h, D = o.depth ?? CLEAR.depth, cam = o.cam ?? CLEAR.cam;
+  const q = s.quat || [0, 0, 0, 1], yaw = 2 * Math.atan2(q[1], q[3]);
+  const nx = Math.sin(yaw), nz = Math.cos(yaw), tx = nz, tz = -nx;
+  const px = s.pos[0], pz = s.pos[2], y0 = s.pos[1] + 0.02, y1 = y0 + Hh;
+  const host = F.obs.find((ob) => !NOT_SURFACE.has(ob.what) && ob.y0 <= s.pos[1] + 0.02 && ob.y1 >= s.pos[1] - 0.06 && pip(px, pz, ob.poly));
+  if (!host) return 'no surface';
+  const FB = obb(px + (nx * (0.05 + D)) / 2, pz + (nz * (0.05 + D)) / 2, tx, tz, Wd / 2, (D - 0.05) / 2);
+  for (const w of F.walls) if (sat(FB, w.poly)) return `wall ${w.id}`;
+  for (const ob of F.obs) {
+    if (ob === host || ob.id === s.id || ob.y1 <= y0 || ob.y0 >= y1) continue;
+    if (sat(FB, ob.poly)) return `${ob.what} ${ob.id}`;
+  }
+  const cx = px + nx * cam, cz = pz + nz * cam;
+  for (const w of F.walls) if (pip(cx, cz, w.poly)) return `camera in wall ${w.id}`;
+  if (!F.rooms.some((r) => pip(cx, cz, r.poly))) return 'camera outside';
+  return null;
+}
+
+export function tabletZone(t) {
+  const q = t.quat || [0, 0, 0, 1], wall = t.kind === 'wall';
+  const yaw = 2 * Math.atan2(q[1], q[3]);
+  let nx = wall ? t.normal[0] : Math.sin(yaw), nz = wall ? t.normal[2] : Math.cos(yaw);
+  const l = Math.hypot(nx, nz) || 1, a = wall ? 0 : -0.15, D = CLEAR.depth;
+  nx /= l; nz /= l;
+  return { id: t.id, floor: t.floor ?? 0, poly: obb(t.pos[0] + (nx * (a + D)) / 2, t.pos[2] + (nz * (a + D)) / 2, nz, -nx, 0.32, (D - a) / 2), y0: wall ? t.pos[1] - CLEAR.h / 2 : t.pos[1] - 0.03, y1: wall ? t.pos[1] + CLEAR.h / 2 : t.pos[1] + 0.03 + CLEAR.h };
+}
+
+export function inTabletZone(z, p, h = 0.35) {
+  return p[1] < z.y1 && p[1] + h > z.y0 && pip(p[0], p[2], z.poly);
+}
+
+const FREE = new Set(['post', 'tree']);
+
 export function clearanceReport(data, extra = null) {
   const S = clearanceScene(data, extra ? { extra, furniture: false } : {});
   const out = [];
-  for (const t of data.tabletSpots || []) if (t.kind === 'wall') { const r = checkSpot(S, t); if (r) out.push(`tablet ${t.id}: ${r}`); }
-  for (const m of data.mounts || []) if (m.kind === 'wall' || m.kind === 'outdoorWall') { const r = checkSpot(S, m); if (r) out.push(`${m.kind} ${m.id}: ${r}`); }
+  for (const t of data.tabletSpots || []) { const r = t.kind === 'wall' ? checkSpot(S, t) : checkSurface(S, t); if (r) out.push(`tablet ${t.id}: ${r}`); }
+  const tz = (data.tabletSpots || []).map(tabletZone);
+  for (const m of data.mounts || []) {
+    if (m.kind === 'surface') { const z = tz.find((q) => q.floor === (m.floor ?? 0) && inTabletZone(q, m.pos)); if (z) out.push(`surface ${m.id}: in the close-up of ${z.id}`); continue; }
+    if (m.kind !== 'wall' && m.kind !== 'outdoorWall') continue;
+    if (m.kind === 'outdoorWall' && (m.tags || []).some((t) => FREE.has(t))) continue;
+    const r = checkSpot(S, m);
+    if (r) out.push(`${m.kind} ${m.id}: ${r}`);
+  }
   return out;
 }

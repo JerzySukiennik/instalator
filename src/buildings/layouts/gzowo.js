@@ -61,7 +61,7 @@ export default {
     { t: 'blackShelving', room: 'kuchnia', x: 5.98, z: -1.85, r: -PI / 2, w: 0.8, d: 0.4, h: 1.9 },
     { t: 'gzowoSofa', room: 'salon', x: -2.2, z: 2.55, r: PI, w: 2.36, d: 0.92 },
     { t: 'plyTable', room: 'salon', x: 3.6, z: 1.3, r: 0 },
-    { t: 'floorLamp', room: 'salon', x: 5.2, z: 2.6, r: 0, style: 'gzowo' },
+    { t: 'floorLamp', room: 'salon', x: 5.05, z: 2.6, r: 0, style: 'gzowo' },
     { t: 'pouf', room: 'salon', x: -0.35, z: 1.55, color: '#b9a28a' },
     { t: 'rug', room: 'salon', x: -2.0, z: 1.55, r: 0, w: 4.2, d: 3.1, color: '#e3dccd', border: '#7c6450', pattern: 'berber', seed: 5 },
     { t: 'coffeeTable', room: 'salon', x: -2.2, z: 1.35, r: 0, w: 1.2, d: 0.65, h: 0.4, top: '#d4ad7a', leg: '#1d1e20' },
@@ -144,7 +144,7 @@ export default {
     { id: 'tablet-wejscie', room: 'salon', kind: 'wall', x: 6.2, z: -1.0, nx: -1, nz: 0, y: 1.45, rating: 'ok', why: 'Przy drzwiach wejściowych na ciemnej ścianie, ale z dala od miejsc, gdzie się siedzi.' },
     { id: 'tablet-kominek', room: 'salon', kind: 'wall', x: -3.55, z: -4.2, nx: 0, nz: 1, y: 1.5, rating: 'poor', why: 'Między kominkiem a pianinem: od kominka bije gorąco, a ściana OSB jest pełna kabli od telewizora.' },
     { id: 'tablet-stol', room: 'salon', kind: 'wall', x: 6.2, z: 2.6, nx: -1, nz: 0, y: 1.45, rating: 'poor', why: 'Ciemna ściana przy stole: po południu słońce z przeszklenia świeci prosto w ekran.' },
-    { id: 'tablet-korytarz', room: 'korytarz', kind: 'wall', x: -7.53, z: -1.95, nx: 1, nz: 0, y: 1.45, rating: 'ok', why: 'W korytarzu do sypialni: blisko szafki rack, ale nikt tu nie przechodzi w ciągu dnia.' }
+    { id: 'tablet-korytarz', room: 'korytarz', kind: 'wall', x: -7.53, z: -2.08, nx: 1, nz: 0, y: 1.45, rating: 'ok', why: 'W korytarzu do sypialni: blisko szafki rack, ale nikt tu nie przechodzi w ciągu dnia.' }
   ],
   zones: [
     { id: 'strefa-wejscie', kind: 'entrance', pos: [7.5, -0.4, 0.3], r: 2 },

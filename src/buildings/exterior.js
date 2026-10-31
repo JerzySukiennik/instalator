@@ -5,9 +5,11 @@ import { Geo, C, shade, mixc, clamp, smooth, hash, rng, noise2, fbm } from './ge
 import { P, materials } from './palette.js';
 import { KIT } from './furniture.js';
 import { fillPattern } from './generator.js';
+import { boxAt, ringBox } from './clearance.js';
 
 const TAU = Math.PI * 2;
 const treeCache = new Map();
+const CROWN = { maple: [0.3, 3.0, 2.6, 8.2], linden: [0.3, 3.0, 2.6, 8.2], oak: [0.35, 3.7, 2.6, 8.4], birch: [0.15, 1.9, 4.2, 8.9], pine: [0.2, 2.6, 7.2, 11.7], spruce: [0.18, 2.1, 0.9, 10.5], thuja: [0.5, 0.5, 0, 2.8], apple: [0.15, 2.1, 1.3, 4.1], willow: [0.45, 3.9, 2.3, 7.1], alder: [0.2, 2.6, 3.8, 10.9], bush: [1.3, 1.3, 0, 1.5], boxball: [0.45, 0.45, 0, 0.84], grasses: [0.55, 0.55, 0, 1.3], reeds: [1.4, 1.4, 0, 2.8], flowers: [0.5, 0.5, 0, 0.5] };
 
 export const GRASS = { a: C('#7fa046'), b: C('#6e9440'), hi: C('#8ea852'), dry: C('#9a9a62'), shade: C('#6a8a3e'), deep: C('#628a3c'), warm: C('#94a456') };
 
@@ -134,7 +136,12 @@ export function makeSite(api, o = {}) {
     ground: o.ground ?? (() => 0),
     tree(type, x, z, s = 1, ry = null) {
       if (!trees.has(type)) trees.set(type, []);
-      trees.get(type).push({ x, z, s, ry: ry ?? hash(x, z) * TAU, y: S.ground(x, z) });
+      const y = S.ground(x, z), cr = CROWN[type];
+      trees.get(type).push({ x, z, s, ry: ry ?? hash(x, z) * TAU, y });
+      if (cr && api.addObstacle) {
+        if (cr[2] > 0) api.addObstacle(ringBox(`${type}-trunk`, 'tree', 0, [x, y, z], cr[0] * s, y, y + cr[2] * s));
+        api.addObstacle(ringBox(`${type}-crown`, 'tree', 0, [x, y, z], cr[1] * s, y + cr[2] * s, y + cr[3] * s));
+      }
     },
     trees(list) { for (const t of list) S.tree(...t); },
     tuft(x, z, s = 1) { tufts.push({ x, z, s, y: S.ground(x, z) }); },
@@ -214,6 +221,10 @@ export function makeSite(api, o = {}) {
       g.at(x, y, z, r);
       const meta = KIT[t](g, opts, {}) || {};
       g.pop();
+      if (meta.size && api.addObstacle) {
+        const c = meta.center || [0, 0, 0], co = Math.cos(r), si = Math.sin(r), y0 = y + (meta.y0 || 0);
+        api.addObstacle(boxAt(`${t}-site`, t, 0, [x + c[0] * co + c[2] * si, z - c[0] * si + c[2] * co], r, meta.size[0], meta.size[2], y0, y0 + meta.size[1]));
+      }
       return meta;
     },
     hedge(a, b, h = 1.6, w = 0.7, col = '#466a36') {

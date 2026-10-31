@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- Instalator: building viewer (dollhouse cutaway, 2D plan of BuildingData, eye-level close shot) for src/buildings. -->
+<!-- Instalator: building viewer (dollhouse cutaway, 2D plan of BuildingData, eye-level close shot, tablet/mount close-ups) for src/buildings. -->
 <html lang="pl">
 <head>
 <meta charset="utf-8">
@@ -31,6 +31,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { BUILDING_IDS, buildBuilding } from '../../src/buildings/index.js';
 import { setupRenderer, previewLight, makeComposer } from '../../src/buildings/preview-light.js';
+import { clearanceReport } from '../../src/buildings/clearance.js';
 
 const Q = new URLSearchParams(location.search);
 const id = Q.get('id') || 'kawalerka', view = Q.get('view') || 'dollhouse', shot = Q.has('shot');
@@ -90,7 +91,7 @@ function cutaway(mode) {
       else {
         const n = N[wg.side];
         const dot = n ? n[0] * dir.x + n[1] * dir.z : 0;
-        if (dot > 0.28) planes = [new THREE.Plane(new THREE.Vector3(0, -1, 0), fy + (mode === 'close' ? 0.35 : 0.95))];
+        if (dot > (mode === 'close' ? 0.36 : 0.28)) planes = [new THREE.Plane(new THREE.Vector3(0, -1, 0), fy + (mode === 'close' ? 0.35 : 0.95))];
       }
     }
     const mats = [];
@@ -121,13 +122,67 @@ if (view === 'dollhouse') {
   for (const cg of b.ceilingGroups || []) cg.group.visible = cg.floor <= topFloor;
   scene.add(new THREE.HemisphereLight('#fff1dc', '#b8a48a', 0.55));
   cutaway('none');
+} else if (view === 'spot') {
+  const sid = Q.get('spot');
+  const sp = d.tabletSpots.find((t) => t.id === sid) || d.mounts.find((m) => m.id === sid) || d.tabletSpots.find((t) => t.kind === 'wall');
+  const n = new THREE.Vector3(0, 0, 1).applyQuaternion(new THREE.Quaternion(...sp.quat));
+  const at = new THREE.Vector3(...sp.pos);
+  const devMat = new THREE.MeshLambertMaterial({ color: sp.rating ? '#15171b' : '#d94f2b' });
+  if (sp.kind === 'surface') {
+    const g = new THREE.Group();
+    g.position.copy(at);
+    g.quaternion.set(...sp.quat);
+    const base = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.012, 0.1), devMat);
+    base.position.set(0, 0.006, -0.02);
+    const tab = new THREE.Mesh(new THREE.BoxGeometry(0.27, 0.19, 0.012), devMat);
+    tab.position.set(0, 0.115, -0.03);
+    tab.rotation.x = -0.2;
+    g.add(base, tab);
+    scene.add(g);
+    g.updateMatrixWorld(true);
+    tab.getWorldPosition(at);
+  } else {
+    const dev = new THREE.Mesh(new THREE.BoxGeometry(...(sp.rating ? [0.27, 0.19, 0.014] : [0.09, 0.09, 0.03])), devMat);
+    dev.quaternion.set(...sp.quat);
+    dev.position.copy(at).addScaledVector(n, sp.rating ? 0.009 : 0.017);
+    scene.add(dev);
+    at.addScaledVector(n, 0.008);
+  }
+  let dist = +(Q.get('dist') || 0.62);
+  if (Q.get('dist') === 'auto') {
+    b.group.updateMatrixWorld(true);
+    const rc = new THREE.Raycaster(at.clone().addScaledVector(n, 0.05), n, 0, 2.2);
+    const hit = rc.intersectObject(b.group, true).find((h) => h.object.visible !== false && h.object.name !== 'ao');
+    dist = Math.max(0.62, Math.min(2.0, (hit ? hit.distance + 0.05 : 2.2) - 0.12));
+  }
+  camera.position.copy(at).addScaledVector(n, dist).add(new THREE.Vector3(0, 0.02, 0));
+  camera.fov = +(Q.get('fov') || 30);
+  camera.near = 0.05;
+  camera.updateProjectionMatrix();
+  camera.lookAt(at);
+  for (const fg of b.floorGroups) fg.group.visible = fg.floor <= (sp.floor ?? 0);
+  for (const cg of b.ceilingGroups || []) cg.group.visible = cg.floor <= (sp.floor ?? 0);
+  scene.add(new THREE.HemisphereLight('#fff1dc', '#b8a48a', 0.55));
+  const dir = new THREE.Vector3().subVectors(camera.position, at).setY(0).normalize();
+  const N = { N: [0, -1], S: [0, 1], E: [1, 0], W: [-1, 0] };
+  for (const wg of b.wallGroups) {
+    const fy = d.floors[wg.floor].y, nn = N[wg.side];
+    const planes = sp.kind !== 'outdoorWall' && wg.side !== 'int' && nn && nn[0] * dir.x + nn[1] * dir.z > 0.36 ? [new THREE.Plane(new THREE.Vector3(0, -1, 0), fy + 0.35)] : null;
+    wg.mesh.traverse((o) => { if (o.isMesh) (Array.isArray(o.material) ? o.material : [o.material]).forEach((m) => { m.clippingPlanes = planes; m.clipShadows = true; m.needsUpdate = true; }); });
+  }
 } else {
   canvas.style.display = 'none';
+}
+if (Q.has('marks') && view !== 'plan') {
+  const mk = (p, col, s) => { const m = new THREE.Mesh(new THREE.BoxGeometry(s, s, s), new THREE.MeshBasicMaterial({ color: col, toneMapped: false })); m.position.set(...p); scene.add(m); };
+  for (const t of d.tabletSpots) mk(t.pos, t.rating === 'good' ? '#2bd36b' : t.rating === 'ok' ? '#ffc93c' : '#ff4d4d', 0.22);
+  for (const m of d.mounts) if (m.kind === 'wall' || m.kind === 'outdoorWall') mk(m.pos, m.kind === 'wall' ? '#3f8cff' : '#18c2b0', 0.1);
 }
 
 let dirty = true;
 function render() {
   if (view === 'plan') return;
+  if (view === 'spot') { renderer.render(scene, camera); const st = { calls: renderer.info.render.calls, tris: renderer.info.render.triangles, buildMs }; composer.render(); window.__stats = st; dirty = false; return; }
   renderer.info.autoReset = false;
   renderer.info.reset();
   if (view === 'dollhouse') cutaway('overview');
@@ -184,7 +239,7 @@ function drawPlan() {
     x.translate(u, v); x.rotate(-it.rot);
     const w = it.size[0] * s, dd = it.size[2] * s;
     x.fillStyle = it.wall ? 'rgba(90,120,160,0.25)' : 'rgba(120,100,80,0.18)'; x.strokeStyle = 'rgba(80,60,40,0.55)';
-    if (it.wall) { x.fillRect(-w / 2, 0, w, dd); x.strokeRect(-w / 2, 0, w, dd); } else { x.fillRect(-w / 2, -dd / 2, w, dd); x.strokeRect(-w / 2, -dd / 2, w, dd); }
+    x.fillRect(-w / 2, -dd / 2, w, dd); x.strokeRect(-w / 2, -dd / 2, w, dd);
     x.fillStyle = 'rgba(60,50,40,0.7)'; x.font = '9px -apple-system'; x.fillText(it.kind, -w / 2 + 2, 3);
     x.restore();
   }
@@ -254,6 +309,8 @@ function check() {
   for (const kind of ['ceiling', 'wall', 'socketE27', 'surface', 'floor', 'door', 'doorLock', 'window', 'outdoorWall', 'doorbell', 'tv']) if (!d.mounts.some((m) => m.kind === kind)) out.push(`no mount kind ${kind}`);
   for (const st of d.strips) if (st.points.length < 2) out.push(`strip ${st.id} too short`);
   for (const m of d.mounts) if (m.room !== 'outdoor' && !d.rooms.some((r) => r.id === m.room)) out.push(`mount ${m.id} room ${m.room} unknown`);
+  if (!d.tabletSpots.some((t) => t.rating === 'good')) out.push('no good tablet spot');
+  out.push(...clearanceReport(d, b.obstacles));
   JSON.stringify(d);
   return out;
 }
@@ -264,7 +321,7 @@ window.__t = { build: buildMs, render: Math.round(performance.now() - tr0) };
 hud();
 window.__check = check();
 const kinds = {}; for (const m of d.mounts) kinds[m.kind] = (kinds[m.kind] || 0) + 1;
-window.__stats = { ...(window.__stats || {}), kinds, mounts: d.mounts.length, tablets: d.tabletSpots.map((t) => t.rating).join(','), strips: d.strips.length, fixtures: b.fixtures.length, area: d.area, geoTris: countTris().tris };
+window.__stats = { ...(window.__stats || {}), kinds, mounts: d.mounts.length, tablets: d.tabletSpots.map((t) => `${t.id}:${t.rating}`).join(','), strips: d.strips.length, fixtures: b.fixtures.length, area: d.area, geoTris: countTris().tris };
 if (window.__check.length) console.warn('[check]', window.__check.join('\n'));
 console.log('[stats]', JSON.stringify({ ...window.__stats, ...countTris(), mounts: d.mounts.length, tablets: d.tabletSpots.length, strips: d.strips.length, fixtures: b.fixtures.length, area: d.area, check: window.__check.length }));
 window.__ready = true;

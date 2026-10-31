@@ -462,7 +462,11 @@ KIT.desk = (g, o) => {
     KIT.officeChair(g, { color: o.chairCol });
     g.pop();
   }
-  return { size: [w, h, d], surfaces: [{ x: w / 4, y: h, z: 0, w: w / 3, d, tag: 'biurko' }], strips: [{ kind: 'desk', pts: [[-w / 2 + 0.03, h - 0.035, -d / 2 + 0.02], [w / 2 - 0.03, h - 0.035, -d / 2 + 0.02]] }], outlets: [{ pos: [0.3, 0.3, -d / 2], n: 3 }] };
+  const boxes = [[-w / 2, 0, -d / 2, w / 2, h, d / 2]];
+  if (o.monitor !== false) boxes.push([-0.32, h, -d / 2 + 0.05, 0.32, h + 0.52, -d / 2 + 0.21]);
+  if (o.books !== false) boxes.push([-w / 2 + 0.05, h, -d / 2 + 0.02, -w / 2 + 0.3, h + 0.24, -d / 2 + 0.22]);
+  if (o.chair !== false) boxes.push([(o.chairX ?? 0.05) - 0.32, 0, d / 2 - 0.07, (o.chairX ?? 0.05) + 0.32, 1.1, d / 2 + 0.57]);
+  return { size: [w, h, d], boxes, surfaces: [{ x: w / 4, y: h, z: 0, w: w / 3, d, tag: 'biurko' }], strips: [{ kind: 'desk', pts: [[-w / 2 + 0.03, h - 0.035, -d / 2 + 0.02], [w / 2 - 0.03, h - 0.035, -d / 2 + 0.02]] }], outlets: [{ pos: [0.3, 0.3, -d / 2], n: 3 }] };
 };
 
 KIT.officeChair = (g, o = {}) => {
@@ -564,7 +568,7 @@ KIT.floorLamp = (g, o) => {
     g.at(tip[0], tip[1], 0);
     g.lathe([[0.03, 0.02], [0.19, -0.16]], 16, col);
     g.pop();
-    return { size: [0.4, 2.0, 0.4], lamps: [{ pos: [tip[0], tip[1] - 0.02, 0], kind: 'E27', up: false, shape: 'a60', lampKind: 'lampa podłogowa' }] };
+    return { size: [0.4, 2.0, 0.4], boxes: [[-0.2, 0, -0.2, 0.2, 0.05, 0.2], [-0.03, 0, -0.2, tip[0] + 0.2, tip[1] + 0.05, 0.2]], lamps: [{ pos: [tip[0], tip[1] - 0.02, 0], kind: 'E27', up: false, shape: 'a60', lampKind: 'lampa podłogowa' }] };
   }
   if (style === 'gzowo') {
     g.cyl(0, 0, 0, 0.24, 0.24, 0.025, 20, col);
@@ -573,7 +577,7 @@ KIT.floorLamp = (g, o) => {
     g.at(-0.24, 1.82, 0, 0, 0, 0.35);
     g.lathe([[0.025, 0.06], [0.08, 0.02], [0.13, -0.1]], 14, col);
     g.pop();
-    return { size: [0.5, 1.95, 0.5], lamps: [{ pos: [-0.25, 1.86, 0], kind: 'E27', up: false, shape: 'a60', lampKind: 'lampa podłogowa' }] };
+    return { size: [0.5, 1.95, 0.5], boxes: [[-0.25, 0, -0.25, 0.25, 0.05, 0.25], [-0.4, 0, -0.16, 0.06, 1.95, 0.16]], lamps: [{ pos: [-0.25, 1.86, 0], kind: 'E27', up: false, shape: 'a60', lampKind: 'lampa podłogowa' }] };
   }
   g.cyl(0, 0, 0, 0.15, 0.15, 0.025, 14, col);
   g.cyl(0, 0.025, 0, 0.012, 0.012, 1.45, 6, col);
@@ -631,7 +635,7 @@ KIT.kitchen = (g, o) => {
   const front = C(o.front ?? '#efede8'), carc = C(o.carcass ?? shade(front, 0.95)), wtop = C(o.worktop ?? P.oak), handle = o.handle ?? 'bar';
   const steel = o.steel;
   const upY = o.upperY ?? 1.45, upH = o.upperH ?? 0.72, upD = o.upperD ?? 0.35;
-  const meta = { size: [len, H, d], surfaces: [], strips: [], outlets: [], mounts: [], kind: 'kitchen' };
+  const meta = { size: [len, H, d], surfaces: [], strips: [], outlets: [], mounts: [], kind: 'kitchen', boxes: [[-len / 2, 0, -d / 2, len / 2, H, d / 2 + 0.025]] };
   let x = -len / 2;
   g.use(steel ? 'metal' : 'satin');
   g.bx(-len / 2 + 0.01, 0, -d / 2 + 0.02, len / 2 - 0.01, plinth, d / 2 - 0.06, steel ? '#9a9da1' : shade(carc, 0.7));
@@ -643,6 +647,7 @@ KIT.kitchen = (g, o) => {
       g.use('satin');
       if (!m.free) g.bx(x0, 0, -d / 2, x1, o.tallH ?? 2.2, d / 2 - 0.02, carc);
       const th = o.tallH ?? 2.2;
+      meta.boxes.push([x0, 0, -d / 2, x1, m.free ? m.h ?? 1.86 : th, d / 2 + 0.03]);
       if (m.t === 'fridge' && m.free) {
         g.use(m.finish === 'steel' ? 'metal' : 'gloss');
         const fc = m.color ?? (m.finish === 'steel' ? '#c5c8cc' : '#eeede9');
@@ -759,6 +764,7 @@ KIT.kitchen = (g, o) => {
       if (u.t === 'cab' || u.t === 'glass' || u.t === 'open') {
         g.use('satin');
         g.bx(x0, upY, -d / 2, x1, upY + upH, -d / 2 + upD - 0.02, carc);
+        meta.boxes.push([x0, upY, -d / 2, x1, upY + upH, -d / 2 + upD]);
         if (u.t === 'open') {
           g.bx(x0 + 0.018, upY + upH / 2 - 0.01, -d / 2, x1 - 0.018, upY + upH / 2 + 0.008, -d / 2 + upD - 0.02, carc);
           g.use('gloss');
@@ -777,6 +783,7 @@ KIT.kitchen = (g, o) => {
         const hc = o.hood === 'black' ? '#1d1e21' : '#c8cbce';
         g.bx(xm - 0.3, upY + 0.12, -d / 2, xm + 0.3, upY + 0.19, -d / 2 + 0.5, hc);
         g.bx(xm - 0.13, upY + 0.19, -d / 2, xm + 0.13, (o.hoodTop ?? upY + upH + 0.35), -d / 2 + 0.26, hc);
+        meta.boxes.push([xm - 0.3, upY + 0.12, -d / 2, xm + 0.3, o.hoodTop ?? upY + upH + 0.35, -d / 2 + 0.5]);
         g.use('matte');
         g.bx(xm - 0.26, upY + 0.118, -d / 2 + 0.05, xm + 0.26, upY + 0.121, -d / 2 + 0.46, '#56595e');
       }
@@ -1177,7 +1184,7 @@ KIT.coatHooks = (g, o) => {
       g.pop();
     }
   }
-  return { size: [w, 1.0, 0.15], noShadow: true };
+  return { size: [w, 1.0, 0.15], y0: -0.85, noShadow: true };
 };
 KIT.coatHooks.wall = true;
 
@@ -1595,7 +1602,7 @@ KIT.stove = (g, o) => {
   g.pop();
   g.use('matte');
   g.cb(-0.7, 0, -0.42, 0.7, 0.012, 0.55, 0.004, '#e8dccb');
-  return { size: [0.62, 1.45, 0.62], kind: 'stove' };
+  return { size: [0.62, 1.45, 0.62], kind: 'stove', boxes: [[-0.31, 0, -0.31, 0.31, 1.45, 0.31], [-0.12, 1.2, -(o.toWall ?? 0.55), 0.12, 1.48, 0]] };
 };
 
 KIT.piano = (g, o) => {
@@ -1629,11 +1636,6 @@ KIT.gzowoShelf = (g, o) => {
   g.use('matte');
   g.cb(-w / 2, 0, 0, w / 2, 0.09, d, 0.006, col);
   const tx = o.tablet ?? -1.2;
-  g.bx(tx - 0.13, 0.09, 0.12, tx + 0.13, 0.11, 0.24, '#202226');
-  g.at(tx, 0.11, 0.16, 0, -0.35);
-  g.cb(-0.125, 0, -0.008, 0.125, 0.18, 0.008, 0.004, '#1d1f23');
-  g.bx(-0.115, 0.01, 0.008, 0.115, 0.17, 0.0095, '#3d5266');
-  g.pop();
   g.cb(-0.45 - 0.165, 0.09, 0.08, -0.45 + 0.165, 0.385, 0.135, 0.006, '#16171a');
   g.bx(-0.45 - 0.165, 0.2, 0.135, -0.45 + 0.165, 0.206, 0.137, '#2a2b2e');
   g.bx(-0.47, 0.26, 0.135, -0.43, 0.29, 0.137, '#c9ccd0');

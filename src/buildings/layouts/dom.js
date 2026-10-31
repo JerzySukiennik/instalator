@@ -126,7 +126,6 @@ export default {
     { t: 'mirror', room: 'hol', x: 3.1, z: 2.55, r: PI / 2, y: 1.05, w: 0.55, h: 0.9, round: false, frame: '#b98d5f' },
     { t: 'coatHooks', room: 'hol', x: 3.1, z: 4.25, r: PI / 2, y: 1.65, w: 0.6, n: 3 },
     { t: 'rug', room: 'hol', x: 3.65, z: 3.0, r: PI / 2, w: 2.2, d: 0.7, color: '#8a7a68', border: '#5f5245', pattern: 'stripes' },
-    { t: 'plant', room: 'hol', x: 4.75, z: 0.55, kind: 'snake', pot: '#3b3e43' },
 
     { t: 'washer', room: 'techniczne', x: 0.52, z: 2.22, r: PI },
     { t: 'washer', room: 'techniczne', x: 0.52, z: 2.22, r: PI, y: 0.87, h: 0.82 },
@@ -239,10 +238,10 @@ export default {
   rack: { room: 'techniczne', x: 0.2, z: 1.3, y: 1.55, nx: 1, nz: 0, units: 9 },
   wan: { room: 'techniczne', x: 0.2, z: 0.55, y: 0.5, nx: 1, nz: 0 },
   tablets: [
-    { id: 'tablet-hol', room: 'hol', kind: 'wall', x: 3.1, z: 3.95, nx: 1, nz: 0, y: 1.45, rating: 'good', why: 'Środek domu przy schodach: widać go od wejścia, kabel z szafy w technicznym obok.' },
+    { id: 'tablet-hol', room: 'hol', kind: 'wall', x: 4.73, z: 0.2, nx: 0, nz: 1, y: 1.45, rating: 'good', why: 'W holu obok drzwi wejściowych: wychodząc, gasisz cały dom jednym dotknięciem, a kabel z szafy w technicznym biegnie krótko pod sufitem holu.' },
     { id: 'tablet-kuchnia', room: 'kuchnia', kind: 'wall', x: 5.32, z: 3.15, nx: 1, nz: 0, y: 1.45, rating: 'good', why: 'Ściana między kuchnią a salonem, z dala od okien, gniazdo tuż obok.' },
-    { id: 'tablet-wyspa', room: 'kuchnia', kind: 'surface', x: 6.3, z: 2.25, y: 0.9, r: PI, rating: 'ok', why: 'Na wyspie pod ręką, ale stoi przy płycie i zbiera tłuszcz.' },
-    { id: 'tablet-salon', room: 'salon', kind: 'wall', x: 9.2, z: 7.3, nx: -1, nz: 0, y: 1.45, rating: 'poor', why: 'Przy tarasie: słońce z okien odbija się w ekranie, zimna ściana zewnętrzna.' }
+    { id: 'tablet-wyspa', room: 'kuchnia', kind: 'surface', x: 6.45, z: 2.25, y: 0.9, r: PI, rating: 'ok', why: 'Na wyspie pod ręką, ale stoi przy płycie i zbiera tłuszcz.' },
+    { id: 'tablet-salon', room: 'salon', kind: 'wall', x: 9.2, z: 6.8, nx: -1, nz: 0, y: 1.45, rating: 'poor', why: 'Przy tarasie: słońce z okien odbija się w ekranie, zimna ściana zewnętrzna.' }
   ],
   zones: [
     { id: 'strefa-wejscie', kind: 'entrance', pos: [3.7, -0.15, -2.2], r: 2 },
