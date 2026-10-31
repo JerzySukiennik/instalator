@@ -41,12 +41,12 @@ canvas#tv { position: fixed; inset: 0; width: 100vw; height: 100vh; display: blo
 .pl .hat { width: 2.2rem; height: 2.2rem; border-radius: 50%; display: grid; place-items: center; color: var(--ink); }
 .pl .crown { font-family: var(--mono); font-size: 0.65rem; background: var(--ink); color: var(--tape); padding: 0.15em 0.5em; border-radius: 0.3em; text-transform: uppercase; }
 .pl.off { opacity: 0.45; }
-#lobby .join { justify-self: end; padding: 1.6rem; width: 21rem; text-align: center; }
+#lobby .join { justify-self: end; padding: 1.6rem; width: 24rem; text-align: center; }
 #lobby .qr { background: #fff; border-radius: 0.6rem; padding: 0.8rem; aspect-ratio: 1; display: grid; place-items: center; }
 #lobby .qr svg { width: 100%; height: 100%; }
-#lobby .code { margin-top: 1rem; font-family: var(--mono); font-weight: 700; font-size: 3.2rem; letter-spacing: 0.22em; }
+#lobby .code { margin-top: 1rem; font-family: var(--mono); font-weight: 700; font-size: 4.4rem; line-height: 1; letter-spacing: 0.18em; }
 #lobby .hint { color: var(--ink2); font-size: 0.95rem; line-height: 1.35; margin-top: 0.4rem; }
-#lobby .url { font-family: var(--mono); font-size: 0.62rem; color: var(--mute); margin-top: 0.6rem; word-break: break-all; }
+#lobby .url { font-family: var(--mono); font-size: 0.85rem; color: var(--ink2); margin-top: 0.6rem; word-break: break-all; }
 
 #board { position: absolute; inset: 0; padding: 4.5vh 4vw 3vh; display: flex; flex-direction: column; background: radial-gradient(ellipse at center, rgba(16, 19, 22, 0.25), rgba(16, 19, 22, 0.7)); }
 #board .top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 2.2vh; }
@@ -218,3 +218,6 @@ body.desk #jobcard { width: 20rem; }
 
 .achieve > span:last-child { white-space: normal; line-height: 1.15; }
 body.desk .achieve { max-width: 22rem; top: auto; bottom: 5.4rem; }
+
+#lobby .qr .spin { width: 4.4rem; height: 4.4rem; border-radius: 50%; border: 0.45rem solid var(--line); border-top-color: var(--ink); animation: spin 0.9s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }

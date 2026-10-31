@@ -60,7 +60,7 @@ export class Hud {
       <div class="join card">
         ${url ? `<div class="qr">${qrSvg(url)}</div><div class="code">${esc(code)}</div>
         <div class="hint">${s.players.length ? "Gospodarz startuje na telefonie." : "Zeskanuj telefonem. Pierwszy telefon zostaje gospodarzem."}</div>
-        <div class="url">${esc(url.replace(/^https?:\/\//, ""))}</div>` : `<div class="qr off">${icon("wifi", 64, 1.6)}</div><div class="hint">Pokój online się łączy… Bez internetu grasz na tym komputerze.</div>`}
+        <div class="url">${esc(url.replace(/^https?:\/\//, ""))}</div>` : `<div class="qr off"><span class="spin"></span></div><div class="hint">Zakładam pokój online, telefony dołączą przez kod QR. Bez internetu zagrasz na tym komputerze.</div>`}
       </div>`;
   }
 
