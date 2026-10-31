@@ -14,9 +14,9 @@ function thumbHtml(id) {
 
 const MOUNT_PL = { ceiling: "sufit", wall: "ściana", outdoorWall: "elewacja", doorbell: "przy drzwiach wejściowych", socketE27: "oprawka E27", socketGU10: "oczko GU10", radiator: "kaloryfer", door: "drzwi", window: "okno", doorLock: "zamek drzwi", floor: "podłoga", surface: "blat lub półka", tv: "pod telewizorem", garage: "garaż", gate: "brama", socket: "gniazdko" };
 
-function whereText(d) {
-  if (d.where === "rack") return "Montaż: zadanie Szafa rack";
-  if (d.where === "shelf") return "Montaż: półka w szafie rack";
+function whereText(d, media) {
+  if (d.where === "rack") return media ? "Tylko do szafy rack 19 cali. Tu jest skrzynka multimedialna, nie zmieści się." : "Montaż: zadanie Szafa rack";
+  if (d.where === "shelf") return media ? "Montaż: skrzynka multimedialna" : "Montaż: półka w szafie rack";
   if (d.where === "din") return "Montaż: zadanie Rozdzielnica";
   if (d.strip) return `Montaż: taśma ${d.strip.map((k) => ({ tv: "za TV", kitchen: "pod szafki", bed: "za łóżko", cove: "pod sufitem", shelf: "na półce", desk: "przy biurku" }[k] || k)).join(", ")}`;
   if (d.caps.includes("tablet") || d.caps.includes("wallmount") || d.caps.includes("stand")) return "Montaż: zadanie Tablet";
@@ -61,19 +61,21 @@ export function openShop(ctx, cats) {
   const drawList = () => {
     const S = ctx.S;
     const words = norm(query).split(/\s+/).filter(Boolean);
-    const items = words.length ? CATALOG.filter((d) => !HIDDEN.has(d.id) && words.every((w) => HAY.get(d.id).includes(w))) : CATALOG.filter((d) => d.cat === cur && !HIDDEN.has(d.id));
+    const media = !ctx.B?.rack;
+    const noFit = (d) => media && d.where === "rack";
+    const items = (words.length ? CATALOG.filter((d) => !HIDDEN.has(d.id) && words.every((w) => HAY.get(d.id).includes(w))) : CATALOG.filter((d) => d.cat === cur && !HIDDEN.has(d.id))).sort((a, b) => noFit(a) - noFit(b));
     const left = S.budget.total - S.budget.spent;
     sh.scroll.innerHTML = (words.length && !items.length ? `<div class="row" style="margin-bottom:10px"><div class="grow"><b>Nic nie znalazłem dla „${esc(query)}”</b><span>Spróbuj: hue, kamera, switch, czujnik, zamek, tablet.</span></div></div>` : "") + `<div class="h" style="margin-top:0"><span>${words.length ? `Wyniki: ${items.length}` : plat ? `Klient: ${esc({ ha: "Home Assistant", apple: "Dom Apple", google: "Google Home" }[plat])}` : "System do wyboru przy tablecie"}</span><span>zostało ${fmtZl(left)}</span></div>` + items.map((d) => {
       const b = platformBadges(d.id);
       const n = qty[d.id] || 1;
       const owned = (S.inv[d.id] || 0);
       const need = d.hubs ? d.hubs.filter((h) => h.any.length && (!plat || h.p.includes(plat))).map((h) => h.any.map((x) => BY_ID[x]?.name.replace(/^Home Assistant /, "HA ").replace(/^(Philips Hue|UniFi) /, "") || x).join(" lub ")) : [];
-      return `<div class="prod">
+      return `<div class="prod ${noFit(d) ? "dim" : ""}">
         <div class="pic">${thumbHtml(d.id)}</div>
-        <div><div class="brand">${esc(d.brand)}</div><b>${esc(d.name)}</b><p>${esc(d.desc || "")}</p><p class="where">${icon("drill", 13, 2)} ${esc(whereText(d))}</p>
+        <div><div class="brand">${esc(d.brand)}</div><b>${esc(d.name)}</b><p>${esc(d.desc || "")}</p><p class="where ${noFit(d) ? "nofit" : ""}">${icon("drill", 13, 2)} ${esc(whereText(d, media))}</p>
           <div class="badges">${d.hubs ? ["ha", "apple", "google"].map((p) => `<span class="badge ${b[p] === "native" ? "ok" : b[p] === "bridge" ? "br" : "no"}">${{ ha: "HA", apple: "Apple", google: "Google" }[p]}${b[p] === "bridge" ? " przez HA" : ""}</span>`).join("") : ""}${d.power === "poe" ? `<span class="badge need">PoE</span>` : ""}${d.needsWifi ? `<span class="badge need">Wi-Fi</span>` : ""}${need.length ? `<span class="badge need">mostek: ${esc(need[0])}</span>` : ""}${owned ? `<span class="badge">masz ×${owned}</span>` : ""}</div>
         </div>
-        <div class="bot"><span class="price">${fmtZl(d.price * n)}</span><div class="stepper"><button data-m="${d.id}">${icon("minus", 18, 2.4)}</button><b>${n}</b><button data-p="${d.id}">${icon("plus", 18, 2.4)}</button></div><button class="btn y sm" data-buy="${d.id}">Kup</button></div>
+        <div class="bot"><span class="price">${fmtZl(d.price * n)}</span><div class="stepper"><button data-m="${d.id}">${icon("minus", 18, 2.4)}</button><b>${n}</b><button data-p="${d.id}">${icon("plus", 18, 2.4)}</button></div>${noFit(d) ? `<button class="btn w sm" disabled>Nie pasuje</button>` : `<button class="btn y sm" data-buy="${d.id}">Kup</button>`}</div>
       </div>`;
     }).join("");
     sh.scroll.querySelectorAll("[data-m]").forEach((b) => (b.onclick = () => { qty[b.dataset.m] = Math.max(1, (qty[b.dataset.m] || 1) - 1); haptic(); drawList(); }));

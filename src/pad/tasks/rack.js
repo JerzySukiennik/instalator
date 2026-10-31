@@ -1,6 +1,6 @@
 // Instalator: rack task — the same 3D rack as on the TV seen from the front, mount gear, drag patch cables between real ports, adopt devices.
 
-import { BY_ID } from "../../shared/catalog.js";
+import { BY_ID, fmtZl } from "../../shared/catalog.js";
 import { portCount } from "../../shared/sim.js";
 import { icon } from "../../shared/icons.js";
 import { $, esc, haptic, toast, sheet } from "../ui.js";
@@ -42,7 +42,8 @@ export function mount(root, ctx, taskId, h) {
   const autoPlace = (id) => {
     const it = BY_ID[id];
     if (it.where === "shelf") { ctx.send({ a: "shelfPut", id }); return; }
-    if (it.where !== "rack" || !ctx.B.rack) return;
+    if (it.where === "rack" && !ctx.B.rack) { toast(`${it.name} to sprzęt do szafy 19 cali. W skrzynce się nie zmieści.`); return; }
+    if (it.where !== "rack") return;
     const units = ctx.B.rack.units || 9, n = it.u || 1;
     const occ = new Set();
     for (const d of ctx.S.devs) if (d.place === "rack") for (let k = 0; k < (BY_ID[d.id].u || 1); k++) occ.add(d.u + k);
@@ -63,7 +64,8 @@ export function mount(root, ctx, taskId, h) {
   const drawGuide = () => {
     step = netStep(ctx.S, ctx.B);
     const g = $(".guide", body);
-    const btns = step.fix ? `<button class="btn y sm gfix">${icon("drill", 18, 2)} Napraw</button>`
+    const btns = step.refund ? `<button class="btn y sm gref">${icon("undo", 18, 2)} Zwróć (+${fmtZl(BY_ID[step.refund].price)})</button><button class="btn w sm gbuy">${icon("cart", 18, 2)} Sklep</button>`
+      : step.fix ? `<button class="btn y sm gfix">${icon("drill", 18, 2)} Napraw</button>`
       : step.goto ? `<button class="btn y sm ggo">${icon("bolt", 18, 2)} Do rozdzielnicy</button>`
       : step.buy ? `<button class="btn y sm gbuy">${icon("cart", 18, 2)} Kup</button>`
       : step.place ? `<button class="btn y sm gplace">${icon("drill", 18, 2)} Zamontuj</button>`
@@ -75,6 +77,7 @@ export function mount(root, ctx, taskId, h) {
     if ($(".glink", g)) $(".glink", g).onclick = () => runAll([step.link]);
     if ($(".gall", g)) $(".gall", g).onclick = () => runAll(step.all);
     if ($(".gfix", g)) $(".gfix", g).onclick = () => runOps(step.fix);
+    if ($(".gref", g)) $(".gref", g).onclick = () => { haptic(true); ctx.send({ a: "refund", id: step.refund }); toast(`Zwrócone: ${BY_ID[step.refund].name}. Pieniądze wróciły do budżetu.`); };
     if ($(".ggo", g)) $(".ggo", g).onclick = () => { haptic(); ctx.openTask(step.goto); };
     if ($(".gwarn", g)) $(".gwarn", g).onclick = () => { haptic(); ctx.openTask(step.warn.goto); };
   };
@@ -265,7 +268,7 @@ export function mount(root, ctx, taskId, h) {
       if (id && BY_ID[id].where === "shelf") {
         if (media || ctx.S.devs.some((d) => d.id === "rack-shelf")) { haptic(true); ctx.send({ a: "shelfPut", id }); sel = null; }
         else toast("Najpierw zamontuj półkę 1U w szafie.");
-      }
+      } else if (id && media && BY_ID[id].where === "rack") { toast(`${BY_ID[id].name} to sprzęt do szafy 19 cali. W skrzynce się nie zmieści, zwróć go w przewodniku u góry.`); sel = null; }
       panelInfo();
       overlays();
     }, { cats: ["siec", "centrale"], hint: sel ? "Stuknij plus w wolnym miejscu szafy" : "Sprzęt do szafy" });

@@ -150,8 +150,15 @@ export function netStep(S, data) {
   const gw = placed((it) => it.caps.includes("gateway"));
   const warn = powerWarn(S, data, gw);
   const withWarn = (st) => (warn ? { ...st, warn } : st);
+  if (!rack) {
+    const big = inv((it) => it.where === "rack");
+    if (big) {
+      const alt = BY_ID[big].caps.includes("gateway") ? "UniFi Cloud Gateway Ultra albo Max" : BY_ID[big].caps.includes("switch") ? "UniFi Switch Lite 8 PoE" : "coś mniejszego";
+      return withWarn({ n: 1, text: `${BY_ID[big].name} to sprzęt do szafy rack 19 cali, a tu jest mała skrzynka multimedialna i się nie zmieści. Zwróć go i weź ${alt}.`, refund: big });
+    }
+  }
   if (!gw) {
-    const have = inv((it) => it.caps.includes("gateway"));
+    const have = inv((it) => it.caps.includes("gateway") && (rack || it.where !== "rack"));
     if (have && rack && BY_ID[have].where === "shelf" && !placed((it) => it.caps.includes("shelf"))) {
       const sh = inv((it) => it.caps.includes("shelf"));
       return sh ? { n: 1, text: "Zamontuj półkę 1U w szafie: stanie na niej bramka.", place: sh } : { n: 1, text: "Bramka stoi na półce. Kup półkę 1U do szafy (Sieć UniFi).", buy: "siec" };

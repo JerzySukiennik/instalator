@@ -87,10 +87,33 @@ export function runDemo(state, data, reduce, opts = {}) {
   if (tvm) { buy("sonos-era-100"); act({ a: "install", id: "sonos-era-100", mount: take(tvm).id }); }
   if (data.mounts?.some((m) => m.kind === "garage")) { const g = mounts("garage")[0]; buy("tesla-wall-connector"); act({ a: "install", id: "tesla-wall-connector", mount: take(g).id }); }
 
+  const want = new Set(state.job.reqs.map((r) => r.type));
+  const one = (id, kind, test = () => true) => {
+    const m = mounts(kind, test)[0];
+    if (!m) return null;
+    buy(id);
+    act({ a: "install", id, mount: take(m).id });
+    return state.devs[state.devs.length - 1];
+  };
+  if (want.has("soundbar")) one("sonos-arc-ultra", "tv");
+  if (want.has("weather")) one("netatmo-weather", "outdoorWall");
+  if (want.has("gate")) one("shelly-1-gen4", "gate") || one("shelly-1-gen4", "garage");
+  if (want.has("vacuum")) one("roborock-saros-10r", "floor", (m) => roomKind(m) === "living") || one("roborock-saros-10r", "floor");
+  if (want.has("heat") && !(data.mounts || []).some((m) => m.kind === "radiator")) one("tado-thermostat-x", "wall", (m) => roomKind(m) === "living") || one("tado-thermostat-x", "wall");
+  for (const r of state.job.reqs.filter((r) => r.type === "wifizone")) {
+    const z = (data.zones || []).find((x) => x.kind === r.zone || x.id === r.zone);
+    if (!z) continue;
+    const m = mounts("outdoorWall").sort((a, b) => Math.hypot(a.pos[0] - z.pos[0], a.pos[2] - z.pos[2]) - Math.hypot(b.pos[0] - z.pos[0], b.pos[2] - z.pos[2]))[0];
+    if (m) { buy("u7-outdoor"); act({ a: "install", id: "u7-outdoor", mount: take(m).id }); }
+  }
+  const needHA = plat !== "ha" && (want.has("ev") || (plat === "apple" && (want.has("blinds") || want.has("energy"))));
+  if (needHA) { buy("ha-green"); act({ a: "shelfPut", id: "ha-green" }); }
+
   const lay = panelLayout(data);
   act({ a: "breaker", key: "main", on: false });
   buy("shelly-pro-3em"); act({ a: "dinPut", id: "shelly-pro-3em" });
   buy("shelly-pro-4pm"); act({ a: "dinPut", id: "shelly-pro-4pm" });
+  if (want.has("blinds")) { buy("shelly-pro-2pm"); act({ a: "dinPut", id: "shelly-pro-2pm" }); }
   act({ a: "breaker", key: "main", on: true });
 
   if (stage !== "norack") {
@@ -108,7 +131,7 @@ export function runDemo(state, data, reduce, opts = {}) {
       act({ a: "patch", from: [s.uid, port], to: [d.run.pp, d.run.port], color: BY_ID[d.id].caps.includes("camera") ? "#f3cf45" : "#3f7fd6" });
       port++;
     }
-    for (const id of ["hue-bridge-pro", hub, "aqara-hub-m3"]) {
+    for (const id of ["hue-bridge-pro", "tado-bridge-x", hub, "aqara-hub-m3", ...(needHA ? ["ha-green"] : [])]) {
       const d = by(id)[0];
       if (d && BY_ID[id].ports && port < swPorts - 1) { act({ a: "patch", from: [s.uid, port], to: [d.uid, 0], color: "#eeeeee" }); port++; }
     }

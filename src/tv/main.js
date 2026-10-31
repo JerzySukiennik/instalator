@@ -472,6 +472,7 @@ async function demo(building, view) {
   await beginJob(job);
   hud.clearHandover();
   if (q.get("stage") !== "empty") runDemo(state, data, reduce, { stage: q.get("stage") || "full", platform: q.get("platform") || null });
+  if (state.budget.spent > state.budget.total * 0.9) state.budget.total = state.job.budget = Math.ceil((state.budget.spent * 1.12) / 500) * 500;
   state.players.forEach((p) => { if (p.cid === "demo") { p.online = false; p.host = false; } });
   if (q.get("platform") && state.job.platform === "any") state.tablet.platform = q.get("platform");
   sendState();
