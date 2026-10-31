@@ -109,7 +109,7 @@ export default {
   street: [3.0, 0, -16.5],
   approach: [[3.0, 0, -16.5], [3.0, 0, -11], [3.2, 0.8, -6.8], [3.2, Y, -2.2], [2.95, Y, -0.8]],
   views: { dollhouse: { az: -0.5, el: 0.58, dist: 1.12, sunAz: 315, sunEl: 46 }, close: { pos: [1.2, Y + 1.55, 4.9], target: [6.2, Y + 1.0, 1.6], fov: 60 } },
-  outdoorSkip: () => false,
+  outdoorSkip: (p, n) => n[0] > 0.5 || (n[2] < -0.5 && (p[0] < 1.6 || p[0] > 4.4)),
   extra(api) {
     const g = api.stat[0];
     g.use('satin');
