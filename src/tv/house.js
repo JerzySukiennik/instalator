@@ -569,7 +569,7 @@ export class House {
       if (!wg._mats) {
         wg._mats = wg.material ? [wg.material] : [];
         if (!wg._mats.length) wg.mesh.traverse((o) => { if (o.isMesh) (Array.isArray(o.material) ? o.material : [o.material]).forEach((m) => { if (!wg._mats.includes(m)) wg._mats.push(m); }); });
-        for (const m of wg._mats) capify(m);
+        for (const m of wg._mats) if (!m.transparent && m.opacity >= 1) capify(m);
       }
       for (const m of wg._mats) {
         const was = m.clippingPlanes?.[0]?.constant ?? null;
@@ -577,7 +577,7 @@ export class House {
         if (was !== now) {
           m.clippingPlanes = h == null ? null : [new THREE.Plane(new THREE.Vector3(0, -1, 0), h)];
           m.clipShadows = true;
-          m.side = h == null ? m.userData.side0 : THREE.DoubleSide;
+          if (m.userData.capped) m.side = h == null ? m.userData.side0 : THREE.DoubleSide;
           m.needsUpdate = true;
         }
       }

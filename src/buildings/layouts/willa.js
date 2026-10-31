@@ -73,7 +73,7 @@ export default {
       { at: 3.5, w: 1.4, kind: 'window', sill: 1.3, head: 2.4 },
       { at: 7.6, w: 4.4, kind: 'glass', sill: 0.05, head: 2.6, panes: 3, slide: true }
     ] },
-    { id: 'wW1', floor: 1, a: [6.3, 0], b: [6.3, 10.6], t: 0.45, ext: true, outSign: null, open: [
+    { id: 'wW1', floor: 1, a: [6.3, 0], b: [6.3, 10.6], t: 0.45, ext: true, open: [
       { at: 1.0, w: 2.0, kind: 'glass', sill: 0.5, head: 2.5, panes: 2 },
       { id: 'drzwi-taras-gorny', at: 5.2, w: 1.0, kind: 'glass', sill: 0.0, head: 2.4, panes: 1, slide: true }
     ] },
@@ -104,7 +104,7 @@ export default {
     { id: 'salon', name: 'Salon z jadalnią', kind: 'living', poly: [[6.3, 4.3], [14.6, 4.3], [14.6, 5.2], [19.0, 5.2], [19.0, 10.6], [6.3, 10.6]], floorFinish: STONE, wall: '#efede9', accent: [{ wall: 'NB', color: '#8a8682' }] },
     { id: 'taras', name: 'Taras', kind: 'terrace', poly: [[6.3, 10.6], [19.6, 10.6], [19.6, 13.6], [6.3, 13.6]], floorFinish: { type: 'tiles', color: '#c9c3b8', size: [1.2, 0.6], grout: '#aaa398', vary: 0.04 } },
 
-    { id: 'galeria', name: 'Galeria', kind: 'hall', floor: 1, poly: [[6.3, 0], [9.2, 0], [9.2, 10.6], [7.6, 10.6], [7.6, 7.9], [6.3, 7.9], [6.3, 4.5], [7.6, 4.5], [7.6, 7.9], [7.6, 10.6], [6.3, 10.6]].slice(0, 0).concat([[6.3, 0], [9.2, 0], [9.2, 10.6], [6.3, 10.6], [6.3, 7.9], [7.6, 7.9], [7.6, 4.5], [6.3, 4.5]]), floorFinish: HERR, wall: '#efede9' },
+    { id: 'galeria', name: 'Galeria', kind: 'hall', floor: 1, poly: [[6.3, 0], [9.2, 0], [9.2, 10.6], [6.3, 10.6], [6.3, 7.9], [7.6, 7.9], [7.6, 4.5], [6.3, 4.5]], floorFinish: HERR, wall: '#efede9' },
     { id: 'korytarz', name: 'Korytarz', kind: 'hall', floor: 1, poly: [[9.2, 4.46], [19, 4.46], [19, 5.76], [9.2, 5.76]], floorFinish: HERR, wall: '#efede9' },
     { id: 'pokoj-1', name: 'Pokój Antka', kind: 'bed', floor: 1, poly: [[9.2, 0], [12.96, 0], [12.96, 4.46], [9.2, 4.46]], floorFinish: HERR, wall: '#dfe3e3', accent: [{ wall: 'R1', color: '#3f4b57' }] },
     { id: 'lazienka-2', name: 'Łazienka dzieci', kind: 'bath', floor: 1, poly: [[12.96, 0], [15.06, 0], [15.06, 4.46], [12.96, 4.46]], floorFinish: BATHF, wall: BATHW },
@@ -231,6 +231,7 @@ export default {
     { t: 'outdoor', room: 'taras', x: 6.9, z: 10.825, r: 0, y: 2.4, ext: true, style: 'cyl', circuit: 'L7' },
     { t: 'outdoor', room: 'taras', x: 18.2, z: 10.825, r: 0, y: 2.4, ext: true, style: 'cyl', circuit: 'L7' },
 
+    { t: 'outdoor', room: 'taras-gorny', x: 6.075, z: 4.6, r: -PI / 2, y: 2.3, ext: true, style: 'cyl', circuit: 'L5' },
     { t: 'downlight', room: 'galeria', x: 8.4, z: 1.5, color: '#2c2f33', circuit: 'L5' },
     { t: 'downlight', room: 'galeria', x: 8.4, z: 6.2, color: '#2c2f33', circuit: 'L5' },
     { t: 'downlight', room: 'galeria', x: 8.4, z: 9.3, color: '#2c2f33', circuit: 'L5' },

@@ -35,6 +35,7 @@ const P = {
   plug: '<path d="M9 3v5M15 3v5M6 8h12v3a6 6 0 0 1-12 0zM12 17v4"/>',
   back: '<path d="M14.5 5.5 8 12l6.5 6.5"/>',
   chev: '<path d="m9.5 5.5 6.5 6.5-6.5 6.5"/>',
+  search: '<circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/>',
   heart: '<path d="M12 20.5s-7.5-4.6-7.5-10.3A4.2 4.2 0 0 1 12 7.6a4.2 4.2 0 0 1 7.5 2.6c0 5.7-7.5 10.3-7.5 10.3z" fill="currentColor"/>',
   auto: '<circle cx="6.5" cy="7" r="2.5"/><circle cx="17.5" cy="17" r="2.5"/><path d="M9 7h4.5a3 3 0 0 1 3 3v4.5M15 17h-4.5a3 3 0 0 1-3-3V9.5"/>',
   activity: '<path d="M4 6h16M4 12h10M4 18h7"/>',
