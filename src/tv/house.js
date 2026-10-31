@@ -185,12 +185,15 @@ export class House {
     const n = new THREE.Vector3(0, 0, 1).applyQuaternion(q);
     const out = { pos: new THREE.Vector3(...a.pos), normal: n, floor: a.floor ?? 0, dist: null };
     if (kind === "rack" && d.rack && this.cab && this.rackOrigin && this.state) {
-      const used = this.state.devs.filter((x) => x.place === "rack");
+      const all = this.state.devs.filter((x) => x.place === "rack");
+      const ported = all.filter((x) => (BY_ID[x.id]?.ports && Object.keys(BY_ID[x.id].ports).length) || BY_ID[x.id]?.caps.includes("patch"));
+      const used = ported.length ? ported : all;
       if (used.length) {
         const lo = Math.min(...used.map((x) => x.u)), hi = Math.max(...used.map((x) => x.u + (BY_ID[x.id]?.u || 1)));
         this.cab.updateWorldMatrix(true, false);
         out.pos = this.cab.localToWorld(this.rackOrigin.clone().add(new THREE.Vector3(0, ((lo + hi) / 2) * U, 0.05)));
-        out.dist = Math.max(0.62, ((hi - lo) * U) / 0.72 / 0.611);
+        out.dist = Math.max(0.58, ((hi - lo) * U) / 0.62 / 0.611);
+        out.normal = n.clone().applyAxisAngle(new THREE.Vector3(0, 1, 0), 0.32);
       }
     }
     if (kind === "panel" && this.panelEnc && this.rails?.length) {
@@ -789,7 +792,7 @@ export class House {
       this.fill.position.copy(cam.position).addScaledVector(right, -0.9).add(new THREE.Vector3(0, 0.75, 0));
       this.fill.intensity += (1.15 - this.fill.intensity) * Math.min(1, dt * 3);
     } else this.fill.intensity += (0 - this.fill.intensity) * Math.min(1, dt * 3);
-    this.R.dimT = this.closeFill ? 0.62 : this.dimReview ? 0.9 : 1;
+    this.R.dimT = this.closeFill ? (this.closeKind === "rack" ? 0.42 : 0.62) : this.dimReview ? 0.9 : 1;
     for (const m of this.cones.values()) if (m.material.uniforms) m.material.uniforms.t.value = this.t;
     if (this.wifiOn && this.der?.aps?.length) {
       this._ringT = (this._ringT || 0) - dt;

@@ -289,6 +289,7 @@ function paintTablet(snap) {
 
 function focusTask(id) {
   document.body.classList.toggle("closeup", id === "panel" || id === "rack" || id === "tablet");
+  house.closeKind = id;
   house.setDoors(id === "panel" || id === "rack");
   house.showWifi(false);
   house.showCones(false);
