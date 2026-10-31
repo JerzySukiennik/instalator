@@ -56,7 +56,7 @@ function joinView(err) {
   $("#go").onclick = go;
   $("#nm").addEventListener("keydown", (e) => { if (e.key === "Enter") go(); });
   if (q.get("desk")) setTimeout(() => $("#nm")?.focus(), 200);
-  if ((q.get("emu") && q.get("name")) || (q.get("desk") && savedName())) setTimeout(go, 300);
+  if ((q.get("emu") && q.get("name")) || (q.get("desk") && (q.get("name") || savedName()))) setTimeout(go, 300);
 }
 
 async function connect(name) {

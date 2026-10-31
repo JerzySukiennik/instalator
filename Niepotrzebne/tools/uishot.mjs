@@ -72,7 +72,7 @@ async function desk() {
   const tv = await ctx.newPage();
   await tv.setViewportSize({ width: 1600, height: 900 });
   watchPage(tv, "desk");
-  await tv.goto(`${BASE}?net=local&role=tv&desk=1`, { waitUntil: "load" });
+  await tv.goto(`${BASE}?net=local&role=tv&desk=1&name=Tata`, { waitUntil: "load" });
   await wait(9000);
   await snap(tv, `${out}/tv-desk-lobby.png`);
   logs.push("[desk frames] " + tv.frames().map((f) => f.url().slice(0, 90)).join(" , "));

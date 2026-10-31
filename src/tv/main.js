@@ -605,7 +605,8 @@ function addDesk() {
   const box = document.createElement("div");
   box.id = "desk";
   const base = padUrl(host.localCode || host.code).replace("&net=local", "");
-  box.innerHTML = `<div class="dk"><span>Twoje narzędzia</span><button id="deskx">schowaj</button></div><iframe allow="autoplay" src="${base}&net=local&desk=1"></iframe>`;
+  const nm = q.get("name") ? `&name=${encodeURIComponent(q.get("name"))}` : "";
+  box.innerHTML = `<div class="dk"><span>Twoje narzędzia</span><button id="deskx">schowaj</button></div><iframe allow="autoplay" src="${base}&net=local&desk=1${nm}"></iframe>`;
   document.body.appendChild(box);
   document.getElementById("deskx").onclick = () => { box.remove(); document.body.classList.remove("desk"); refresh(lastSnap || snapshotFor(state, data)); R.resize(); };
   audio.unlock();
