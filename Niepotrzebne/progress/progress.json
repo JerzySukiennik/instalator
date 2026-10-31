@@ -1,0 +1,75 @@
+{
+ "phase": "Start: research + budowa fundamentów",
+ "pieces": [
+  {
+   "id": "devices",
+   "name": "Modele urządzeń (UniFi, Hue, Shelly…)",
+   "owner": "builder Opus + krytyk Opus",
+   "status": "building",
+   "round": 0
+  },
+  {
+   "id": "buildings",
+   "name": "4 budynki w przekroju",
+   "owner": "builder Opus + krytyk Opus",
+   "status": "building",
+   "round": 0
+  },
+  {
+   "id": "core",
+   "name": "Rdzeń gry: TV + telefony, tury, zlecenia",
+   "owner": "lead (Claude)",
+   "status": "building",
+   "round": 0
+  },
+  {
+   "id": "panel",
+   "name": "Rozdzielnica",
+   "owner": "lead + krytyk Opus",
+   "status": "todo",
+   "round": 0
+  },
+  {
+   "id": "rack",
+   "name": "Szafa rack UniFi i patchowanie",
+   "owner": "lead + krytyk Opus",
+   "status": "todo",
+   "round": 0
+  },
+  {
+   "id": "tablet",
+   "name": "Tablet i dashboardy HA / Apple / Google",
+   "owner": "lead + krytyk Opus",
+   "status": "todo",
+   "round": 0
+  },
+  {
+   "id": "phone",
+   "name": "Telefon: gesty i interakcje",
+   "owner": "lead + krytyk Opus",
+   "status": "todo",
+   "round": 0
+  },
+  {
+   "id": "look",
+   "name": "Wygląd TV (światło, HUD, odbiór)",
+   "owner": "lead + krytyk Opus",
+   "status": "todo",
+   "round": 0
+  },
+  {
+   "id": "research",
+   "name": "Research: katalog, ceny, zdjęcia, wzorce, dźwięki",
+   "owner": "4× Haiku",
+   "status": "building",
+   "round": 0
+  }
+ ],
+ "log": [
+  {
+   "t": "2026-10-31T16:31:38+0100",
+   "msg": "Wywiad zamknięty: TV + telefony, tury = zadania, 4 budynki z Gzowem, HA/Apple/Google, wzorzec: gry + AAA + prawdziwe urządzenia"
+  }
+ ],
+ "updated": "2026-10-31T16:31:38+0100"
+}
