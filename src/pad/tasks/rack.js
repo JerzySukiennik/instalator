@@ -60,7 +60,7 @@ export function mount(root, ctx, taskId, h) {
     if (media) {
       const kb = S.devs.find((d) => d.id === "mb-keystone");
       html += `<div class="ru"><div class="rdev"><span class="nm">GNIAZDA Z MIESZKANIA</span><div class="ports">${kb ? portsHtml(kb) : ""}</div></div></div>`;
-      html += `<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px">${shelfDevs.map((d) => `<div class="ru" style="height:58px"><div class="rdev" data-dev="${d.uid}"><span class="nm">${esc(BY_ID[d.id].name.replace("UniFi ", ""))}</span><div class="ports" style="margin-top:10px">${portsHtml(d)}</div></div></div>`).join("")}${shelfDevs.length < 4 ? `<div class="ru empty ${sel && BY_ID[sel].where === "shelf" ? "drop" : ""}" data-shelf="1" style="height:58px;justify-content:center;color:#8b9196;font-size:11px">${sel && BY_ID[sel].where === "shelf" ? "postaw tutaj" : "półka"}</div>` : ""}</div>`;
+      html += `<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px">${shelfDevs.map((d) => `<div class="ru" style="height:58px"><div class="rdev" data-dev="${d.uid}"><span class="nm">${esc(BY_ID[d.id].name.replace("UniFi ", ""))}</span><div class="ports" style="margin-top:10px">${portsHtml(d)}</div></div></div>`).join("")}${shelfDevs.length < 6 ? `<div class="ru empty ${sel && BY_ID[sel].where === "shelf" ? "drop" : ""}" data-shelf="1" style="height:58px;justify-content:center;color:#8b9196;font-size:11px">${sel && BY_ID[sel].where === "shelf" ? "postaw tutaj" : "półka"}</div>` : ""}</div>`;
     } else {
       const units = ctx.B.rack.units || 9;
       const occ = new Map();
@@ -74,7 +74,9 @@ export function mount(root, ctx, taskId, h) {
           const n = it.u || 1;
           const dark = it.caps.includes("patch") || it.caps.includes("brush") || it.caps.includes("ups");
           let inner = "";
-          if (it.caps.includes("shelf")) inner = shelfDevs.filter((x, i) => true).slice(0, 3).map((sd) => `<div style="flex:1;height:30px;margin-top:10px;background:#f6f6f4;border-radius:3px;display:flex;align-items:center;gap:2px;padding:0 3px;overflow:hidden" data-dev="${sd.uid}"><span style="font:700 6.5px var(--mono);color:#555;margin-right:2px">${esc(BY_ID[sd.id].name.replace(/^(UniFi|Home Assistant|Philips Hue|IKEA|Aqara|tado°) /, "").slice(0, 10))}</span>${portsHtml(sd)}</div>`).join("");
+          const shelvesAsc = rackDevs.filter((x) => x.id === "rack-shelf").sort((a, b) => a.u - b.u);
+          const k = shelvesAsc.indexOf(d);
+          if (it.caps.includes("shelf")) inner = shelfDevs.slice(k * 3, k * 3 + 3).map((sd) => `<div style="flex:1;height:30px;margin-top:10px;background:#f6f6f4;border-radius:3px;display:flex;align-items:center;gap:2px;padding:0 3px;overflow:hidden" data-dev="${sd.uid}"><span style="font:700 6.5px var(--mono);color:#555;margin-right:2px">${esc(BY_ID[sd.id].name.replace(/^(UniFi|Home Assistant|Philips Hue|IKEA|Aqara|tado°) /, "").slice(0, 10))}</span>${portsHtml(sd)}</div>`).join("");
           else if (it.caps.includes("brush")) inner = `<div style="flex:1;height:10px;margin:0 20px;background:repeating-linear-gradient(90deg,#111 0 2px,#2c2c2c 2px 4px);border-radius:2px"></div>`;
           else inner = `<div class="ports" style="${it.caps.includes("patch") || (it.ports?.rj45 || 0) > 12 ? "max-width:72%;" : ""}">${portsHtml(d, { nums: it.caps.includes("switch") })}</div>`;
           html += `<div class="ru" style="height:${n * 44 + (n - 1) * 2}px"><span class="num">${u + 1}</span><div class="rdev ${dark ? "dark" : ""}" data-dev="${d.uid}"><span class="nm" ${dark ? 'style="color:#aeb4b8"' : ""}>${esc(it.name.replace("UniFi ", "").replace("Lanberg ", ""))}</span>${inner}</div></div>`;

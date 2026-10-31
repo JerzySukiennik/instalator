@@ -4,7 +4,7 @@ import { connectClient } from "../net/index.js";
 import { PROTO, REACTIONS } from "../shared/protocol.js";
 import { fmtZl } from "../shared/catalog.js";
 import { icon, avatar } from "../shared/icons.js";
-import { $, el, esc, haptic, toast, confirmBox } from "./ui.js";
+import { $, el, esc, haptic, toast, confirmBox, sheet } from "./ui.js";
 import { askOrientation } from "./gestures.js";
 import { renderDash, gridRect, cardRect, cardInfo } from "../dash/render.js";
 import { Plan } from "./plan.js";
@@ -185,7 +185,7 @@ function tasksView() {
   const tasks = S.tasks || [];
   app.innerHTML = `${topBar(S.job.client.name, S.job.buildingName)}
     <div class="body">
-      <div class="h"><span>${solo ? "Co robimy?" : "Twoja tura: wybierz jedno zadanie"}</span><span>${(S.reqs || []).filter((r) => r.ok).length}/${(S.reqs || []).length}</span></div>
+      <div class="h"><span>${solo ? "Co robimy?" : "Twoja tura: wybierz jedno zadanie"}</span><button class="tape y" id="reqs">Lista ${(S.reqs || []).filter((r) => r.ok).length}/${(S.reqs || []).length}</button></div>
       <div class="tasks">${tasks.map((t) => {
         const st = taskStatus(t);
         const done = st && st.n && st.ok === st.n;
@@ -196,6 +196,9 @@ function tasksView() {
       }).join("")}</div>
     </div>`;
   app.querySelectorAll(".task").forEach((b) => (b.onclick = () => { haptic(); ctx.openTask(b.dataset.id); }));
+  $("#reqs").onclick = () => sheet(`${S.job.client.name}: lista`, (sc) => {
+    sc.innerHTML = `<p style="margin:0 0 12px;color:var(--ink2);font-style:italic;line-height:1.4">„${esc(S.job.client.hello)}”</p><div class="list">${S.job.reqs.map((r) => { const st = S.reqs.find((x) => x.id === r.id) || {}; return `<div class="row"><span class="chk ${st.ok ? "on" : ""}">${st.ok ? icon("check", 14, 3) : ""}</span><div class="grow"><b style="font-weight:600">${esc(r.text)}</b>${st.ok ? "" : `<span>${esc(st.hint || "")}</span>`}</div></div>`; }).join("")}</div>`;
+  });
   ctx.mounted = { update: () => route(true) };
 }
 

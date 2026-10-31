@@ -135,6 +135,15 @@ export class Hud {
     return newly;
   }
 
+  achieve(text) {
+    const a = document.createElement("div");
+    a.className = "achieve";
+    a.innerHTML = `<span class="ck">${icon("check", 26, 3)}</span><span><small>z listy klienta</small>${esc(text)}</span>`;
+    this.root.appendChild(a);
+    setTimeout(() => a.classList.add("out"), 2600);
+    setTimeout(() => a.remove(), 3200);
+  }
+
   banner(text) {
     const b = $("#taskbanner", this.root);
     b.innerHTML = `<span class="tape y">${esc(text)}</span>`;

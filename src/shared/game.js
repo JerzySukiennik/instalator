@@ -71,7 +71,7 @@ function rackInfo(s, data) {
   const units = data.rack ? data.rack.units || 9 : 0;
   const used = new Set();
   for (const d of rackDevs) for (let k = 0; k < (BY_ID[d.id].u || 1); k++) used.add(d.u + k);
-  const shelves = data.rack ? rackDevs.filter((d) => d.id === "rack-shelf").length * 3 : 4;
+  const shelves = data.rack ? rackDevs.filter((d) => d.id === "rack-shelf").length * 3 : 6;
   const onShelf = s.devs.filter((d) => d.place === "shelf").length;
   return { units, used, shelfFree: shelves - onShelf };
 }

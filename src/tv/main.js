@@ -64,7 +64,7 @@ function refresh(snap) {
   if (state.phase === "job") {
     hud.show("hud");
     const newly = hud.job(snap, host.code, url, tasks);
-    for (const r of newly) { audio.play("pen_tick", { vol: 0.8 }); }
+    newly.forEach((r, i) => { const rq = state.job.reqs.find((x) => x.id === r.id); setTimeout(() => { audio.play("pen_tick", { vol: 0.9 }); if (rq && state.phase === "job") hud.achieve(rq.text); }, i * 900); });
     house.sync(state, snap.der ? { ...snap.der } : derive(state, data));
     paintTablet(snap);
     return;
@@ -371,14 +371,25 @@ function onStream(cid, m) {
 async function lobbyScene() {
   R.setMode("dusk", true);
   await house.load("gzowo");
-  data = null;
   const d = house.data;
-  const fake = { panel: { main: true, rcd: [true, true], br: Object.fromEntries((d.circuits || []).map((c) => [c.id, true])), labels: {} }, devs: [], patches: [] };
-  house.state = fake;
-  house.der = { dev: {} };
-  house.data = d;
-  house.applyPower();
-  dir.overview(d, { floor: 0, zoom: 1.5, speed: 0.05 });
+  try {
+    const { makeJob, rng } = await import("../shared/jobs.js");
+    const { runDemo } = await import("./demo.js");
+    const show = newState();
+    const job = makeJob("gzowo", rng(11));
+    job.platform = "ha";
+    startJob(show, job, d);
+    runDemo(show, d, reduce, { stage: "full", platform: "ha" });
+    house.sync(show, derive(show, d));
+  } catch (e) {
+    console.warn("[lobby] showcase failed", e);
+    const fake = { panel: { main: true, rcd: [true, true], br: Object.fromEntries((d.circuits || []).map((c) => [c.id, true])), labels: {} }, devs: [], patches: [] };
+    house.state = fake;
+    house.der = { dev: {} };
+    house.applyPower();
+  }
+  data = null;
+  dir.overview(d, { floor: 0, zoom: 1.45, speed: 0.045 });
   dir.snap();
 }
 

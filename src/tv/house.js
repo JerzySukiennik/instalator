@@ -310,7 +310,8 @@ export class House {
         const k = i % 3;
         v.obj.position.copy(this.rackOrigin).add(new THREE.Vector3(-0.14 + k * 0.14, (sh.d.u + 1) * U + 0.004, -0.16));
       } else if (ms) {
-        v.obj.position.set(ms.origin[0] - ms.w / 2 + 0.08 + i * 0.1, ms.origin[1], ms.origin[2]);
+        const col = i % 3, row = Math.floor(i / 3);
+        v.obj.position.set(ms.origin[0] - ms.w / 2 + ms.w / 6 + col * (ms.w / 3), ms.origin[1] - row * 0.2, ms.origin[2]);
       } else {
         v.obj.position.set(-0.12 + i * 0.1, 0.1, 0.1);
       }

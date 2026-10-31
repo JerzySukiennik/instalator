@@ -33,6 +33,7 @@ export function runDemo(state, data, reduce, opts = {}) {
     put(sw);
     if (BY_ID[gw].where === "rack") put(gw);
     put("rack-shelf");
+    put("rack-shelf");
     if (big) put("ups-2u");
     if (BY_ID[gw].where === "shelf") { buy(gw); act({ a: "shelfPut", id: gw }); }
   }
