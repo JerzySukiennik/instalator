@@ -44,7 +44,7 @@ export class Hud {
 
   lobby(s, code, url) {
     const el = $("#lobby", this.root);
-    const key = `${code}|${document.body.classList.contains("desk")}|${s.players.map((p) => p.name + p.online + p.host).join(",")}`;
+    const key = `${code}|${url}|${document.body.classList.contains("desk")}|${s.players.map((p) => p.name + p.online + p.host).join(",")}`;
     if (el.dataset.key === key) return;
     el.dataset.key = key;
     el.innerHTML = `
@@ -55,11 +55,11 @@ export class Hud {
         <div class="players">${s.players.map((p) => playerPill(p)).join("") || `<span class="tape">Czekam na pierwszy telefon…</span>`}</div>
         ${document.body.classList.contains("desk") ? "" : `<button class="tape y deskbtn click">🖱 Graj na tym komputerze, bez telefonu</button>`}
       </div>
+      ${portfolioHtml()}
       <div class="join card">
-        <div class="qr">${qrSvg(url)}</div>
-        <div class="code">${esc(code)}</div>
+        ${url ? `<div class="qr">${qrSvg(url)}</div><div class="code">${esc(code)}</div>
         <div class="hint">${s.players.length ? "Gospodarz startuje na telefonie." : "Zeskanuj telefonem. Pierwszy telefon zostaje gospodarzem."}</div>
-        <div class="url">${esc(url.replace(/^https?:\/\//, ""))}</div>
+        <div class="url">${esc(url.replace(/^https?:\/\//, ""))}</div>` : `<div class="qr off">${icon("wifi", 64, 1.6)}</div><div class="hint">Pokój online się łączy… Bez internetu grasz na tym komputerze.</div>`}
       </div>`;
   }
 
@@ -72,6 +72,18 @@ export class Hud {
         <div class="top"><h2>Zlecenia na dziś</h2><span class="tape y">${document.body.classList.contains("desk") ? "Wybierz w panelu po prawej" : "Głosujcie na telefonach"}</span></div>
         <div class="grid">${s.board.jobs.map((j, i) => jobCard(j, i, thumbs?.[j.building])).join("")}</div>
         <div class="foot"><span class="tape">${document.body.classList.contains("desk") ? "Przelosuj albo bierzemy" : "Gospodarz: przelosuj albo bierzemy"}</span></div>`;
+      el.querySelectorAll(".money b").forEach((b, i) => {
+        const target = s.board.jobs[i].budget;
+        const t0 = performance.now() + 250 + i * 120;
+        const tick = (now) => {
+          const k = Math.max(0, Math.min(1, (now - t0) / 1300));
+          const e = 1 - Math.pow(1 - k, 3);
+          const v = k < 1 ? Math.round((target * e + (1 - e) * Math.random() * target) / 10) * 10 : target;
+          b.textContent = fmtZl(v);
+          if (k < 1) requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+      });
     }
     s.board.jobs.forEach((j, i) => {
       const v = $(`.job[data-i="${i}"] .votes`, el);
@@ -117,7 +129,9 @@ export class Hud {
       <span class="dot" style="background:${act.color}">${icon("drill", 20, 2)}</span>
       <div><small>${solo ? "pracujesz" : "tura"}</small><b>${esc(act.name)}</b>${task ? ` · ${esc(task.name)}` : " · wybiera zadanie"}</div>
       ${solo ? "" : `<span class="next">${order.map((p) => `<i style="background:${p.color};opacity:${p === act ? 1 : 0.35}"></i>`).join("")}</span>`}` : "";
-    $("#mini", this.root).innerHTML = `<div class="qr">${qrSvg(url)}</div><div><b>${esc(code)}</b><span>dołącz w każdej chwili</span></div>`;
+    const mini = $("#mini", this.root);
+    mini.style.display = url ? "" : "none";
+    if (url && mini.dataset.url !== url) { mini.dataset.url = url; mini.innerHTML = `<div class="qr">${qrSvg(url)}</div><div><b>${esc(code)}</b><span>dołącz w każdej chwili</span></div>`; }
     return newly;
   }
 
@@ -177,6 +191,13 @@ export class Hud {
     h.innerHTML = "";
     h.classList.add("hide");
   }
+}
+
+function portfolioHtml() {
+  let list = [];
+  try { list = JSON.parse(localStorage.getItem("instalator.portfolio.v1") || "[]"); } catch (e) {}
+  if (!list.length) return "";
+  return `<div class="folio">${list.slice(0, 4).map((x) => `<div class="fo"><div class="ph" style="background-image:url(${x.shot})"></div><b>${esc(x.building)}</b><span>${"★".repeat(Math.floor(x.stars))}${x.stars % 1 ? "½" : ""} · ${esc(x.client)}</span></div>`).join("")}</div>`;
 }
 
 function playerPill(p) {

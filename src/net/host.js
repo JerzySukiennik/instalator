@@ -5,8 +5,8 @@ import { createRelayHost } from "./relay.js";
 import { encode, assembler } from "./wire.js";
 import { claimRoom, watchPeerSignals, sendAnswer, pushIce, clearPeerSignals } from "./signaling.js";
 
-export async function createRtcHost({ onConnect, onLeave, onMsg, onStream }) {
-  const room = await claimRoom();
+export async function createRtcHost({ onConnect, onLeave, onMsg, onStream, preferred }) {
+  const room = await claimRoom(preferred);
   const code = room.code;
   const peers = new Map();
   let closed = false;

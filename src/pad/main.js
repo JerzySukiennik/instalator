@@ -7,6 +7,7 @@ import { icon, avatar } from "../shared/icons.js";
 import { $, el, esc, haptic, toast, confirmBox } from "./ui.js";
 import { askOrientation } from "./gestures.js";
 import { renderDash, gridRect, cardRect, cardInfo } from "../dash/render.js";
+import { Plan } from "./plan.js";
 
 const q = new URLSearchParams(location.search);
 const app = document.getElementById("app");
@@ -214,11 +215,21 @@ function watchView(handover = false) {
       </div>
       <div class="h">Reakcje na telewizorze</div>
       <div class="reacts">${REACTIONS.map((e) => `<button data-e="${e}">${e}</button>`).join("")}</div>
+      ${!handover && ctx.B ? `<div class="h">Podpowiedz: stuknij miejsce na planie</div><div class="plan" id="pingplan" style="height:240px;border-radius:16px;overflow:hidden"></div>` : ""}
       <div class="h">Lista klienta</div>
       <div class="list">${(S.job?.reqs || []).map((r) => { const st = S.reqs.find((x) => x.id === r.id); return `<div class="row"><span class="chk ${st?.ok ? "on" : ""}">${st?.ok ? icon("check", 14, 3) : ""}</span><div class="grow"><b style="font-weight:600">${esc(r.text)}</b></div></div>`; }).join("")}</div>
     </div>`;
   app.querySelectorAll(".reacts button").forEach((b) => (b.onclick = () => { haptic(); ctx.send({ a: "react", e: b.dataset.e }); }));
-  ctx.mounted = { update: () => route(true) };
+  const pp = $("#pingplan");
+  let plan = null;
+  if (pp) {
+    plan = new Plan(pp, ctx.B);
+    plan.set({ floor: 0, devs: S.devs, der: S.der });
+    const ping = (p) => { haptic(true); ctx.send({ a: "ping", floor: p.floor ?? 0, x: p.x ?? p.pos?.[0], z: p.z ?? p.pos?.[2] }); toast("Wskazane na telewizorze"); };
+    plan.on("tap", ping);
+    plan.on("device", (d) => ping({ floor: d.floor ?? 0, x: d.pos[0], z: d.pos[2] }));
+  }
+  ctx.mounted = { update: () => { const s2 = ctx.S; const a2 = s2.players.find((p) => p.cid === s2.active); const t2 = (s2.tasks || []).find((x) => x.id === s2.turn?.task); const who = app.querySelector(".watch .who"), what = app.querySelector(".watch .what"); if (who && !handover) { who.textContent = a2?.name || "…"; who.style.color = a2?.color || ""; } if (what && !handover) what.textContent = t2 ? t2.name : "wybiera zadanie"; if (plan) plan.set({ devs: s2.devs, der: s2.der }); app.querySelectorAll(".list .row").forEach((r, i) => { const rq = s2.job?.reqs[i]; const st = rq && s2.reqs.find((x) => x.id === rq.id); const c = r.querySelector(".chk"); if (c && st) { c.classList.toggle("on", !!st.ok); c.innerHTML = st.ok ? icon("check", 14, 3) : ""; } }); } };
 }
 
 function reviewView() {

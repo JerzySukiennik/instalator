@@ -32,6 +32,7 @@ let tabletCanvas = null;
 let script = null;
 const ghosts = new Map();
 let walker = null;
+let online = false;
 const pings = [];
 
 window.addEventListener("pointerdown", () => audio.unlock(), { once: false });
@@ -59,7 +60,7 @@ let lastSnap = null;
 function refresh(snap) {
   lastSnap = snap;
   if (state.phase === "lobby") { hud.show("lobby"); hud.lobby(state, host.code, url); return; }
-  if (state.phase === "board") { hud.show("board"); hud.board(state, null); return; }
+  if (state.phase === "board") { hud.show("board"); hud.board(state, { kawalerka: "assets/thumbs/b-kawalerka.jpg", dom: "assets/thumbs/b-dom.jpg", gzowo: "assets/thumbs/b-gzowo.jpg", willa: "assets/thumbs/b-willa.jpg" }); return; }
   if (state.phase === "job") {
     hud.show("hud");
     const newly = hud.job(snap, host.code, url, tasks);
@@ -206,7 +207,7 @@ function fx(e) {
     case "react": if (p) { hud.react(p, e.e); audio.play("ui_pop", { vol: 0.35 }); } break;
     case "ping": if (p) addPing(e, p.color); break;
     case "handover": runHandover(); break;
-    case "play": hud.clearHandover(); if (walker) { R.scene.remove(walker.obj); walker = null; } R.setMode("night"); dir.overview(data, { floor: 0, speed: 0.04 }); break;
+    case "play": hud.clearHandover(); hud.banner("Pobawcie się domem: stukajcie w kafelki na telefonach"); if (walker) { R.scene.remove(walker.obj); walker = null; } R.setMode("night"); dir.overview(data, { floor: 0, speed: 0.04 }); break;
     case "control": audio.play("relay_click", { vol: 0.5 }); break;
     default: break;
   }
@@ -412,7 +413,7 @@ function addDesk() {
   document.body.classList.add("desk");
   const box = document.createElement("div");
   box.id = "desk";
-  const base = padUrl(host.code).replace("&net=local", "");
+  const base = padUrl(host.localCode || host.code).replace("&net=local", "");
   box.innerHTML = `<div class="dk"><span>Twoje narzędzia</span><button id="deskx">schowaj</button></div><iframe allow="autoplay" src="${base}&net=local&desk=1"></iframe>`;
   document.body.appendChild(box);
   document.getElementById("deskx").onclick = () => { box.remove(); document.body.classList.remove("desk"); refresh(lastSnap || snapshotFor(state, data)); R.resize(); };
@@ -429,7 +430,7 @@ function addEmulators(n) {
   box.id = "emu";
   for (let i = 0; i < n; i++) {
     const f = document.createElement("iframe");
-    f.src = `${padUrl(host.code)}&name=${encodeURIComponent(["Tata", "Jurek", "Ryś", "Mama"][i])}&emu=1`;
+    f.src = `${padUrl(host.localCode || host.code).replace("&net=local", "")}&net=local&name=${encodeURIComponent(["Tata", "Jurek", "Ryś", "Mama"][i])}&emu=1`;
     box.appendChild(f);
   }
   document.body.appendChild(box);
@@ -489,9 +490,10 @@ async function boot() {
       if (state.phase === "job" && activeCid(state) === cid) reduce(state, state.players.find((x) => x.online)?.cid || cid, { a: "endTurn" }, data);
       sendState();
     },
-    onMsg, onStream
+    onMsg, onStream,
+    onOnline: (code) => { online = !!code; url = code ? padUrl(code) : ""; refresh(lastSnap || snapshotFor(state, data)); }
   });
-  url = padUrl(host.code);
+  url = "";
   window.__tv = { state, house, dir, R, host, get data() { return data; }, reduce: (cid, a) => onMsg(cid, { t: "act", ...a }), THREE };
   if (q.get("demo")) {
     requestAnimationFrame(loop);

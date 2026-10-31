@@ -154,3 +154,11 @@ body.desk #lobby .join { width: 15rem; padding: 1.1rem; }
 body.desk #lobby .code { font-size: 2.2rem; }
 body.desk #jobcard { width: 19rem; }
 body.desk #checklist { width: 18rem; }
+
+.folio { position: absolute; left: 6vw; bottom: 4vh; display: flex; gap: 0.8rem; }
+.folio .fo { width: 9rem; background: var(--paper); border-radius: 0.5rem; padding: 0.35rem; box-shadow: var(--shadow); }
+.folio .ph { height: 5rem; border-radius: 0.3rem; background: #333 center / cover; }
+.folio b { display: block; font-size: 0.6rem; margin-top: 0.3rem; }
+.folio span { font-size: 0.55rem; color: var(--ink2); }
+
+#lobby .qr.off { background: var(--paper2); color: var(--mute); }
