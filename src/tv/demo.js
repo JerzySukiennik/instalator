@@ -158,9 +158,11 @@ export function runDemo(state, data, reduce, opts = {}) {
   const cams = state.devs.filter((d) => BY_ID[d.id]?.caps.includes("camera") && !BY_ID[d.id]?.caps.includes("doorbell"));
   const bell = state.devs.find((d) => BY_ID[d.id]?.caps.includes("doorbell"));
   const cam = cams[0] || bell;
+  const aimDot = (a, b) => (a?.aim && b?.aim ? a.aim[0] * b.aim[0] + a.aim[2] * b.aim[2] : 1);
+  const other = cams.slice(1).sort((a, b) => aimDot(a, cam) - aimDot(b, cam));
   put("camera", cam, 0, 0, 2, 2);
-  put("camera", cams[1] || bell || cam, 0, 2, 1, 1);
-  put("camera", bell && bell !== (cams[1] || null) ? bell : cams[2] || cam, 1, 2, 1, 1);
+  put("camera", other[0] || bell || cam, 0, 2, 1, 1);
+  put("camera", bell || other[1] || cam, 1, 2, 1, 1);
   const pref = ["living", "bed", "office", "kitchen", "hall"];
   const rank = (d) => { const i = pref.indexOf(roomKind({ room: d.room })); return i < 0 ? 99 : i; };
   const mainTrv = state.devs.filter((d) => d.paired && (BY_ID[d.id]?.caps.includes("trv") || BY_ID[d.id]?.caps.includes("thermostat"))).sort((a, b) => rank(a) - rank(b))[0];
