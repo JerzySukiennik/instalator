@@ -1,0 +1,2038 @@
+[
+  {
+    "id": "ucg-ultra",
+    "brand": "Ubiquiti",
+    "name": "Cloud Gateway Ultra",
+    "sku": "UCG-Ultra",
+    "category": "network",
+    "pricePLN": 524,
+    "priceSource": "https://eu.store.ui.com/eu/en/products/ucg-ultra",
+    "dims_mm": [
+      141.8,
+      30,
+      127.6
+    ],
+    "mount": "surface",
+    "rackUnits": null,
+    "dinModules": null,
+    "power": {
+      "type": "usb-c",
+      "watts": 6.2
+    },
+    "ports": {
+      "rj45": 5,
+      "rj45_1g": 4,
+      "rj45_2_5g": 1,
+      "wan": 1
+    },
+    "poeBudgetW": 0,
+    "etherlighting": false,
+    "wifi": null,
+    "cameraRes": null,
+    "protocols": [
+      "Ethernet",
+      "Bluetooth"
+    ],
+    "ecosystems": {
+      "ha": "native",
+      "apple": "no",
+      "google": "no",
+      "matter": false
+    },
+    "ecoNote": "UniFi Network/Protect works in Home Assistant natively (UniFi integration); no Apple Home or Google Home support without a bridge.",
+    "colors": "white, matte polycarbonate",
+    "visualNotes": "Compact rounded-square desktop gateway, 142 x 128 x 30 mm, flat top with soft bevelled edges. Front face has a small rounded 0.96-inch LCD status window near the top centre with small grey UniFi text below. Rear carries one 2.5 GbE WAN, four 1 GbE LAN RJ45 and a USB-C power inlet.",
+    "photoUrl": "https://cdn.ecomm.ui.com/products/8d2d9e4b-89f3-49a1-9c17-5d774c0067b4/2e179331-f85a-4bc9-bf3e-d00192522732.png",
+    "photos": [
+      "Niepotrzebne/gauntlet/ref/devices/ucg-ultra.jpg",
+      "Niepotrzebne/gauntlet/ref/devices/ucg-ultra-2.jpg"
+    ],
+    "descPL": "Kompaktowa brama UniFi z portem 2,5 GbE na WAN, czterema portami LAN i obsługą ponad 30 urządzeń UniFi.",
+    "notes": ""
+  },
+  {
+    "id": "ucg-max",
+    "brand": "Ubiquiti",
+    "name": "Cloud Gateway Max",
+    "sku": "UCG-Max",
+    "category": "network",
+    "pricePLN": 1454,
+    "priceSource": "https://eu.store.ui.com/eu/en/products/ucg-max",
+    "dims_mm": [
+      141.8,
+      30,
+      127.6
+    ],
+    "mount": "surface",
+    "rackUnits": null,
+    "dinModules": null,
+    "power": {
+      "type": "usb-c",
+      "watts": 16.1
+    },
+    "ports": {
+      "rj45": 5,
+      "rj45_2_5g": 5,
+      "wan": 1
+    },
+    "poeBudgetW": 0,
+    "etherlighting": false,
+    "wifi": null,
+    "cameraRes": null,
+    "protocols": [
+      "Ethernet",
+      "Bluetooth"
+    ],
+    "ecosystems": {
+      "ha": "native",
+      "apple": "no",
+      "google": "no",
+      "matter": false
+    },
+    "ecoNote": "UniFi Network/Protect works in Home Assistant natively (UniFi integration); no Apple Home or Google Home support without a bridge.",
+    "colors": "white, matte polycarbonate",
+    "visualNotes": "Same white rounded-square body as the UCG-Ultra (142 x 128 x 30 mm) with a small status display on the front. A rectangular cover on the side hides the selectable NVMe SSD used for recordings. Rear has five 2.5 GbE RJ45 ports and the USB-C power inlet.",
+    "photoUrl": "https://cdn.ecomm.ui.com/products/8cca3680-14a6-496a-af7d-beba49cea3f2/7c6f4e54-1f20-485a-a0f0-22e968b66a66.png",
+    "photos": [
+      "Niepotrzebne/gauntlet/ref/devices/ucg-max.jpg",
+      "Niepotrzebne/gauntlet/ref/devices/ucg-max-2.jpg"
+    ],
+    "descPL": "Brama UniFi z pięcioma portami 2,5 GbE, dyskiem NVMe do nagrywania i obsługą kamer.",
+    "notes": "Price is EU store EUR 275 with memory surcharge (base EUR 250)."
+  },
+  {
+    "id": "udm-pro-max",
+    "brand": "Ubiquiti",
+    "name": "Dream Machine Pro Max",
+    "sku": "UDM-Pro-Max",
+    "category": "network",
+    "pricePLN": 3136,
+    "priceSource": "https://eu.store.ui.com/eu/en/products/udm-pro-max",
+    "dims_mm": [
+      442.4,
+      43.7,
+      285.6
+    ],
+    "mount": "rack",
+    "rackUnits": 1,
+    "dinModules": null,
+    "power": {
+      "type": "mains",
+      "watts": 60
+    },
+    "ports": {
+      "rj45": 9,
+      "rj45_1g": 8,
+      "rj45_2_5g": 1,
+      "sfp+": 2,
+      "wan": 2
+    },
+    "poeBudgetW": 0,
+    "etherlighting": false,
+    "wifi": null,
+    "cameraRes": null,
+    "protocols": [
+      "Ethernet",
+      "10G SFP+"
+    ],
+    "ecosystems": {
+      "ha": "native",
+      "apple": "no",
+      "google": "no",
+      "matter": false
+    },
+    "ecoNote": "UniFi Network/Protect works in Home Assistant natively (UniFi integration); no Apple Home or Google Home support without a bridge.",
+    "colors": "aluminium grey, dark port surrounds",
+    "visualNotes": "1U grey aluminium rack gateway, 442 x 44 x 286 mm. Front: power button at the left end, two 3.5-inch drive bays behind removable covers in the centre, and the port block at the right (eight 1 GbE RJ45, one 2.5 GbE RJ45, two 10G SFP+). Small touchscreen display on the front. Rack ears fitted.",
+    "photoUrl": "https://cdn.ecomm.ui.com/products/401190d7-6a49-4c2e-bef1-7fe087d2b6b6/95713566-423f-45e1-8b40-6d760f048490.png",
+    "photos": [
+      "Niepotrzebne/gauntlet/ref/devices/udm-pro-max.jpg",
+      "Niepotrzebne/gauntlet/ref/devices/udm-pro-max-2.jpg"
+    ],
+    "descPL": "Brama rack 1U z dwiema wnękami na dyski, portami 10G SFP+ i 2,5 GbE, do szafy z UniFi.",
+    "notes": "Techspecs: no PoE output. Price is EU store EUR 593 with memory surcharge (base EUR 539)."
+  },
+  {
+    "id": "usw-flex-mini",
+    "brand": "Ubiquiti",
+    "name": "Switch Flex Mini",
+    "sku": "USW-Flex-Mini",
+    "category": "network",
+    "pricePLN": 138,
+    "priceSource": "https://eu.store.ui.com/eu/en/products/usw-flex-mini",
+    "dims_mm": [
+      107,
+      21,
+      70
+    ],
+    "mount": "surface",
+    "rackUnits": null,
+    "dinModules": null,
+    "power": {
+      "type": "usb-c",
+      "watts": 2.5
+    },
+    "ports": {
+      "rj45": 5,
+      "rj45_1g": 5,
+      "poe_in": 1
+    },
+    "poeBudgetW": 0,
+    "etherlighting": false,
+    "wifi": null,
+    "cameraRes": null,
+    "protocols": [
+      "Ethernet",
+      "PoE input (802.3af/at)"
+    ],
+    "ecosystems": {
+      "ha": "native",
+      "apple": "no",
+      "google": "no",
+      "matter": false
+    },
+    "ecoNote": "UniFi Network/Protect works in Home Assistant natively (UniFi integration); no Apple Home or Google Home support without a bridge.",
+    "colors": "white, matte plastic",
+    "visualNotes": "Small white wedge-shaped desk switch, 107 x 70 x 21 mm, with five RJ45 ports in a row along the front edge and small status LEDs above them. One port accepts PoE input to power the switch; there is no PoE output. Rounded corners, no display.",
+    "photoUrl": "https://cdn.ecomm.ui.com/products/5a176b22-af34-40f2-820c-958610df1825/19394e07-5146-4f8c-b72d-7fdbdf679c97.png",
+    "photos": [
+      "Niepotrzebne/gauntlet/ref/devices/usw-flex-mini.jpg",
+      "Niepotrzebne/gauntlet/ref/devices/usw-flex-mini-2.jpg"
+    ],
+    "descPL": "Mały 5-portowy switch 1 GbE na biurko lub półkę, zasilany USB-C albo PoE.",
+    "notes": "Price is EU store variant USW-Flex-Mini-EU (EUR 26, no memory surcharge)."
+  },
+  {
+    "id": "usw-lite-8-poe",
+    "brand": "Ubiquiti",
+    "name": "Switch Lite 8 PoE",
+    "sku": "USW-Lite-8-PoE",
+    "category": "network",
+    "pricePLN": 577,
+    "priceSource": "https://eu.store.ui.com/eu/en/products/usw-lite-8-poe",
+    "dims_mm": [
+      99.6,
+      31.7,
+      163.7
+    ],
+    "mount": "surface",
+    "rackUnits": null,
+    "dinModules": null,
+    "power": {
+      "type": "mains",
+      "watts": 60
+    },
+    "ports": {
+      "rj45": 8,
+      "poe_plus": 4
+    },
+    "poeBudgetW": 52,
+    "etherlighting": false,
+    "wifi": null,
+    "cameraRes": null,
+    "protocols": [
+      "Ethernet",
+      "PoE+ (802.3at)"
+    ],
+    "ecosystems": {
+      "ha": "native",
+      "apple": "no",
+      "google": "no",
+      "matter": false
+    },
+    "ecoNote": "UniFi Network/Protect works in Home Assistant natively (UniFi integration); no Apple Home or Google Home support without a bridge.",
+    "colors": "white, matte polycarbonate",
+    "visualNotes": "Slim white switch, 100 x 32 x 164 mm, with eight RJ45 ports in a row along the front edge; the first four are PoE+ (52 W total). Small status LEDs sit above the ports. The external 60 W power brick is separate from the body.",
+    "photoUrl": "https://cdn.ecomm.ui.com/products/75c44878-4e73-446e-8e86-f207db6b2b7c/53b8b06b-69c7-424f-bb81-2f8405356c65.png",
+    "photos": [
+      "Niepotrzebne/gauntlet/ref/devices/usw-lite-8-poe.jpg",
+      "Niepotrzebne/gauntlet/ref/devices/usw-lite-8-poe-2.jpg"
+    ],
+    "descPL": "8-portowy switch UniFi z czterema portami PoE+ (łącznie 52 W), na biurko lub ścianę.",
+    "notes": "Power watts is the total including PoE output (techspecs: 8 W without PoE, 60 W with PoE)."
+  },
+  {
+    "id": "usw-pro-max-16-poe",
+    "brand": "Ubiquiti",
+    "name": "Switch Pro Max 16 PoE",
+    "sku": "USW-Pro-Max-16-PoE",
+    "category": "network",
+    "pricePLN": 2089,
+    "priceSource": "https://eu.store.ui.com/eu/en/products/usw-pro-max-16-poe",
+    "dims_mm": [
+      325.1,
+      43.7,
+      160
+    ],
+    "mount": "rack",
+    "rackUnits": 1,
+    "dinModules": null,
+    "power": {
+      "type": "mains",
+      "watts": 210
+    },
+    "ports": {
+      "rj45": 16,
+      "rj45_1g": 12,
+      "rj45_2_5g": 4,
+      "sfp+": 2,
+      "poe": 16
+    },
+    "poeBudgetW": 180,
+    "etherlighting": true,
+    "wifi": null,
+    "cameraRes": null,
+    "protocols": [
+      "Ethernet",
+      "PoE+/PoE++",
+      "10G SFP+",
+      "Etherlighting"
+    ],
+    "ecosystems": {
+      "ha": "native",
+      "apple": "no",
+      "google": "no",
+      "matter": false
+    },
+    "ecoNote": "UniFi Network/Protect works in Home Assistant natively (UniFi integration); no Apple Home or Google Home support without a bridge.",
+    "colors": "silver-grey steel, dark port surrounds",
+    "visualNotes": "1U grey metal switch, 325 x 44 x 160 mm, shorter chassis than the 24-port. Front: a row of RJ45 ports (12 x 1 GbE PoE+ and 4 x 2.5 GbE PoE++) with an Etherlighting light bar along the port edge, two SFP+ cages at the right end and a small LCD touchscreen.",
+    "photoUrl": "https://cdn.ecomm.ui.com/products/0694226c-9791-4d7e-9fb1-d98c91fe3fda/7b73b27e-e77a-4771-b6bf-0aed35b4a16e.png",
+    "photos": [
+      "Niepotrzebne/gauntlet/ref/devices/usw-pro-max-16-poe.jpg",
+      "Niepotrzebne/gauntlet/ref/devices/usw-pro-max-16-poe-2.jpg"
+    ],
+    "descPL": "Switch rack 1U z 16 portami PoE (180 W), 2,5 GbE i 10G SFP+, z podświetleniem Etherlighting.",
+    "notes": "Etherlighting and PoE budget confirmed in techspecs."
+  },
+  {
+    "id": "usw-pro-max-24-poe",
+    "brand": "Ubiquiti",
+    "name": "Switch Pro Max 24 PoE",
+    "sku": "USW-Pro-Max-24-PoE",
+    "category": "network",
+    "pricePLN": 4305,
+    "priceSource": "https://eu.store.ui.com/eu/en/products/usw-pro-max-24-poe",
+    "dims_mm": [
+      442,
+      44,
+      325
+    ],
+    "mount": "rack",
+    "rackUnits": 1,
+    "dinModules": null,
+    "power": {
+      "type": "mains",
+      "watts": 450
+    },
+    "ports": {
+      "rj45": 24,
+      "rj45_1g": 16,
+      "rj45_2_5g": 8,
+      "sfp+": 2,
+      "poe": 24
+    },
+    "poeBudgetW": 400,
+    "etherlighting": true,
+    "wifi": null,
+    "cameraRes": null,
+    "protocols": [
+      "Ethernet",
+      "PoE+/PoE++",
+      "10G SFP+",
+      "Etherlighting"
+    ],
+    "ecosystems": {
+      "ha": "native",
+      "apple": "no",
+      "google": "no",
+      "matter": false
+    },
+    "ecoNote": "UniFi Network/Protect works in Home Assistant natively (UniFi integration); no Apple Home or Google Home support without a bridge.",
+    "colors": "brushed silver-grey steel, dark port surrounds",
+    "visualNotes": "1U grey metal rack switch, 442 x 44 x 325 mm. Front: 24 RJ45 ports in one long row (16 x 1 GbE, 8 x 2.5 GbE) with Etherlighting LEDs along the edge, two SFP+ at the right end and an LCD touchscreen on the left.",
+    "photoUrl": "https://cdn.ecomm.ui.com/products/58922518-88f6-4c75-89c1-f57ba3d8253a/797246c6-70eb-4606-be9a-77515ac74451.png",
+    "photos": [
+      "Niepotrzebne/gauntlet/ref/devices/usw-pro-max-24-poe.jpg",
+      "Niepotrzebne/gauntlet/ref/devices/usw-pro-max-24-poe-2.jpg"
+    ],
+    "descPL": "Switch rack 1U z 24 portami PoE (400 W), 2,5 GbE i 10G SFP+ oraz podświetleniem Etherlighting.",
+    "notes": "poeBudgetW 400 is Total PoE Availability; watts 450 is max including PoE output."
+  },
+  {
+    "id": "u7-pro",
+    "brand": "Ubiquiti",
+    "name": "Access Point U7 Pro",
+    "sku": "U7-Pro",
+    "category": "network",
+    "pricePLN": 931,
+    "priceSource": "https://eu.store.ui.com/eu/en/products/u7-pro",
+    "dims_mm": [
+      206,
+      46,
+      206
+    ],
+    "mount": "ceiling",
+    "rackUnits": null,
+    "dinModules": null,
+    "power": {
+      "type": "poe",
+      "poeClass": "802.3at",
+      "watts": 21
+    },
+    "ports": {
+      "rj45": 1,
+      "rj45_2_5g": 1,
+      "poe_in": 1
+    },
+    "poeBudgetW": 0,
+    "etherlighting": false,
+    "wifi": {
+      "standard": "Wi-Fi 7 (802.11be)",
+      "bands": "2.4/5/6 GHz tri-band",
+      "spatial_streams": 6,
+      "coverage_m2": 140,
+      "max_clients": 300
+    },
+    "cameraRes": null,
+    "protocols": [
+      "Wi-Fi 7",
+      "PoE+ (802.3at)",
+      "Ethernet"
+    ],
+    "ecosystems": {
+      "ha": "native",
+      "apple": "no",
+      "google": "no",
+      "matter": false
+    },
+    "ecoNote": "UniFi Network/Protect works in Home Assistant natively (UniFi integration); no Apple Home or Google Home support without a bridge.",
+    "colors": "white, matte plastic",
+    "visualNotes": "Flat white disc, 206 mm across and 46 mm tall, with rounded edges. A blue-white glowing ring sits in the centre of the top face with a small UniFi U logo inside it. Mounting plate on the underside.",
+    "photoUrl": "https://cdn.ecomm.ui.com/products/fa8dd4e4-36c8-4c79-a928-22c7bff2ce29/ab5bc8a4-6135-402e-a695-e3ea5e16d3e6.png",
+    "photos": [
+      "Niepotrzebne/gauntlet/ref/devices/u7-pro.jpg",
+      "Niepotrzebne/gauntlet/ref/devices/u7-pro-2.jpg"
+    ],
+    "descPL": "Sufitowy access point Wi-Fi 7 z zasięgiem około 140 m², zasilany PoE+.",
+    "notes": "Uplink speed is not in the techspecs export; 2.5 GbE assumed."
+  },
+  {
+    "id": "u7-lite",
+    "brand": "Ubiquiti",
+    "name": "Access Point U7 Lite",
+    "sku": "U7-Lite",
+    "category": "network",
+    "pricePLN": 518,
+    "priceSource": "https://eu.store.ui.com/eu/en/products/u7-lite",
+    "dims_mm": [
+      171.5,
+      33,
+      171.5
+    ],
+    "mount": "ceiling",
+    "rackUnits": null,
+    "dinModules": null,
+    "power": {
+      "type": "poe",
+      "poeClass": "802.3af",
+      "watts": 13
+    },
+    "ports": {
+      "rj45": 1,
+      "rj45_1g": 1,
+      "poe_in": 1
+    },
+    "poeBudgetW": 0,
+    "etherlighting": false,
+    "wifi": {
+      "standard": "Wi-Fi 7 (802.11be)",
+      "bands": "2.4/5 GHz",
+      "spatial_streams": 4,
+      "coverage_m2": 115,
+      "max_clients": 200
+    },
+    "cameraRes": null,
+    "protocols": [
+      "Wi-Fi 7",
+      "PoE (802.3af/at)",
+      "Ethernet"
+    ],
+    "ecosystems": {
+      "ha": "native",
+      "apple": "no",
+      "google": "no",
+      "matter": false
+    },
+    "ecoNote": "UniFi Network/Protect works in Home Assistant natively (UniFi integration); no Apple Home or Google Home support without a bridge.",
+    "colors": "white, matte plastic",
+    "visualNotes": "Thin white disc, 171.5 mm across and 33 mm tall, with a thin glowing blue ring in the middle of the top face and a UniFi U logo in the centre. Smooth matte plastic, no display, mounting plate on the back.",
+    "photoUrl": "https://cdn.ecomm.ui.com/products/253cc208-4b09-4b2e-9d1a-7aa1e8f93507/49241c96-878f-4e40-8541-c2e89c1c5e6e.png",
+    "photos": [
+      "Niepotrzebne/gauntlet/ref/devices/u7-lite.jpg",
+      "Niepotrzebne/gauntlet/ref/devices/u7-lite-2.jpg"
+    ],
+    "descPL": "Tańszy sufitowy access point Wi-Fi 7 na około 115 m², zasilany PoE.",
+    "notes": "Band list follows techspecs (2.4/5 GHz, no 6 GHz listed). Uplink speed assumed."
+  },
+  {
+    "id": "u7-pro-wall",
+    "brand": "Ubiquiti",
+    "name": "Access Point U7 Pro Wall",
+    "sku": "U7-Pro-Wall",
+    "category": "network",
+    "pricePLN": 1074,
+    "priceSource": "https://eu.store.ui.com/eu/en/products/u7-pro-wall",
+    "dims_mm": [
+      150,
+      103,
+      36
+    ],
+    "mount": "wall",
+    "rackUnits": null,
+    "dinModules": null,
+    "power": {
+      "type": "poe",
+      "poeClass": "802.3at",
+      "watts": 22
+    },
+    "ports": {
+      "rj45": 1,
+      "rj45_2_5g": 1,
+      "poe_in": 1
+    },
+    "poeBudgetW": 0,
+    "etherlighting": false,
+    "wifi": {
+      "standard": "Wi-Fi 7 (802.11be)",
+      "bands": "2.4/5/6 GHz tri-band",
+      "spatial_streams": 6,
+      "coverage_m2": 140,
+      "max_clients": 300
+    },
+    "cameraRes": null,
+    "protocols": [
+      "Wi-Fi 7",
+      "PoE+ (802.3at)",
+      "Ethernet"
+    ],
+    "ecosystems": {
+      "ha": "native",
+      "apple": "no",
+      "google": "no",
+      "matter": false
+    },
+    "ecoNote": "UniFi Network/Protect works in Home Assistant natively (UniFi integration); no Apple Home or Google Home support without a bridge.",
+    "colors": "white, matte plastic",
+    "visualNotes": "Flat white rectangular wall access point, 150 x 103 x 36 mm, with rounded corners and a slim grey side edge. A small status light sits at the top centre and the UniFi U logo in the middle. Wall plate on the back, cable exits at the bottom.",
+    "photoUrl": "https://cdn.ecomm.ui.com/products/7dacb4f6-b703-4154-9264-784f2eb0dbda/f1cb65a5-c557-4e02-bcbb-090502a95b84.png",
+    "photos": [
+      "Niepotrzebne/gauntlet/ref/devices/u7-pro-wall.jpg",
+      "Niepotrzebne/gauntlet/ref/devices/u7-pro-wall-2.jpg"
+    ],
+    "descPL": "Ścienny access point Wi-Fi 7 do płaskiej ściany, zasięg około 140 m², zasilany PoE+.",
+    "notes": "Uplink speed is not in the techspecs export; 2.5 GbE assumed."
+  },
+  {
+    "id": "u7-outdoor",
+    "brand": "Ubiquiti",
+    "name": "Access Point U7 Outdoor",
+    "sku": "U7-Outdoor",
+    "category": "network",
+    "pricePLN": 1074,
+    "priceSource": "https://eu.store.ui.com/eu/en/products/u7-outdoor",
+    "dims_mm": [
+      170,
+      208,
+      54.5
+    ],
+    "mount": "outdoorWall",
+    "rackUnits": null,
+    "dinModules": null,
+    "power": {
+      "type": "poe",
+      "poeClass": "802.3at",
+      "watts": 19
+    },
+    "ports": {
+      "rj45": 1,
+      "rj45_2_5g": 1,
+      "poe_in": 1
+    },
+    "poeBudgetW": 0,
+    "etherlighting": false,
+    "wifi": {
+      "standard": "Wi-Fi 7 (802.11be)",
+      "bands": "2.4/5/6 GHz",
+      "spatial_streams": 4,
+      "coverage_m2": 465,
+      "max_clients": 250,
+      "ip_rating": "IPX6"
+    },
+    "cameraRes": null,
+    "protocols": [
+      "Wi-Fi 7",
+      "PoE+ (802.3at)",
+      "Ethernet",
+      "IPX6"
+    ],
+    "ecosystems": {
+      "ha": "native",
+      "apple": "no",
+      "google": "no",
+      "matter": false
+    },
+    "ecoNote": "UniFi Network/Protect works in Home Assistant natively (UniFi integration); no Apple Home or Google Home support without a bridge.",
+    "colors": "white, matte polycarbonate",
+    "visualNotes": "Rounded-rectangle white outdoor access point, 170 x 208 x 55 mm, smooth matte shell. The UniFi U logo sits in the upper centre with a small blue LED dot below it. Wall or pole bracket on the back, cable gland at the bottom edge, RP-SMA connectors for optional external omni antennas.",
+    "photoUrl": "https://cdn.ecomm.ui.com/products/62cc30b7-9559-480f-9668-b9edf40c0772/f2010c22-ff34-48e5-81f4-e7dad275d3c0.png",
+    "photos": [
+      "Niepotrzebne/gauntlet/ref/devices/u7-outdoor.jpg",
+      "Niepotrzebne/gauntlet/ref/devices/u7-outdoor-2.jpg"
+    ],
+    "descPL": "Zewnętrzny access point Wi-Fi 7 (IPX6) na elewację lub słup, zasięg około 465 m².",
+    "notes": "Uplink speed is not in the techspecs export; 2.5 GbE assumed."
+  },
+  {
+    "id": "g5-bullet",
+    "brand": "Ubiquiti",
+    "name": "Camera G5 Bullet",
+    "sku": "UVC-G5-Bullet",
+    "category": "network",
+    "pricePLN": 666,
+    "priceSource": "https://eu.store.ui.com/eu/en/products/uvc-g5-bullet",
+    "dims_mm": [
+      75.5,
+      74.4,
+      75.5
+    ],
+    "mount": "outdoorWall",
+    "rackUnits": null,
+    "dinModules": null,
+    "power": {
+      "type": "poe",
+      "poeClass": "802.3af",
+      "watts": 4
+    },
+    "ports": {
+      "rj45": 1,
+      "poe_in": 1
+    },
+    "poeBudgetW": 0,
+    "etherlighting": false,
+    "wifi": null,
+    "cameraRes": "4MP 2688x1512, 30 fps, IR night vision 9 m, IP55, FOV 84 x 45 deg",
+    "protocols": [
+      "Ethernet PoE (802.3af)",
+      "IR night vision",
+      "microphone"
+    ],
+    "ecosystems": {
+      "ha": "native",
+      "apple": "no",
+      "google": "no",
+      "matter": false
+    },
+    "ecoNote": "UniFi Network/Protect works in Home Assistant natively (UniFi integration); no Apple Home or Google Home support without a bridge.",
+    "colors": "white, matte polycarbonate with aluminium mount",
+    "visualNotes": "White cylindrical bullet camera with a dark glass lens bezel at the front and IR LEDs around the lens. The mount arm joins at the back, making the full assembly about 150 mm long. Body is about 75 mm across and 74 mm long.",
+    "photoUrl": "https://cdn.ecomm.ui.com/products/48ca8dea-109e-4d35-af46-b7ad03764207/0cd9d5ff-af60-45bd-a01f-b0fb050e76bb.png",
+    "photos": [
+      "Niepotrzebne/gauntlet/ref/devices/g5-bullet.jpg",
+      "Niepotrzebne/gauntlet/ref/devices/g5-bullet-2.jpg"
+    ],
+    "descPL": "Kamera bullet 4 MP do montażu na zewnątrz (IP55), noktowizor IR do 9 m, zasilana PoE.",
+    "notes": "Dimensions are the body only; with mount about 150 mm long."
+  },
+  {
+    "id": "g5-turret-ultra",
+    "brand": "Ubiquiti",
+    "name": "Camera G5 Turret Ultra",
+    "sku": "UVC-G5-Turret-Ultra",
+    "category": "network",
+    "pricePLN": 465,
+    "priceSource": "https://eu.store.ui.com/eu/en/products/uvc-g5-turret-ultra",
+    "dims_mm": [
+      90,
+      71.2,
+      90
+    ],
+    "mount": "ceiling",
+    "rackUnits": null,
+    "dinModules": null,
+    "power": {
+      "type": "poe",
+      "poeClass": "802.3af",
+      "watts": 4
+    },
+    "ports": {
+      "rj45": 1,
+      "poe_in": 1
+    },
+    "poeBudgetW": 0,
+    "etherlighting": false,
+    "wifi": null,
+    "cameraRes": "4MP 2688x1512, 30 fps, IR night vision 30 m, IP66, FOV 102 x 55 deg",
+    "protocols": [
+      "Ethernet PoE (802.3af)",
+      "IR night vision",
+      "microphone"
+    ],
+    "ecosystems": {
+      "ha": "native",
+      "apple": "no",
+      "google": "no",
+      "matter": false
+    },
+    "ecoNote": "UniFi Network/Protect works in Home Assistant natively (UniFi integration); no Apple Home or Google Home support without a bridge.",
+    "colors": "white or black",
+    "visualNotes": "Dome-style turret camera, 90 mm across and 71 mm tall, with a round housing and a dark tinted dome at the front. The lens sits in a rotating head with an IR ring around it. Flat back plate for ceiling or wall mounting.",
+    "photoUrl": "https://cdn.ecomm.ui.com/products/54f9bb29-40b8-4dac-9b1c-7ccf0e303aa5/4291a8f4-7390-4bb6-9190-8953739a0a92.png",
+    "photos": [
+      "Niepotrzebne/gauntlet/ref/devices/g5-turret-ultra.jpg",
+      "Niepotrzebne/gauntlet/ref/devices/g5-turret-ultra-2.jpg"
+    ],
+    "descPL": "Kopułkowa kamera 4 MP z noktowizorem IR do 30 m, IP66, do sufitu lub ściany.",
+    "notes": ""
+  },
+  {
+    "id": "g5-flex",
+    "brand": "Ubiquiti",
+    "name": "Camera G5 Flex",
+    "sku": "UVC-G5-Flex",
+    "category": "network",
+    "pricePLN": 666,
+    "priceSource": "https://eu.store.ui.com/eu/en/products/uvc-g5-flex",
+    "dims_mm": [
+      48,
+      107.5,
+      48
+    ],
+    "mount": "wall",
+    "rackUnits": null,
+    "dinModules": null,
+    "power": {
+      "type": "poe",
+      "poeClass": "802.3af",
+      "watts": 4
+    },
+    "ports": {
+      "rj45": 1,
+      "poe_in": 1
+    },
+    "poeBudgetW": 0,
+    "etherlighting": false,
+    "wifi": null,
+    "cameraRes": "4MP 2688x1512, 30 fps, IR night vision 6 m, IPX4 when covered, FOV 102 x 55 deg",
+    "protocols": [
+      "Ethernet PoE (802.3af)",
+      "IR night vision",
+      "microphone"
+    ],
+    "ecosystems": {
+      "ha": "native",
+      "apple": "no",
+      "google": "no",
+      "matter": false
+    },
+    "ecoNote": "UniFi Network/Protect works in Home Assistant natively (UniFi integration); no Apple Home or Google Home support without a bridge.",
+    "colors": "white",
+    "visualNotes": "Small white cylindrical camera on a short articulated base, about 48 mm across and 108 mm tall. The lens barrel with a black glass front sits at the top, a visible swivel joint links it to a flat base with a UniFi logo.",
+    "photoUrl": "https://cdn.ecomm.ui.com/products/af685346-47c7-41cf-a3c8-71ab26608dcd/c8249de8-79af-4b9b-8566-fdaedf6917b9.png",
+    "photos": [
+      "Niepotrzebne/gauntlet/ref/devices/g5-flex.jpg",
+      "Niepotrzebne/gauntlet/ref/devices/g5-flex-2.jpg"
+    ],
+    "descPL": "Kompaktowa kamera 4 MP z regulowanym kątem, do ściany, biurka lub sufitu podwieszanego.",
+    "notes": ""
+  },
+  {
+    "id": "g4-doorbell-pro",
+    "brand": "Ubiquiti",
+    "name": "G4 Doorbell Pro",
+    "sku": "UVC-G4-Doorbell-Pro",
+    "category": "network",
+    "pricePLN": 1571,
+    "priceSource": "https://eu.store.ui.com/eu/en/products/uvc-g4-doorbell-pro",
+    "dims_mm": [
+      51.7,
+      160.6,
+      28.7
+    ],
+    "mount": "doorbell",
+    "rackUnits": null,
+    "dinModules": null,
+    "power": {
+      "type": "mains",
+      "watts": 10
+    },
+    "ports": {
+      "ac_terminals": 2,
+      "usb_c": 1
+    },
+    "poeBudgetW": 0,
+    "etherlighting": false,
+    "wifi": null,
+    "cameraRes": "2MP 1600x1200 main + 2MP package camera (FHD overview), IR night vision 6 m, IPX4",
+    "protocols": [
+      "Two-way audio",
+      "Ethernet (via PoE adapter, sold separately)"
+    ],
+    "ecosystems": {
+      "ha": "native",
+      "apple": "no",
+      "google": "no",
+      "matter": false
+    },
+    "ecoNote": "UniFi Network/Protect works in Home Assistant natively (UniFi integration); no Apple Home or Google Home support without a bridge.",
+    "colors": "black or white",
+    "visualNotes": "Tall slim doorbell, about 52 x 161 x 29 mm. Top has the main camera lens with IR LEDs around it, the middle has a glowing blue ring around the call button, and a small screen sits lower down (shows WELCOME on the black version). Flat wall plate or 20-degree wedge.",
+    "photoUrl": "https://cdn.ecomm.ui.com/products/09c53756-12c3-4f3c-b0e7-f4268a0ad88f/5ac1509e-dae1-44a8-ad34-f2c1b0b94119.png",
+    "photos": [
+      "Niepotrzebne/gauntlet/ref/devices/g4-doorbell-pro.jpg",
+      "Niepotrzebne/gauntlet/ref/devices/g4-doorbell-pro-2.jpg"
+    ],
+    "descPL": "Smukły wideodomofon UniFi z kamerą główną i paczkową, dwukierunkowym audio, zasilany z dzwonka 16-24 V AC.",
+    "notes": "Default power is 16-24 V AC or USB-C 5 V; PoE needs the PoE adapter. The package camera is a second sensor."
+  },
+  {
+    "id": "unvr",
+    "brand": "Ubiquiti",
+    "name": "Network Video Recorder",
+    "sku": "UNVR",
+    "category": "network",
+    "pricePLN": 1566,
+    "priceSource": "https://eu.store.ui.com/eu/en/products/unvr",
+    "dims_mm": [
+      442,
+      44,
+      325
+    ],
+    "mount": "rack",
+    "rackUnits": 1,
+    "dinModules": null,
+    "power": {
+      "type": "mains",
+      "watts": 100
+    },
+    "ports": {
+      "rj45": 1,
+      "hdd_bays": 4
+    },
+    "poeBudgetW": 0,
+    "etherlighting": false,
+    "wifi": null,
+    "cameraRes": null,
+    "protocols": [
+      "Ethernet",
+      "SATA HDD/SSD"
+    ],
+    "ecosystems": {
+      "ha": "native",
+      "apple": "no",
+      "google": "no",
+      "matter": false
+    },
+    "ecoNote": "UniFi Network/Protect works in Home Assistant natively (UniFi integration); no Apple Home or Google Home support without a bridge.",
+    "colors": "grey steel",
+    "visualNotes": "1U rack NVR in grey steel, 442 x 44 x 325 mm, with four front drive bays shown as rectangular covers in a row. A thin LED strip and the power button sit at one end. Rear has the power inlets, network port and USB; flat front with rack ears.",
+    "photoUrl": "https://cdn.ecomm.ui.com/products/8a3b51c6-d3e9-4ea7-95b3-49a1253c4542/b35900e8-c2e4-41d7-82e4-e40f1534c399.png",
+    "photos": [
+      "Niepotrzebne/gauntlet/ref/devices/unvr.jpg",
+      "Niepotrzebne/gauntlet/ref/devices/unvr-2.jpg"
+    ],
+    "descPL": "Rejestrator UniFi 1U na cztery dyski do nagrywania z kamer UniFi Protect.",
+    "notes": "Uplink port count is not in the techspecs export; set to 1."
+  },
+  {
+    "id": "patch-panel-24",
+    "brand": "Ubiquiti",
+    "name": "24-Port Blank Keystone Patch Panel",
+    "sku": "UACC-Rack-Panel-Patch-Blank-24",
+    "category": "network",
+    "pricePLN": 132,
+    "priceSource": "https://eu.store.ui.com/eu/en/products/uacc-rack-panel-patch-blank-24",
+    "dims_mm": [
+      442.4,
+      43.7,
+      63.5
+    ],
+    "mount": "rack",
+    "rackUnits": 1,
+    "dinModules": null,
+    "power": {
+      "type": "pass",
+      "watts": 0
+    },
+    "ports": {
+      "keystone": 24
+    },
+    "poeBudgetW": 0,
+    "etherlighting": false,
+    "wifi": null,
+    "cameraRes": null,
+    "protocols": [
+      "RJ45 keystone (Cat6/6A jacks)"
+    ],
+    "ecosystems": {
+      "ha": "no",
+      "apple": "no",
+      "google": "no",
+      "matter": false
+    },
+    "ecoNote": "Passive hardware, nothing to integrate.",
+    "colors": "grey cold-rolled steel, black keystone openings",
+    "visualNotes": "1U grey steel panel with a row of 24 empty keystone openings and a cable management bar fixed below. Rack ears on both ends and a flat front with small UniFi text on the bar.",
+    "photoUrl": "https://cdn.ecomm.ui.com/products/6ab1a848-c395-4ba6-8295-5caf711dd19e/9fafb528-3340-4789-a24a-b1c83a009c22.png",
+    "photos": [
+      "Niepotrzebne/gauntlet/ref/devices/patch-panel-24.jpg",
+      "Niepotrzebne/gauntlet/ref/devices/patch-panel-24-2.jpg"
+    ],
+    "descPL": "Panel krosowniczy 1U na 24 moduły keystone (bez gniazd), z listwą do prowadzenia kabli.",
+    "notes": "No 24-port patch panel with fixed ports from Ubiquiti found; closest is the empty 24-slot keystone panel (UACC-Rack-Panel-Patch-Blank-24). Jacks are sold separately."
+  },
+  {
+    "id": "brush-panel",
+    "brand": "Ubiquiti",
+    "name": "1U Brush Panel",
+    "sku": "UACC-Rack-Panel-Brush-1U",
+    "category": "network",
+    "pricePLN": 185,
+    "priceSource": "https://eu.store.ui.com/eu/en/products/uacc-rack-panel-ocd",
+    "dims_mm": [
+      442.4,
+      43.7,
+      63.5
+    ],
+    "mount": "rack",
+    "rackUnits": 1,
+    "dinModules": null,
+    "power": {
+      "type": "pass",
+      "watts": 0
+    },
+    "ports": {},
+    "poeBudgetW": 0,
+    "etherlighting": false,
+    "wifi": null,
+    "cameraRes": null,
+    "protocols": [],
+    "ecosystems": {
+      "ha": "no",
+      "apple": "no",
+      "google": "no",
+      "matter": false
+    },
+    "ecoNote": "Passive hardware, nothing to integrate.",
+    "colors": "grey steel with black brush strip",
+    "visualNotes": "1U grey steel panel with a vertical brush strip in the middle, the bristles closing the cable slot in the rack. Rack ears on both ends, otherwise a flat front. Same chassis as the blank and vented 1U panels.",
+    "photoUrl": "https://cdn.ecomm.ui.com/products/24c35f46-e2bf-4085-8fa4-946f927ce372/0d8482e9-f5b6-4c40-a9f4-a69e592db500.png",
+    "photos": [],
+    "descPL": "Szczotkowy panel 1U zamykający otwór na kable w szafie rack.",
+    "notes": "Price is the EU store variant UACC-Rack-Panel-Brush-1U (EUR 35.00). No brush-only photo found: photoUrl is the OCD family group shot, which was not saved to ref."
+  },
+  {
+    "id": "pdu-pro",
+    "brand": "Ubiquiti",
+    "name": "Power Distribution Pro",
+    "sku": "USP-PDU-Pro",
+    "category": "network",
+    "pricePLN": 1270,
+    "priceSource": "https://store.ui.com/us/en/category/accessories-poe-power/collections/unifi-power-tech-power-distribution/products/usp-pdu-pro",
+    "dims_mm": [
+      442.4,
+      87.4,
+      106
+    ],
+    "mount": "rack",
+    "rackUnits": 2,
+    "dinModules": null,
+    "power": {
+      "type": "mains",
+      "watts": 1875
+    },
+    "ports": {
+      "outlets": 16,
+      "usb_c": 4,
+      "rj45": 1
+    },
+    "poeBudgetW": 0,
+    "etherlighting": false,
+    "wifi": null,
+    "cameraRes": null,
+    "protocols": [
+      "AC outlets (125 V, 15 A)",
+      "USB-C",
+      "Ethernet management"
+    ],
+    "ecosystems": {
+      "ha": "bridge",
+      "apple": "no",
+      "google": "no",
+      "matter": false
+    },
+    "ecoNote": "Managed in UniFi OS; Home Assistant only via a UniFi or bridge integration at best.",
+    "colors": "silver-grey steel",
+    "visualNotes": "Silver-grey steel rack PDU, 442 x 87 x 106 mm with rack ears. Front shows a row of 16 outlets in a dark strip plus larger receptacles below, four small USB-C ports at one end, a 1.3-inch touchscreen in the centre and a management RJ45 at the other end.",
+    "photoUrl": "https://cdn.ecomm.ui.com/products/b178b896-3499-4fa3-8c56-ce2822be933f/deb6718c-8791-46a3-ab20-7e126f743f60.png",
+    "photos": [
+      "Niepotrzebne/gauntlet/ref/devices/pdu-pro.jpg",
+      "Niepotrzebne/gauntlet/ref/devices/pdu-pro-2.jpg"
+    ],
+    "descPL": "Listwa rackowa z 16 gniazdami 125 V (zdalne sterowanie), czterema portami USB-C i ekranem dotykowym.",
+    "notes": "No EU or PL listing found. Price is an estimate from the US store price $279 x 3.7 PLN/USD x 1.23 VAT. Height 87.4 mm taken as 2U per techspecs."
+  },
+  {
+    "id": "ups-2u",
+    "brand": "Ubiquiti",
+    "name": "UPS 2U",
+    "sku": "UPS-2U-EU",
+    "category": "network",
+    "pricePLN": 1454,
+    "priceSource": "https://eu.store.ui.com/eu/en/category/integrations-power-tech/products/ups-2u-eu",
+    "dims_mm": [
+      442.4,
+      87.4,
+      300
+    ],
+    "mount": "rack",
+    "rackUnits": 2,
+    "dinModules": null,
+    "power": {
+      "type": "mains",
+      "watts": 1000
+    },
+    "ports": {
+      "outlets_battery": 4,
+      "outlets_surge": 4,
+      "ethernet": 1,
+      "c14_in": 1
+    },
+    "poeBudgetW": 0,
+    "etherlighting": false,
+    "wifi": null,
+    "cameraRes": null,
+    "protocols": [
+      "Line-interactive UPS",
+      "Ethernet management",
+      "Graceful shutdown (NUT)"
+    ],
+    "ecosystems": {
+      "ha": "bridge",
+      "apple": "no",
+      "google": "no",
+      "matter": false
+    },
+    "ecoNote": "Managed in UniFi OS; Home Assistant only via NUT or a UniFi bridge.",
+    "colors": "grey galvanised steel",
+    "visualNotes": "Grey galvanised-steel 2U rack UPS, 442 x 87 x 300 mm. Front is a plain panel with vent slots, a small power button and a status LED at one end. Rear has the C14 input, four battery-backed and four surge-only C13 outlets, an Ethernet management port and the battery cover.",
+    "photoUrl": "https://cdn.ecomm.ui.com/products/8626e3df-7aad-47f3-b297-24e97530a448/5b4c402e-93b0-4fff-af35-05cc62a722b8.png",
+    "photos": [
+      "Niepotrzebne/gauntlet/ref/devices/ups-2u.jpg",
+      "Niepotrzebne/gauntlet/ref/devices/ups-2u-2.jpg"
+    ],
+    "descPL": "Zasilacz awaryjny 2U o mocy 1500 VA / 1000 W z 8 gniazdami, zarządzany z UniFi.",
+    "notes": "EU store price EUR 275 with memory surcharge (base EUR 250). Runtime about 8 min at half load per spec."
+  },
+  {
+    "id": "rack-shelf",
+    "brand": "Ubiquiti",
+    "name": "Fixed Rack Shelf (Cantilever)",
+    "sku": "UACC-Rack-Shelf-CLV",
+    "category": "network",
+    "pricePLN": 233,
+    "priceSource": "https://eu.store.ui.com/eu/en/products/uacc-rack-shelf-clv",
+    "dims_mm": [
+      481.4,
+      44,
+      250
+    ],
+    "mount": "rack",
+    "rackUnits": 1,
+    "dinModules": null,
+    "power": {
+      "type": "pass",
+      "watts": 0
+    },
+    "ports": {},
+    "poeBudgetW": 0,
+    "etherlighting": false,
+    "wifi": null,
+    "cameraRes": null,
+    "protocols": [],
+    "ecosystems": {
+      "ha": "no",
+      "apple": "no",
+      "google": "no",
+      "matter": false
+    },
+    "ecoNote": "Passive hardware, nothing to integrate.",
+    "colors": "grey cold-rolled steel",
+    "visualNotes": "1U grey steel cantilever shelf, 481 x 44 x 250 mm, with a flat perforated tray and angled side brackets. Four rounded mounting slots at the front ears. Holds non-rackmount gear such as small gateways and desk switches.",
+    "photoUrl": "https://cdn.ecomm.ui.com/products/01036d73-b03c-42d6-a03f-a1bfd3eb29d5/cfdd1c52-a08b-430f-96f6-745816c4412c.png",
+    "photos": [
+      "Niepotrzebne/gauntlet/ref/devices/rack-shelf.jpg",
+      "Niepotrzebne/gauntlet/ref/devices/rack-shelf-2.jpg"
+    ],
+    "descPL": "Półka 1U do szafy rack na urządzenia niebędące rackowymi, nośność do 20 kg.",
+    "notes": "Used the fixed cantilever shelf (CLV, 1U). The Toolless Mini Rack shelf (TL) is the alternative."
+  },
+  {
+    "id": "rack-9u",
+    "brand": "Lanberg",
+    "name": "Szafa Lanberg Wisząca 19\" 9U (WF01-6609-10S)",
+    "sku": "WF01-6609-10S",
+    "category": "network",
+    "pricePLN": 479,
+    "priceSource": "https://www.x-kom.pl/p/455391-szafa-rack-lanberg-wiszaca-19-9u-600x600mm-jednosekcyjna-szara.html",
+    "dims_mm": [
+      600,
+      512.35,
+      600
+    ],
+    "mount": "wall",
+    "rackUnits": 9,
+    "dinModules": null,
+    "power": {
+      "type": "pass",
+      "watts": 0
+    },
+    "ports": {},
+    "poeBudgetW": 0,
+    "etherlighting": false,
+    "wifi": null,
+    "cameraRes": null,
+    "protocols": [],
+    "ecosystems": {
+      "ha": "no",
+      "apple": "no",
+      "google": "no",
+      "matter": false
+    },
+    "ecoNote": "Passive hardware, nothing to integrate.",
+    "colors": "grey powder-coated steel",
+    "visualNotes": "Wall-mounted 19-inch cabinet, 600 mm wide, 512 mm tall and 600 mm deep, grey powder-coated steel. Front door with a lock, solid side panels, cable entries at the top and bottom of the back. Two 19-inch rails at the front.",
+    "photoUrl": "https://images.morele.net/i1064/831342_1_i1064.jpg",
+    "photos": [
+      "Niepotrzebne/gauntlet/ref/devices/rack-9u.jpg"
+    ],
+    "descPL": "Wisząca szafa rack 19 cali 9U, 600 x 600 mm, szara, z drzwiami na zamek.",
+    "notes": "Price from x-kom listing (about 479 zł, neonet similar). Dimensions from Morele listing (S x G x W 600 x 600 x 512.35 mm)."
+  },
+  {
+    "id": "rack-12u",
+    "brand": "Lanberg",
+    "name": "Szafa Lanberg Wisząca 19\" 12U (WF01-6612-10S)",
+    "sku": "WF01-6612-10S",
+    "category": "network",
+    "pricePLN": 569,
+    "priceSource": "https://www.x-kom.pl/p/455394-szafa-rack-lanberg-wiszaca-19-12u-600x600mm-jednosekcyjna-szara.html",
+    "dims_mm": [
+      600,
+      645.7,
+      600
+    ],
+    "mount": "wall",
+    "rackUnits": 12,
+    "dinModules": null,
+    "power": {
+      "type": "pass",
+      "watts": 0
+    },
+    "ports": {},
+    "poeBudgetW": 0,
+    "etherlighting": false,
+    "wifi": null,
+    "cameraRes": null,
+    "protocols": [],
+    "ecosystems": {
+      "ha": "no",
+      "apple": "no",
+      "google": "no",
+      "matter": false
+    },
+    "ecoNote": "Passive hardware, nothing to integrate.",
+    "colors": "grey powder-coated steel",
+    "visualNotes": "Wall-mounted 19-inch cabinet, 600 mm wide, 646 mm tall and 600 mm deep, grey powder-coated steel with a lockable front door. Same proportions as the 9U cabinet but taller, with cable entries at the top and bottom.",
+    "photoUrl": "https://images.morele.net/i1064/831346_1_i1064.jpg",
+    "photos": [
+      "Niepotrzebne/gauntlet/ref/devices/rack-12u.jpg"
+    ],
+    "descPL": "Wisząca szafa rack 19 cali 12U, 600 x 600 mm, szara, z drzwiami na zamek.",
+    "notes": "Price from x-kom listing (about 569 zł, neonet similar). Height from Morele listing (645.7 mm)."
+  },
+  {
+    "id": "media-box",
+    "brand": "Hager",
+    "name": "Volta Rozdz. VDI p/t 2R 2x pł. mont.",
+    "sku": "VU24NWB",
+    "category": "network",
+    "pricePLN": 406,
+    "priceSource": "https://hager.com/pl/katalog/produkt/vu24nwb-volta-rozdz-vdi-p-t-2r-2x-pl-mont",
+    "dims_mm": [
+      348,
+      505.5,
+      94.5
+    ],
+    "mount": "wall",
+    "rackUnits": null,
+    "dinModules": null,
+    "power": {
+      "type": "pass",
+      "watts": 0
+    },
+    "ports": {
+      "modules": 24,
+      "rows": 2
+    },
+    "poeBudgetW": 0,
+    "etherlighting": false,
+    "wifi": null,
+    "cameraRes": null,
+    "protocols": [
+      "Flush mount",
+      "Two multimedia mounting plates"
+    ],
+    "ecosystems": {
+      "ha": "no",
+      "apple": "no",
+      "google": "no",
+      "matter": false
+    },
+    "ecoNote": "Passive hardware, nothing to integrate.",
+    "colors": "pure white (RAL 9010)",
+    "visualNotes": "Flush-mount white multimedia board, about 348 x 506 x 95 mm, with a white front frame and door. Two rows with 24 modules in total, two mounting plates for AV gear, and wiring entries on the sides. The door opens sideways in the photo.",
+    "photoUrl": "https://assets.hager.com/step-content/P/HA_16285311/11/std.lang.all/VU24NWB.webp",
+    "photos": [
+      "Niepotrzebne/gauntlet/ref/devices/media-box.jpg"
+    ],
+    "descPL": "Podtynkowa rozdzielnica multimedialna Hager Volta, 2 rzędy po 12 modułów, z płytami montażowymi na sprzęt AV.",
+    "notes": "Closest real flush multimedia box found; it is not a small two-module box. Price from Hager PL catalogue (405.60 zł)."
+  },
+  {
+    "id": "ont",
+    "brand": "Huawei",
+    "name": "EchoLife HG8145V5",
+    "sku": "HG8145V5",
+    "category": "network",
+    "pricePLN": 0,
+    "priceSource": "",
+    "dims_mm": [
+      173,
+      30,
+      120
+    ],
+    "mount": "surface",
+    "rackUnits": null,
+    "dinModules": null,
+    "power": {
+      "type": "mains",
+      "watts": 5.3
+    },
+    "ports": {
+      "rj45": 4,
+      "pots": 1,
+      "usb": 1,
+      "gpon": 1
+    },
+    "poeBudgetW": 0,
+    "etherlighting": false,
+    "wifi": {
+      "standard": "Wi-Fi 5 (802.11ac)",
+      "bands": "2.4/5 GHz dual-band",
+      "coverage_m2": null
+    },
+    "cameraRes": null,
+    "protocols": [
+      "GPON",
+      "Ethernet",
+      "Wi-Fi 5",
+      "POTS",
+      "USB"
+    ],
+    "ecosystems": {
+      "ha": "no",
+      "apple": "no",
+      "google": "no",
+      "matter": false
+    },
+    "ecoNote": "Operator fibre terminal; no smart-home integration.",
+    "colors": "white or light grey",
+    "visualNotes": "Flat, wide box, about 173 x 30 x 120 mm. Front has a row of status LEDs (PON, LOS, LAN, WLAN, POTS). Rear has four LAN RJ45 ports, one RJ11 phone port, a USB port, the power jack and the SC/APC fibre connector with its dust cap. Matte plastic, wall or desk mount.",
+    "photoUrl": "",
+    "photos": [],
+    "descPL": "Terminal światłowodowy GPON z Wi-Fi 5 i czterema portami LAN, zwykle dostarczany przez operatora razem z łączem.",
+    "notes": "Representative GPON ONT; not verified which Polish operator issues this exact model. Price 0 zł (operator-supplied), so priceSource is empty. No usable official product photo found."
+  },
+  {
+    "id": "shelly-pro-4pm",
+    "brand": "Shelly",
+    "name": "Shelly Pro 4PM",
+    "sku": "SPSW-104PE16EU",
+    "category": "electrical",
+    "pricePLN": 507,
+    "priceSource": "https://www.shelly.com/pl/products/shelly-pro-4pm",
+    "dims_mm": [
+      53,
+      96,
+      59
+    ],
+    "mount": "din",
+    "rackUnits": null,
+    "dinModules": 3,
+    "power": {
+      "type": "mains",
+      "watts": 3
+    },
+    "ports": {
+      "outputs": 4,
+      "rj45": 1,
+      "power_terminals": 2
+    },
+    "poeBudgetW": 0,
+    "etherlighting": false,
+    "wifi": null,
+    "cameraRes": null,
+    "protocols": [
+      "Wi-Fi 802.11b/g/n",
+      "Bluetooth 4.2",
+      "Ethernet",
+      "MQTT/REST"
+    ],
+    "ecosystems": {
+      "ha": "native",
+      "apple": "bridge",
+      "google": "bridge",
+      "matter": false
+    },
+    "ecoNote": "Local integration in Home Assistant (Shelly Gen2 API); Apple and Google only via the Shelly cloud or a bridge; Matter not listed in the spec.",
+    "colors": "black",
+    "visualNotes": "Black DIN module 53 mm wide (three modules) and 96 mm tall. Upper front has a 1.8-inch colour display with navigation buttons, four output channels O1 to O4 on the screw terminals below, and an RJ45 socket at the bottom edge. Shelly wordmark on the side.",
+    "photoUrl": "https://www.shelly.com/cdn/shop/files/Shelly-Pro-4PM-main-image.png?v=1749538954",
+    "photos": [
+      "Niepotrzebne/gauntlet/ref/devices/shelly-pro-4pm.jpg"
+    ],
+    "descPL": "Czteroprzekaźnikowy moduł na szynę DIN z pomiarem mocy (16 A na kanał), Wi-Fi i Ethernet.",
+    "notes": "Power watts is an estimate of self-consumption (not in the spec). Price 117.90 EUR incl. VAT x 4.3."
+  },
+  {
+    "id": "shelly-pro-3em",
+    "brand": "Shelly",
+    "name": "Shelly Pro 3EM-400",
+    "sku": "SPEM-003CEBEU400",
+    "category": "electrical",
+    "pricePLN": 1024,
+    "priceSource": "https://mediamarkt.pl/pl/product/_miernik-energii-shelly-pro-3em-400a-wi-fibluetooth-wielokolorowy-155850364.html",
+    "dims_mm": [
+      19,
+      94,
+      69
+    ],
+    "mount": "din",
+    "rackUnits": null,
+    "dinModules": 1,
+    "power": {
+      "type": "mains",
+      "watts": 2
+    },
+    "ports": {
+      "ct_inputs": 3,
+      "ct_neutral": 1,
+      "rj45": 1
+    },
+    "poeBudgetW": 0,
+    "etherlighting": false,
+    "wifi": null,
+    "cameraRes": null,
+    "protocols": [
+      "Wi-Fi 802.11b/g/n",
+      "Bluetooth 4.2",
+      "Ethernet",
+      "MQTT/REST"
+    ],
+    "ecosystems": {
+      "ha": "native",
+      "apple": "bridge",
+      "google": "bridge",
+      "matter": false
+    },
+    "ecoNote": "Local integration in Home Assistant (Shelly Gen2 API); Apple and Google only via the Shelly cloud or a bridge; Matter not listed in the spec.",
+    "colors": "white",
+    "visualNotes": "Narrow white DIN module, one module wide (19 mm) and 94 mm tall, with three white split-core CT clamps wired to it. Front has status LEDs (Power, Wi-Fi, LAN, Count) and a small reset button near the bottom, with screw terminal blocks at top and bottom.",
+    "photoUrl": "https://www.shelly.com/cdn/shop/files/Shelly-Pro-3EM-400-main-image.png?v=1728233390",
+    "photos": [
+      "Niepotrzebne/gauntlet/ref/devices/shelly-pro-3em.jpg"
+    ],
+    "descPL": "Trójfazowy licznik energii na szynę DIN z trzema przekładnikami CT, Wi-Fi i Ethernet.",
+    "notes": "400 A version (official Shelly page; MediaMarkt 1023.50 zł). The 120 A v2 version sells for about 499-509 zł. Size from the Shelly EN spec (94 x 19 x 69 mm)."
+  },
+  {
+    "id": "shelly-pro-2pm",
+    "brand": "Shelly",
+    "name": "Shelly Pro 2PM",
+    "sku": "SPSW-202PE16EU",
+    "category": "electrical",
+    "pricePLN": 430,
+    "priceSource": "https://www.shelly.com/pl/products/shelly-pro-2pm",
+    "dims_mm": [
+      19,
+      94,
+      69
+    ],
+    "mount": "din",
+    "rackUnits": null,
+    "dinModules": 1,
+    "power": {
+      "type": "mains",
+      "watts": 2
+    },
+    "ports": {
+      "outputs": 2,
+      "inputs": 2,
+      "rj45": 1
+    },
+    "poeBudgetW": 0,
+    "etherlighting": false,
+    "wifi": null,
+    "cameraRes": null,
+    "protocols": [
+      "Wi-Fi 802.11b/g/n",
+      "Bluetooth 4.2",
+      "Ethernet",
+      "MQTT/REST"
+    ],
+    "ecosystems": {
+      "ha": "native",
+      "apple": "bridge",
+      "google": "bridge",
+      "matter": false
+    },
+    "ecoNote": "Local integration in Home Assistant (Shelly Gen2 API); Apple and Google only via the Shelly cloud or a bridge; Matter not listed in the spec.",
+    "colors": "black",
+    "visualNotes": "Narrow black DIN module, one module wide (19 mm) and 94 mm tall. Two relay outputs O1 and O2 plus two switch inputs I1 and I2 on the screw terminals, status LEDs for power, Wi-Fi, LAN and each output, reset button at the bottom. RJ45 Ethernet socket on the lower edge.",
+    "photoUrl": "https://www.shelly.com/cdn/shop/files/Shelly-Pro-2PM-main-image.png?v=1727260149",
+    "photos": [
+      "Niepotrzebne/gauntlet/ref/devices/shelly-pro-2pm.jpg"
+    ],
+    "descPL": "Dwukanałowy przekaźnik na szynę DIN z pomiarem mocy (16 A na kanał) i wejściami do przełączników.",
+    "notes": "Power watts is an estimate of self-consumption (not in the spec). Price 99.90 EUR incl. VAT x 4.3."
+  },
+  {
+    "id": "shelly-pro-dimmer-2pm",
+    "brand": "Shelly",
+    "name": "Shelly Pro Dimmer 2PM",
+    "sku": "SPDM-002PE01EU",
+    "category": "electrical",
+    "pricePLN": 369,
+    "priceSource": "https://www.shelly.com/pl/products/shelly-pro-dimmer-2pm",
+    "dims_mm": [
+      19,
+      94,
+      69
+    ],
+    "mount": "din",
+    "rackUnits": null,
+    "dinModules": 1,
+    "power": {
+      "type": "mains",
+      "watts": 2
+    },
+    "ports": {
+      "outputs": 2,
+      "rj45": 1,
+      "power_terminals": 3
+    },
+    "poeBudgetW": 0,
+    "etherlighting": false,
+    "wifi": null,
+    "cameraRes": null,
+    "protocols": [
+      "Wi-Fi 802.11b/g/n",
+      "Bluetooth 4.2",
+      "Ethernet",
+      "MQTT/REST"
+    ],
+    "ecosystems": {
+      "ha": "native",
+      "apple": "bridge",
+      "google": "bridge",
+      "matter": false
+    },
+    "ecoNote": "Local integration in Home Assistant (Shelly Gen2 API); Apple and Google only via the Shelly cloud or a bridge; Matter not listed in the spec.",
+    "colors": "lime green",
+    "visualNotes": "Narrow lime-green DIN dimmer, one module wide (19 mm) and 94 mm tall, with screw terminals at top and bottom. Front LEDs show power, Wi-Fi, LAN and both outputs; reset button at the bottom.",
+    "photoUrl": "https://www.shelly.com/cdn/shop/files/Shelly-Pro-Dimmer-2PM-main-image.png?v=1727358911",
+    "photos": [
+      "Niepotrzebne/gauntlet/ref/devices/shelly-pro-dimmer-2pm.jpg"
+    ],
+    "descPL": "Dwukanałowy ściemniacz na szynę DIN (do 200 W na kanał) z pomiarem mocy.",
+    "notes": "Power watts is an estimate of self-consumption (not in the spec). Price 85.90 EUR incl. VAT x 4.3."
+  },
+  {
+    "id": "surge-t1t2",
+    "brand": "Hager",
+    "name": "SPD ogr. przepięć T1+T2 MOV 2P TN-S/TT",
+    "sku": "SPA911",
+    "category": "electrical",
+    "pricePLN": 1079,
+    "priceSource": "https://hager.com/pl/katalog/produkt/spa911-spd-ogr-przepiec-t1-t2-mov-2p-tn-s-tt",
+    "dims_mm": [
+      35.6,
+      89.8,
+      77.5
+    ],
+    "mount": "din",
+    "rackUnits": null,
+    "dinModules": 2,
+    "power": {
+      "type": "pass",
+      "watts": 0
+    },
+    "ports": {
+      "terminals": 4
+    },
+    "poeBudgetW": 0,
+    "etherlighting": false,
+    "wifi": null,
+    "cameraRes": null,
+    "protocols": [
+      "T1+T2 surge protection (IEC 61643-1)",
+      "Iimp 25 kA"
+    ],
+    "ecosystems": {
+      "ha": "no",
+      "apple": "no",
+      "google": "no",
+      "matter": false
+    },
+    "ecoNote": "Passive hardware, nothing to integrate.",
+    "colors": "light grey and white",
+    "visualNotes": "Two-module light grey DIN surge arrester, about 36 x 90 x 78 mm. Front shows two plug-in MOV cartridges with status windows and a SPA911 label. Wire terminals at the top and bottom, plain grey housing with a white front label.",
+    "photoUrl": "https://assets.hager.com/step-content/P/HA_16168187/11/std.lang.all/SPA911.webp",
+    "photos": [
+      "Niepotrzebne/gauntlet/ref/devices/surge-t1t2.jpg"
+    ],
+    "descPL": "Kombinowany ogranicznik przepięć T1+T2 (2P, TN-S/TT) na szynę DIN z wkładkami MOV.",
+    "notes": "Price 1 079 zł per piece from the Hager PL product page."
+  },
+  {
+    "id": "main-switch",
+    "brand": "Hager",
+    "name": "Modular isolating switch 2P 40A 400VAC",
+    "sku": "SBN240",
+    "category": "electrical",
+    "pricePLN": 99,
+    "priceSource": "https://onninen.pl/en/product/HAGER-2P-40A-400VAC-modular-switch-disconnector-SBN240,51084",
+    "dims_mm": [
+      35.6,
+      90,
+      70
+    ],
+    "mount": "din",
+    "rackUnits": null,
+    "dinModules": 2,
+    "power": {
+      "type": "pass",
+      "watts": 0
+    },
+    "ports": {
+      "poles": 2
+    },
+    "poeBudgetW": 0,
+    "etherlighting": false,
+    "wifi": null,
+    "cameraRes": null,
+    "protocols": [
+      "Switch disconnector 2P 40A 400 V AC"
+    ],
+    "ecosystems": {
+      "ha": "no",
+      "apple": "no",
+      "google": "no",
+      "matter": false
+    },
+    "ecoNote": "Passive hardware, nothing to integrate.",
+    "colors": "white with grey and green accents",
+    "visualNotes": "Two-module white modular isolator on a DIN rail, about 36 x 90 x 70 mm (estimated). Front shows the 40 A rating label, a green/red I-O lever under a clear cover, and screw terminals at top and bottom.",
+    "photoUrl": "https://onninen.pl/lib/images/IMG_1714774_m.jpg",
+    "photos": [
+      "Niepotrzebne/gauntlet/ref/devices/main-switch.jpg"
+    ],
+    "descPL": "Dwubiegunowy rozłącznik modułowy 40 A (400 V AC) na szynę DIN, pełniący rolę wyłącznika głównego.",
+    "notes": "Dimensions estimated (2 modules, standard height and depth). Price from Onninen gross listing (98.86 zł)."
+  },
+  {
+    "id": "rcd",
+    "brand": "Hager",
+    "name": "Residual current circuit breaker 40A, 30mA, 2-pole, type A",
+    "sku": "CDA240J",
+    "category": "electrical",
+    "pricePLN": 184,
+    "priceSource": "https://onninen.pl/en/product/HAGER-Wylacznik-roznicowopradowy-40A-30mA-2-biegunowy-typ-A-CDA240J,87670",
+    "dims_mm": [
+      35.6,
+      90,
+      70
+    ],
+    "mount": "din",
+    "rackUnits": null,
+    "dinModules": 2,
+    "power": {
+      "type": "pass",
+      "watts": 0
+    },
+    "ports": {
+      "poles": 2
+    },
+    "poeBudgetW": 0,
+    "etherlighting": false,
+    "wifi": null,
+    "cameraRes": null,
+    "protocols": [
+      "RCD type A, 30 mA, 40 A"
+    ],
+    "ecosystems": {
+      "ha": "no",
+      "apple": "no",
+      "google": "no",
+      "matter": false
+    },
+    "ecoNote": "Passive hardware, nothing to integrate.",
+    "colors": "light blue-grey with white cover",
+    "visualNotes": "Two-module RCCB with a light blue-grey body, white upper cover and a blue test button labelled T. The front carries the 40 A / 30 mA rating label and the status window. Screw terminals at top and bottom.",
+    "photoUrl": "https://onninen.pl/lib/images/CDA240J_MD01_DETAIL_489063_221_m.jpg",
+    "photos": [
+      "Niepotrzebne/gauntlet/ref/devices/rcd.jpg"
+    ],
+    "descPL": "Wyłącznik różnicowoprądowy typu A 40 A / 30 mA, dwubiegunowy, na szynę DIN.",
+    "notes": "Dimensions estimated (2 modules, standard height and depth). Price from Onninen gross listing (184.32 zł)."
+  },
+  {
+    "id": "mcb-b10",
+    "brand": "Hager",
+    "name": "MCB 6kA 1P B 10A",
+    "sku": "MBN110E",
+    "category": "electrical",
+    "pricePLN": 34,
+    "priceSource": "https://el12.com/elektricke-zarizeni/jistic-b10-1p-6ka-mbn110e,i68817",
+    "dims_mm": [
+      17.5,
+      83,
+      70
+    ],
+    "mount": "din",
+    "rackUnits": null,
+    "dinModules": 1,
+    "power": {
+      "type": "pass",
+      "watts": 0
+    },
+    "ports": {
+      "poles": 1
+    },
+    "poeBudgetW": 0,
+    "etherlighting": false,
+    "wifi": null,
+    "cameraRes": null,
+    "protocols": [
+      "MCB 1P, B curve, 6 kA"
+    ],
+    "ecosystems": {
+      "ha": "no",
+      "apple": "no",
+      "google": "no",
+      "matter": false
+    },
+    "ecoNote": "Passive hardware, nothing to integrate.",
+    "colors": "light grey with grey toggle",
+    "visualNotes": "One-module breaker, 17.5 mm wide, 83 mm tall and 70 mm deep. Light grey housing with a grey toggle lever and the rating printed on the front (B 10 A, 6 kA). Screw terminals top and bottom.",
+    "photoUrl": "https://assets.hager.com/step-content/P/HA_16378145/11/std.lang.all/MCN1XXE-MBN1XXE.webp",
+    "photos": [
+      "Niepotrzebne/gauntlet/ref/devices/mcb-b10.jpg"
+    ],
+    "descPL": "Jednomodułowy wyłącznik nadprądowy 10 A, charakterystyka B, 1P, na szynę DIN.",
+    "notes": "Photo is the shared Hager MBN/MCN family shot. Price is the el12 manufacturer reference (34.07 zł gross)."
+  },
+  {
+    "id": "mcb-b16",
+    "brand": "Hager",
+    "name": "MCB 6kA 1P B 16A",
+    "sku": "MBN116E",
+    "category": "electrical",
+    "pricePLN": 31,
+    "priceSource": "https://el12.com/equipo-electrico/disyuntor-b16-1p-6ka-mbn116e,i68819",
+    "dims_mm": [
+      17.5,
+      83,
+      70
+    ],
+    "mount": "din",
+    "rackUnits": null,
+    "dinModules": 1,
+    "power": {
+      "type": "pass",
+      "watts": 0
+    },
+    "ports": {
+      "poles": 1
+    },
+    "poeBudgetW": 0,
+    "etherlighting": false,
+    "wifi": null,
+    "cameraRes": null,
+    "protocols": [
+      "MCB 1P, B curve, 6 kA"
+    ],
+    "ecosystems": {
+      "ha": "no",
+      "apple": "no",
+      "google": "no",
+      "matter": false
+    },
+    "ecoNote": "Passive hardware, nothing to integrate.",
+    "colors": "light grey with grey toggle",
+    "visualNotes": "One-module breaker, 17.5 mm wide, 83 mm tall and 70 mm deep. Light grey housing with a grey toggle lever and the rating printed on the front (B 16 A, 6 kA). Screw terminals top and bottom.",
+    "photoUrl": "https://assets.hager.com/step-content/P/HA_16378145/11/std.lang.all/MCN1XXE-MBN1XXE.webp",
+    "photos": [
+      "Niepotrzebne/gauntlet/ref/devices/mcb-b16.jpg"
+    ],
+    "descPL": "Jednomodułowy wyłącznik nadprądowy 16 A, charakterystyka B, 1P, na szynę DIN.",
+    "notes": "Photo is the shared Hager MBN/MCN family shot. Price is the el12 manufacturer reference (31 zł gross)."
+  },
+  {
+    "id": "mcb-c20",
+    "brand": "Hager",
+    "name": "MCB 6kA 1P C 20A",
+    "sku": "MCN120E",
+    "category": "electrical",
+    "pricePLN": 31,
+    "priceSource": "https://el12.com/elektrische-gerate/leitungsschutzschalter-6ka-c-einpolig-20a-sicherung-charakteristik-c-mcn120e,i69267",
+    "dims_mm": [
+      17.5,
+      83,
+      70
+    ],
+    "mount": "din",
+    "rackUnits": null,
+    "dinModules": 1,
+    "power": {
+      "type": "pass",
+      "watts": 0
+    },
+    "ports": {
+      "poles": 1
+    },
+    "poeBudgetW": 0,
+    "etherlighting": false,
+    "wifi": null,
+    "cameraRes": null,
+    "protocols": [
+      "MCB 1P, C curve, 6 kA"
+    ],
+    "ecosystems": {
+      "ha": "no",
+      "apple": "no",
+      "google": "no",
+      "matter": false
+    },
+    "ecoNote": "Passive hardware, nothing to integrate.",
+    "colors": "light grey with grey toggle",
+    "visualNotes": "One-module C-curve breaker, 17.5 mm wide, 83 mm tall and 70 mm deep. Light grey housing with a grey toggle, MCN 120 C20 6000 printed on the front. Screw terminals top and bottom.",
+    "photoUrl": "https://assets.hager.com/step-content/P/HA_16255890/11/std.lang.all/MCN120E.webp",
+    "photos": [
+      "Niepotrzebne/gauntlet/ref/devices/mcb-c20.jpg"
+    ],
+    "descPL": "Jednomodułowy wyłącznik nadprądowy 20 A, charakterystyka C, 1P, na szynę DIN, do obwodów z większym prądem rozruchowym.",
+    "notes": "Price is el12 gross (30.92 zł); the Hager catalogue lists 47 zł."
+  },
+  {
+    "id": "panel-enclosure",
+    "brand": "Hager",
+    "name": "Volta rozdzielnica p/t 2R/24M II kl IP30",
+    "sku": "VU24NE",
+    "category": "electrical",
+    "pricePLN": 392,
+    "priceSource": "https://hager.com/pl/katalog/produkt/vu24ne-volta-rozdzielnica-p-t-2r-24m-ii-kl-ip30",
+    "dims_mm": [
+      348,
+      505.5,
+      94.5
+    ],
+    "mount": "wall",
+    "rackUnits": null,
+    "dinModules": 24,
+    "power": {
+      "type": "pass",
+      "watts": 0
+    },
+    "ports": {
+      "n_pe_terminals": 1
+    },
+    "poeBudgetW": 0,
+    "etherlighting": false,
+    "wifi": null,
+    "cameraRes": null,
+    "protocols": [
+      "Flush mount IP30",
+      "2 rows x 12 modules"
+    ],
+    "rows": 2,
+    "modulesPerRow": 12,
+    "ecosystems": {
+      "ha": "no",
+      "apple": "no",
+      "google": "no",
+      "matter": false
+    },
+    "ecoNote": "Passive hardware, nothing to integrate.",
+    "colors": "pure white (RAL 9010)",
+    "visualNotes": "Flush-mount white distribution board, about 348 x 506 x 95 mm (490 mm recess height), with a white hinged door (RAL 9010), two DIN rails of 12 modules each and N and PE terminal bars on the sides. Matte white front frame.",
+    "photoUrl": "https://assets.hager.com/step-content/P/HA_16285271/11/std.lang.all/VU24NE.webp",
+    "photos": [
+      "Niepotrzebne/gauntlet/ref/devices/panel-enclosure.jpg"
+    ],
+    "descPL": "Podtynkowa rozdzielnica Volta, 2 rzędy po 12 modułów, IP30, z zaciskami N i PE oraz białymi drzwiami.",
+    "notes": "The door is solid white (RAL 9010), not transparent; check Hager door options for a clear door. Price from Hager PL catalogue (392 zł)."
+  },
+  {
+    "id": "ipad-a16",
+    "brand": "Apple",
+    "name": "iPad (A16)",
+    "sku": "MD3Y4HC/A",
+    "category": "tablet",
+    "pricePLN": 2199,
+    "priceSource": "https://www.apple.com/pl/shop/buy-ipad/ipad",
+    "dims_mm": [
+      179.5,
+      248.6,
+      7.0
+    ],
+    "mount": "tabletWall",
+    "rackUnits": null,
+    "dinModules": null,
+    "power": {
+      "type": "usb-c",
+      "watts": 20
+    },
+    "ports": {
+      "usb_c": 1
+    },
+    "poeBudgetW": 0,
+    "etherlighting": false,
+    "wifi": null,
+    "cameraRes": null,
+    "protocols": [
+      "Wi-Fi 6 (802.11ax)",
+      "Bluetooth 5.3",
+      "USB-C"
+    ],
+    "ecosystems": {
+      "ha": "native",
+      "apple": "native",
+      "google": "bridge",
+      "matter": false
+    },
+    "ecoNote": "HA Companion app and Apple Home run natively on the iPad; Google Home works only through the cloud app, no native Google dashboard.",
+    "colors": "silver, blue, pink, yellow",
+    "visualNotes": "11-inch tablet, 248.6 x 179.5 x 7 mm, rounded corners with a flat aluminium-look back in the chosen colour. Black glass front with a thin bezel. Front camera on the long edge; Touch ID in the top button; USB-C on the bottom edge.",
+    "photoUrl": "https://www.apple.com/v/ipad-11/d/images/overview/hero/hero__crzh9misvcuq_large.jpg",
+    "photos": [
+      "Niepotrzebne/gauntlet/ref/devices/ipad-a16.jpg"
+    ],
+    "descPL": "11-calowy iPad z chipem A16, Touch ID i USB-C, dobry panel sterowania domem.",
+    "notes": "Apple PL price for Wi-Fi 128 GB Silver (MD3Y4HC/A). Hero photo shows all four colours with a keyboard case; no isolated product shot found."
+  },
+  {
+    "id": "ipad-mini",
+    "brand": "Apple",
+    "name": "iPad mini (A20 Pro)",
+    "sku": "MJ6F4HC/A",
+    "category": "tablet",
+    "pricePLN": 3499,
+    "priceSource": "https://www.apple.com/pl/shop/buy-ipad/ipad-mini",
+    "dims_mm": [
+      132.6,
+      195.3,
+      5.4
+    ],
+    "mount": "tabletWall",
+    "rackUnits": null,
+    "dinModules": null,
+    "power": {
+      "type": "usb-c",
+      "watts": 20
+    },
+    "ports": {
+      "usb_c": 1
+    },
+    "poeBudgetW": 0,
+    "etherlighting": false,
+    "wifi": null,
+    "cameraRes": null,
+    "protocols": [
+      "Wi-Fi",
+      "Bluetooth",
+      "USB-C"
+    ],
+    "ecosystems": {
+      "ha": "native",
+      "apple": "native",
+      "google": "bridge",
+      "matter": false
+    },
+    "ecoNote": "HA Companion app and Apple Home run natively on the iPad; Google Home works only through the cloud app, no native Google dashboard.",
+    "colors": "Midnight, Starlight",
+    "visualNotes": "Compact 8.5-inch OLED tablet, 195.3 x 132.6 x 5.4 mm, thin with rounded corners and a flat aluminium frame. Front camera on the long edge, Touch ID in the top button, USB-C on the bottom long edge. Photo shows Midnight with a blue wallpaper.",
+    "photoUrl": "https://www.apple.com/v/ipad-mini/a/images/overview/contrast/ipad_mini_midnight__fvw4l4n2dgq6_large.jpg",
+    "photos": [
+      "Niepotrzebne/gauntlet/ref/devices/ipad-mini.jpg"
+    ],
+    "descPL": "Najnowszy iPad mini z ekranem OLED 8,5 cala i chipem A20 Pro, cienki i lekki.",
+    "notes": "Current iPad mini per Apple PL: A20 Pro with 8.5-inch OLED (the A17 Pro model is the previous generation). Price for Wi-Fi 128 GB Midnight, standard glass."
+  },
+  {
+    "id": "galaxy-tab-a9p",
+    "brand": "Samsung",
+    "name": "Galaxy Tab A9+",
+    "sku": "SM-X210NZAEEUE",
+    "category": "tablet",
+    "pricePLN": 799,
+    "priceSource": "https://www.ppe.pl/promocje/tech/technologie-1/361640/promocja-na-tablet-samsung-galaxy-tab-a9-8-128-gb-1200p-90-hz-snapdragon-za-899-zl-rabat-400-zl.html",
+    "dims_mm": [
+      168.7,
+      257.1,
+      6.9
+    ],
+    "mount": "tabletWall",
+    "rackUnits": null,
+    "dinModules": null,
+    "power": {
+      "type": "usb-c",
+      "watts": 15
+    },
+    "ports": {
+      "usb_c": 1,
+      "microsd": 1
+    },
+    "poeBudgetW": 0,
+    "etherlighting": false,
+    "wifi": null,
+    "cameraRes": null,
+    "protocols": [
+      "Wi-Fi 5 (802.11ac)",
+      "Bluetooth 5.3",
+      "USB-C"
+    ],
+    "ecosystems": {
+      "ha": "native",
+      "apple": "no",
+      "google": "native",
+      "matter": false
+    },
+    "ecoNote": "Android: HA Companion app and Google Home run natively; no Apple Home on Android.",
+    "colors": "graphite, silver",
+    "visualNotes": "11-inch Android tablet, about 257 x 169 x 7 mm, with an aluminium-look graphite back, rounded corners and a black front bezel. Single front camera on the long edge; volume rocker on the top edge; USB-C on the bottom edge.",
+    "photoUrl": "https://www.orange.pl/medias/sys_master/root/images/h6e/he1/13314324430878/samsung-galaxy-tab-a9plus-front.png",
+    "photos": [
+      "Niepotrzebne/gauntlet/ref/devices/galaxy-tab-a9p.jpg"
+    ],
+    "descPL": "11-calowy tablet z Androidem, dobry panel smart home w przeglądarce lub aplikacji Home Assistant.",
+    "notes": "Price is an estimate (about 799 zł): launch 1299 zł, press promos 866-899 zł, Ceneo lowest about 649 zł. Dimensions conflict across sources; 257.1 x 168.7 x 6.9 used. Samsung PL page is JS-only and shows no price. Photo from Orange PL."
+  },
+  {
+    "id": "tablet-wall-mount",
+    "brand": "iPort",
+    "name": "iPort Connect Pro Wallstation",
+    "sku": "72351",
+    "category": "mount",
+    "pricePLN": 1716,
+    "priceSource": "https://www.auditorium.de/en/multiroom/equipment/ipad-accessories/iport-connect-pro-wallstation-black",
+    "dims_mm": [
+      126.24,
+      126.24,
+      19.81
+    ],
+    "mount": "tabletWall",
+    "rackUnits": null,
+    "dinModules": null,
+    "power": {
+      "type": "poe",
+      "poeClass": "802.3at",
+      "watts": 25
+    },
+    "ports": {
+      "power_in": 1
+    },
+    "poeBudgetW": 0,
+    "etherlighting": false,
+    "wifi": null,
+    "cameraRes": null,
+    "protocols": [
+      "Magnetic iPad attach",
+      "Charge pins",
+      "PoE+ adapter (optional)"
+    ],
+    "ecosystems": {
+      "ha": "no",
+      "apple": "no",
+      "google": "no",
+      "matter": false
+    },
+    "ecoNote": "Passive accessory; the tablet on it runs the platform. Needs a CONNECT PRO case on the iPad.",
+    "colors": "black (white also sold)",
+    "visualNotes": "Square black wall plate, 126 x 126 x 20 mm, with rounded corners. A raised round magnetic disc sits in the middle with five gold charging contacts around it. IPORT wordmark on the lower edge. Mounts flat to the wall with the power cable at the back.",
+    "photoUrl": "https://cdn.shopify.com/s/files/1/0666/5764/8870/files/bi5vslshlmm0cbugxmrf.png?v=1746744331",
+    "photos": [
+      "Niepotrzebne/gauntlet/ref/devices/tablet-wall-mount.jpg"
+    ],
+    "descPL": "Magnetyczna stacja ścienna iPort do iPada w etui CONNECT PRO, z ładowaniem i opcją zasilania PoE+.",
+    "notes": "PoE needs the separate CONNECT PoE+ adapter (about 175 USD in US listings); the default is a 24 V DC supply. Price EUR 399 incl. VAT (German shop) x 4.3."
+  },
+  {
+    "id": "tablet-stand",
+    "brand": "iPort",
+    "name": "iPort Connect Pro Basestation",
+    "sku": "72352",
+    "category": "mount",
+    "pricePLN": 1630,
+    "priceSource": "https://www.auditorium.de/en/multiroom/equipment/ipad-accessories/iport-connect-pro-basestation-black",
+    "dims_mm": [
+      88.4,
+      148.6,
+      178.1
+    ],
+    "mount": "surface",
+    "rackUnits": null,
+    "dinModules": null,
+    "power": {
+      "type": "mains",
+      "watts": 40
+    },
+    "ports": {
+      "dc_in": 1
+    },
+    "poeBudgetW": 0,
+    "etherlighting": false,
+    "wifi": null,
+    "cameraRes": null,
+    "protocols": [
+      "Magnetic iPad attach",
+      "Charge pins"
+    ],
+    "ecosystems": {
+      "ha": "no",
+      "apple": "no",
+      "google": "no",
+      "matter": false
+    },
+    "ecoNote": "Passive accessory; the tablet on it runs the platform. Needs a CONNECT PRO case on the iPad.",
+    "colors": "black (white is 72353)",
+    "visualNotes": "Desk stand, 88 x 149 x 178 mm, with a tilted front face at about 45 degrees and a flat base with rubber feet. A round magnetic disc sits on the upper face where the CONNECT PRO iPad case attaches, with contacts around it. IPORT logo on the lower front, matte plastic.",
+    "photoUrl": "https://cdn.shopify.com/s/files/1/0666/5764/8870/files/mucft7dvoudjgnb8sihk.png?v=1746744326",
+    "photos": [
+      "Niepotrzebne/gauntlet/ref/devices/tablet-stand.jpg"
+    ],
+    "descPL": "Magnetyczna podstawka biurkowa iPort do iPada w etui CONNECT PRO, nachylona pod kątem około 45 stopni.",
+    "notes": "Desk or counter magnetic stand for the same iPort CONNECT PRO system. Price EUR 379 incl. VAT (German shop) x 4.3. Power adapter 24 V 1.67 A is sold separately."
+  }
+]

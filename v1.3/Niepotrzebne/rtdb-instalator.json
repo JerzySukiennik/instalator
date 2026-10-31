@@ -1,0 +1,9 @@
+{
+  ".read": "auth != null",
+  ".write": "auth != null",
+  "rooms": {
+    "$code": {
+      ".validate": "$code.matches(/^[A-Z]{4}$/)"
+    }
+  }
+}
