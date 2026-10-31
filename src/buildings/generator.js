@@ -470,6 +470,8 @@ export function generate(spec) {
             faces.push({ W, sd, u0: ux0, u1: ux1, y0: pc.y0, y1: pc.y1, room: info.room, kind: pc.kind, floor: W.floor });
             if (pc.y0 <= y + 0.01) ovl[W.floor].strip(...ovlPts(W, ux0, ux1, sd, t2), y + 0.003, 0.32, 0.22);
             const fin2 = finishOf(info.room);
+            const accF = info.room.accent?.find((a) => a.wall === W.id);
+            if (fin2.flakes && !accF) flakeFace(g, W, sd, ux0, ux1, Math.max(pc.y0, y + 0.08), Math.min(pc.y1, y + H), fin2.flakes, y);
             if (fin2.tiles) tileFace(g, W, sd, ux0, ux1, Math.max(pc.y0, y), Math.min(pc.y1, y + (fin2.tiles.h ?? 2.1)), fin2.tiles, y);
             else if (pc.y0 <= y + 0.01 && !info.room.noBase) {
               const bc = C(info.room.base || pal.base);
@@ -559,6 +561,30 @@ export function generate(spec) {
     }
   }
 
+  function flakeFace(g, W, sd, u0, u1, y0, y1, F, fy) {
+    if (y1 <= y0 + 0.05 || u1 <= u0 + 0.05) return;
+    const v = sd * (W.t / 2 + 0.0018), vj = sd * (W.t / 2 + 0.0012);
+    const R = rng(Math.round(W.i * 97 + u0 * 31 + y0 * 7 + (sd > 0 ? 3 : 5)));
+    const cols = (F.cols || ['#b9ad98', '#ddd5c5', '#a59a85', '#cfc5b2']).map((c) => C(c));
+    const n = Math.round((u1 - u0) * (y1 - y0) * (F.n ?? 110));
+    for (let i = 0; i < n; i++) {
+      const u = u0 + 0.03 + R() * (u1 - u0 - 0.06), yy = y0 + 0.03 + R() * (y1 - y0 - 0.06);
+      const a = R() * Math.PI, L = 0.05 + R() * 0.13, w = 0.012 + R() * 0.02, ca = Math.cos(a), sa = Math.sin(a);
+      const P = (du, dy) => WP(W, u + du, v, yy + dy);
+      const c = cols[Math.floor(R() * cols.length)].clone().multiplyScalar(0.95 + R() * 0.1);
+      g.face([P(-ca * L - sa * w, -sa * L + ca * w), P(ca * L - sa * w, sa * L + ca * w), P(ca * L + sa * w, sa * L - ca * w), P(-ca * L + sa * w, -sa * L - ca * w)], WP(W, u, v - sd, yy), c);
+    }
+    const pw = F.panel?.[0] ?? 1.25, ph = F.panel?.[1] ?? 2.5, jc = C(F.joint || '#9c917e');
+    const ua = W.a[0] * W.d[0] + W.a[1] * W.d[1];
+    for (let k = Math.ceil((u0 + ua) / pw); k * pw - ua < u1; k++) {
+      const u = k * pw - ua;
+      if (u <= u0 + 0.01 || u >= u1 - 0.01) continue;
+      g.face([WP(W, u - 0.003, vj, y0), WP(W, u + 0.003, vj, y0), WP(W, u + 0.003, vj, y1), WP(W, u - 0.003, vj, y1)], WP(W, u, vj - sd, (y0 + y1) / 2), jc);
+    }
+    const yj = fy + ph;
+    if (yj > y0 + 0.01 && yj < y1 - 0.01) g.face([WP(W, u0, vj, yj - 0.003), WP(W, u1, vj, yj - 0.003), WP(W, u1, vj, yj + 0.003), WP(W, u0, vj, yj + 0.003)], WP(W, (u0 + u1) / 2, vj - sd, yj), jc);
+  }
+
   function drawOpening(W, o, G) {
     const g = G.geo, gl = G.glass, t2 = W.t / 2, y = FY(W.floor);
     const width = o.s1 - o.s0, sgn = W.ext ? W.out : 1;
@@ -632,6 +658,14 @@ export function generate(spec) {
       return;
     }
     const isExt = W.ext;
+    if (o.garage) {
+      const vf = isExt ? revealSplit(W) : 0, vv = vf - sgn * 0.05;
+      const v0g = Math.min(vf, vv), v1g = Math.max(vf, vv), gc = C(o.leafCol || '#3b3e43');
+      const n = 5, hh = (o.y1 - o.y0) / n;
+      for (let k = 0; k < n; k++) boxW(g, W, o.s0, o.s1, v0g, v1g, o.y0 + k * hh + 0.004, o.y0 + (k + 1) * hh - 0.004, gc.clone().multiplyScalar(k % 2 ? 0.96 : 1.03));
+      boxW(g, W, o.s0 - 0.05, o.s1 + 0.05, Math.min(vf, vf + sgn * 0.02), Math.max(vf, vf + sgn * 0.02), o.y1, o.y1 + 0.08, gc);
+      return;
+    }
     const fc = C(o.frameCol || (isExt ? pal.extDoor : pal.doorFrame));
     const fw = 0.045;
     const yb = o.y0, yt = o.y1;
@@ -862,7 +896,7 @@ export function generate(spec) {
     return rec;
   }
 
-  (spec.items || []).forEach((it, i) => placeItem(it, i));
+  (spec.items || []).forEach((it, i) => { try { placeItem(it, i); } catch (e) { console.warn('[buildings] item failed', it.t, e); } });
 
   const circuitById = new Map(data.circuits.map((c) => [c.id, c]));
   const lightCircuit = (roomId) => (data.circuits.find((c) => c.kind === 'light' && c.rooms.includes(roomId)) || {}).id;
@@ -1356,12 +1390,24 @@ export function generate(spec) {
     for (let i = 0; i < 4; i++) { const j = (i + 1) % 4; g.face([pts[i], pts[j], top[j], top[i]], ctr, col); }
   }
 
+  const addGeo = (geo, parent, o = {}) => {
+    for (const key of ['matte', 'matte2', 'satin', 'gloss', 'metal', 'glass']) {
+      const gg = geo.geometry(key);
+      if (!gg) continue;
+      const m = new THREE.Mesh(gg, M[key]);
+      m.castShadow = key !== 'glass' && (o.cast ?? true);
+      m.receiveShadow = true;
+      m.name = `${o.name || 'extra'}-${key}`;
+      parent.add(m);
+    }
+  };
   const api = {
-    spec, data, floors, rooms, roomById, M, pal, P, stat, siteGroup, roofGroup, ceilingGroups, floorGroups, ctx, faces, walls,
+    spec, data, floors, rooms, roomById, M, pal, P, stat, siteGroup, roofGroup, ceilingGroups, floorGroups, ctx, faces, walls, addGeo, Geo,
     FY, FH, wg, makeFixture, addMount, qYaw, boxPts, placeItem, snapWall, WP
   };
-  if (spec.ceilingDecor) spec.ceilingDecor(api, ceil);
-  if (spec.extra) spec.extra(api);
+  const safe = (name, fn) => { try { fn(); } catch (e) { console.warn(`[buildings] ${spec.id} ${name} failed`, e); } };
+  if (spec.ceilingDecor) safe('ceilingDecor', () => spec.ceilingDecor(api, ceil));
+  if (spec.extra) safe('extra', () => spec.extra(api));
 
   const meshes = [];
   const mk = (geo, mat, parent, o = {}) => {
@@ -1403,8 +1449,8 @@ export function generate(spec) {
     wallGroups.push({ mesh: m, floor: G.floor, side: G.side });
   }
 
-  if (spec.site) spec.site(api);
-  if (spec.roof) spec.roof(api);
+  if (spec.site) safe('site', () => spec.site(api));
+  if (spec.roof) safe('roof', () => spec.roof(api));
 
   for (const s of spec.strips || []) data.strips.push({ id: s.id, room: s.room, floor: s.floor ?? roomById.get(s.room)?.floor ?? 0, kind: s.kind, points: s.points.map((p) => p.map(r3)) });
   data.street = spec.street ? { pos: spec.street.map(r3) } : null;

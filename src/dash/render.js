@@ -3,7 +3,7 @@
 import { BY_ID } from "../shared/catalog.js";
 import { drawIcon } from "../shared/icons.js";
 
-export const COLS = 4, ROWS = 3;
+export const COLS = 4, ROWS = 6;
 
 const KIND_ICON = { light: "bulb", camera: "cam", climate: "temp", energy: "energy", lock: "lock", scene: "scene", network: "net", media: "speaker", sensor: "sensor" };
 export const KIND_LABEL = { light: "Światło", camera: "Kamera", climate: "Ogrzewanie", energy: "Prąd", lock: "Zamek", scene: "Scena", network: "Sieć", media: "Muzyka", sensor: "Czujnik" };
@@ -15,9 +15,9 @@ const F = {
 };
 
 const LAYOUT = {
-  ha: { x: 92, y: 150, r: 12, gap: 12, right: 28, bottom: 26 },
-  apple: { x: 262, y: 236, r: 22, gap: 14, right: 30, bottom: 26 },
-  google: { x: 186, y: 236, r: 30, gap: 14, right: 66, bottom: 52 }
+  ha: { x: 92, y: 156, r: 12, gap: 10, right: 28, bottom: 22 },
+  apple: { x: 262, y: 232, r: 20, gap: 12, right: 30, bottom: 22 },
+  google: { x: 186, y: 230, r: 28, gap: 12, right: 66, bottom: 44 }
 };
 
 function rr(ctx, x, y, w, h, r) {
@@ -56,6 +56,7 @@ function zoneName(data, d) {
 }
 
 const fmt = (n, d = 1) => n.toFixed(d).replace(".", ",");
+const seed = (str) => { let h = 7; for (const ch of String(str || "")) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return (h % 1000) / 1000; };
 
 export function cardInfo(snap, data, c) {
   const d = devOf(snap, c.dev);
@@ -74,14 +75,14 @@ export function cardInfo(snap, data, c) {
       value = on ? bri : 0;
       break;
     }
-    case "climate": on = !d || live; value = d?.temp ?? 21; state = on ? "Komfort" : "Niedostępne"; title = c.title || (d ? roomName(data, d.room) : "Ogrzewanie"); break;
+    case "climate": on = !d || live; value = d?.temp ?? Math.round((20.5 + seed(c.dev || c.id) * 2) * 2) / 2; state = on ? `${fmt(value)} °C · ${Math.round(44 + seed(c.id) * 14)}%` : "Niedostępne"; title = c.title || (d ? roomName(data, d.room) : "Ogrzewanie"); break;
     case "lock": on = live; state = live ? (d?.locked === false ? "Otwarte" : "Zamknięte") : "Niedostępne"; title = c.title || "Drzwi wejściowe"; break;
     case "camera": on = live; state = live ? "Na żywo" : "Offline"; title = c.title || zoneName(data, d) || (d ? roomName(data, d.room) : "Kamera"); break;
-    case "energy": on = true; value = 0.42 + ((snap.devs || []).length % 7) * 0.13; state = `${fmt(value, 2)} kW`; title = c.title || "Zużycie prądu"; break;
+    case "energy": on = true; value = 0.38 + seed(String((snap.devs || []).length)) * 1.4; state = `${fmt(value, 2)} kW · dziś ${fmt(6 + seed("d" + (snap.devs || []).length) * 9, 1)} kWh`; title = c.title || "Zużycie prądu"; break;
     case "network": on = !!snap.der?.online; state = snap.der?.online ? `${(snap.devs || []).filter((x) => snap.der.dev[x.uid]?.net).length} urządzeń online` : "Brak internetu"; title = c.title || "Sieć UniFi"; break;
     case "scene": on = false; state = "Scena"; title = c.title || "Wieczór"; break;
     case "media": on = live; state = live ? "Gra · 40%" : d ? "Niedostępne" : "Nic nie gra"; title = c.title || (d ? `${it?.name.replace("Sonos ", "Sonos ")}` : "Muzyka"); break;
-    case "sensor": on = live; state = live ? (it?.caps.includes("leak") ? "Sucho" : it?.caps.includes("smoke") ? "Brak dymu" : it?.caps.includes("contact") ? "Zamknięte" : "Brak ruchu") : "Niedostępne"; title = c.title || (d ? `${roomName(data, d.room)}` : "Czujnik"); break;
+    case "sensor": on = live; state = live ? (it?.caps.includes("leak") ? "Sucho" : it?.caps.includes("smoke") ? "Brak dymu" : it?.caps.includes("contact") ? "Zamknięte" : "Brak ruchu") : "Niedostępne"; title = c.title || (d ? `${it?.caps.includes("leak") ? "Zalanie" : it?.caps.includes("smoke") ? "Dym" : it?.caps.includes("contact") ? "Drzwi" : "Ruch"} · ${roomName(data, d.room)}` : "Czujnik"); break;
     default: break;
   }
   return { d, it, live, on, title, state, value, color: d?.color };
@@ -151,8 +152,8 @@ function haChrome(ctx, w, h, snap) {
     ctx.fillStyle = "#212121"; ctx.fillText(t, x + 38, 106);
     x += widths[i] + 10;
   });
-  drawIcon(ctx, "living", 92, 124, 22, "#212121", 2);
-  ctx.fillStyle = "#212121"; ctx.font = `500 18px ${F.ha}`; ctx.fillText("Ulubione", 122, 142);
+  drawIcon(ctx, "star", 92, 126, 20, "#212121", 2);
+  ctx.fillStyle = "#212121"; ctx.font = `500 18px ${F.ha}`; ctx.fillText("Ulubione", 120, 143);
 }
 
 function haTile(ctx, r, c, info, opts) {
@@ -173,12 +174,14 @@ function haTile(ctx, r, c, info, opts) {
     pmRow(ctx, r.x + 14, r.y + r.h - 54, r.w - 28, 40, "#f5f5f5", "#212121", `${fmt(info.value)} °C`, F.ha, 10);
     return;
   }
-  const ix = r.x + 30, iy = r.y + 32;
-  ctx.fillStyle = info.on ? hexA(c.kind === "light" && info.color ? info.color : col, 0.22) : "#f0f0f0";
-  ctx.beginPath(); ctx.arc(ix, iy, 20, 0, Math.PI * 2); ctx.fill();
-  drawIcon(ctx, KIND_ICON[c.kind] || "box", ix - 12, iy - 12, 24, info.on ? (c.kind === "light" && info.color ? darker(info.color) : col) : "#9e9e9e", 2);
-  ctx.fillStyle = "#212121"; ctx.font = `500 16px ${F.ha}`; clipText(ctx, info.title, r.x + 60, r.y + 28, r.w - 72);
-  ctx.fillStyle = "#727272"; ctx.font = `400 14px ${F.ha}`; clipText(ctx, info.state, r.x + 60, r.y + 48, r.w - 72);
+  const compact = r.h < 120;
+  const ix = r.x + 30, iy = compact ? r.y + r.h / 2 : r.y + 32;
+  const lc = c.kind === "light" ? (info.color && saturated(info.color) ? info.color : "#ffb300") : col;
+  ctx.fillStyle = info.on ? hexA(lc, 0.2) : "#f0f0f0";
+  ctx.beginPath(); ctx.arc(ix, iy, 19, 0, Math.PI * 2); ctx.fill();
+  drawIcon(ctx, KIND_ICON[c.kind] || "box", ix - 12, iy - 12, 24, info.on ? lc : "#9e9e9e", 2);
+  ctx.fillStyle = "#212121"; ctx.font = `500 15px ${F.ha}`; clipText(ctx, info.title, r.x + 58, iy - 3, r.w - 70);
+  ctx.fillStyle = "#727272"; ctx.font = `400 13px ${F.ha}`; clipText(ctx, info.state, r.x + 58, iy + 16, r.w - 70);
   if (c.kind === "light" && r.h > 100) {
     const bx = r.x + 14, by = r.y + r.h - 56, bw = r.w - 28;
     ctx.fillStyle = hexA("#ffc107", 0.2); rr(ctx, bx, by, bw, 42, 10); ctx.fill();
@@ -186,7 +189,13 @@ function haTile(ctx, r, c, info, opts) {
     ctx.fillStyle = "#fff"; rr(ctx, bx + Math.max(12, bw * (info.value || 0)) - 10, by + 10, 4, 22, 2); ctx.fill();
   }
   if (c.kind === "energy" && r.h > 100) spark(ctx, r.x + 14, r.y + r.h - 60, r.w - 28, 46, "#039be5");
-  if (c.kind === "climate") pmRow(ctx, r.x + 14, r.y + r.h - 50, r.w - 28, 38, "#f5f5f5", "#212121", `${fmt(info.value)} °C`, F.ha, 10);
+  if (c.kind === "climate" && !compact) pmRow(ctx, r.x + 14, r.y + r.h - 50, r.w - 28, 38, "#f5f5f5", "#212121", `${fmt(info.value)} °C`, F.ha, 10);
+}
+
+function saturated(hex) {
+  const n = parseInt(String(hex).replace("#", "").slice(0, 6), 16) || 0;
+  const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+  return Math.max(r, g, b) - Math.min(r, g, b) > 90;
 }
 
 function appleChrome(ctx, w, h, snap) {
@@ -250,7 +259,7 @@ function googleChrome(ctx, w, h, snap) {
   ctx.fillStyle = "#eef3f8"; ctx.fillRect(0, 0, w, h);
   ctx.fillStyle = "#1f1f1f"; ctx.font = `500 15px ${F.google}`; ctx.fillText("18:24", 22, 26);
   ctx.fillText("5G", w - 70, 26);
-  const rail = [["home", "Dom", true], ["din", "Aktywność", false], ["scene", "Automatyzacje", false]];
+  const rail = [["home", "Dom", true], ["activity", "Aktywność", false], ["auto", "Automatyzacje", false]];
   rail.forEach(([ic, t, on], i) => {
     const y = 300 + i * 92;
     if (on) { ctx.fillStyle = "#d3e3fd"; rr(ctx, 40, y - 4, 64, 34, 17); ctx.fill(); }
@@ -266,7 +275,7 @@ function googleChrome(ctx, w, h, snap) {
   ctx.fillStyle = "#c2e7ff"; ctx.beginPath(); ctx.arc(w - 64, 79, 22, 0, Math.PI * 2); ctx.fill();
   ctx.fillStyle = "#041e49"; ctx.font = `600 16px ${F.google}`; ctx.textAlign = "center"; ctx.fillText("T", w - 64, 85); ctx.textAlign = "left";
   ctx.fillStyle = "#ffffff"; rr(ctx, 152, 128, w - 152 - 40, h - 128 - 28, 30); ctx.fill();
-  const chips = [["home", "Ulubione", true], ["plan", "Wszystko"], ["cam", "Kamery"], ["bulb", "Światła"], ["wifi", "Wi-Fi"], ["temp", "Klimat"]];
+  const chips = [["heart", "Ulubione", true], ["plan", "Wszystko"], ["cam", "Kamery"], ["bulb", "Światła"], ["wifi", "Wi-Fi"], ["temp", "Klimat"]];
   let x = 186;
   ctx.font = `500 17px ${F.google}`;
   for (const [ic, t, on] of chips) {

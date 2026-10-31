@@ -1901,3 +1901,23 @@ KIT.houseNumber = (g, o) => {
   return { size: [0.26, 0.18, 0.02], noData: true, noShadow: true };
 };
 KIT.houseNumber.wall = true;
+
+LIGHTS.onyx = (g, o, glow) => {
+  const w = o.w ?? 11.6;
+  g.use('matte');
+  g.bx(-w / 2 - 0.02, 0, 0, w / 2 + 0.02, 0.012, 0.09, '#d7c6a6');
+  glow.bx(-w / 2, 0.012, 0.004, w / 2, 0.165, 0.085, '#ffffff');
+  return { bulbs: [], kind: 'listwa LED', glassCol: '#ead3ad', emissive: '#ffc985', lightPos: [0, 0.35, 0.4] };
+};
+LIGHTS.onyx.wall = true;
+
+LIGHTS.track = (g, o) => {
+  const L = o.l ?? 1.6, n = o.n ?? 3, col = o.color ?? '#1d1e20';
+  g.use('matte');
+  const k = o.k ?? 0;
+  if (k === 0) g.bx(-L / 2, -0.035, -0.018, L / 2, 0, 0.018, col);
+  const x = -L / 2 + ((k + 0.5) * L) / n;
+  g.cyl(x, -0.06, 0, 0.012, 0.012, 0.03, 6, col);
+  g.cyl(x, -0.165, 0, 0.034, 0.034, 0.095, 12, col, { noBottom: true });
+  return { bulbs: [{ pos: [x, -0.1, 0.0], kind: 'GU10', shape: 'gu10' }], kind: 'reflektor szynowy' };
+};

@@ -238,7 +238,7 @@ function buildSite(api) {
       if (z < -8.5 && z > -23) out.set('#8d8a84');
       return out;
     },
-    hole: (x, z) => x > X0 - 0.2 && x < X1 + 0.2 && z > Z0 - 0.2 && z < Z1 + 0.2
+    hole: (x, z) => x > X0 + 0.6 && x < X1 - 0.6 && z > Z0 + 0.6 && z < Z1 - 0.6
   });
   S.pave([-40, pathZ - 1.0, 60, pathZ + 1.0], 0.02, { type: 'tiles', color: '#a8a49c', size: [0.5, 0.5], grout: '#8b8781', vary: 0.04 }, 3);
   S.pave([14.0, pathZ + 1.0, 16.0, 38], 0.02, { type: 'tiles', color: '#a8a49c', size: [0.5, 0.5], grout: '#8b8781', vary: 0.04 }, 4);

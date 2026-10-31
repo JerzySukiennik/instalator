@@ -37,6 +37,24 @@ let online = false;
 const pings = [];
 
 window.addEventListener("pointerdown", () => audio.unlock(), { once: false });
+let drag = null;
+canvas.addEventListener("pointerdown", (e) => { drag = { x: e.clientX, y: e.clientY }; canvas.setPointerCapture(e.pointerId); });
+canvas.addEventListener("pointermove", (e) => {
+  if (!drag) return;
+  const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+  drag = { x: e.clientX, y: e.clientY };
+  if (dir.mode !== "orbit") return;
+  dir.orbit.az -= dx * 0.006;
+  dir.orbit.height = Math.max(2, Math.min(dir.orbit.radius * 1.6, dir.orbit.height + dy * 0.03));
+});
+canvas.addEventListener("pointerup", () => { drag = null; });
+canvas.addEventListener("wheel", (e) => {
+  e.preventDefault();
+  if (dir.mode !== "orbit") return;
+  const k = Math.exp(e.deltaY * 0.0012);
+  dir.orbit.radius = Math.max(3, Math.min(80, dir.orbit.radius * k));
+  dir.orbit.height = Math.max(2, Math.min(80, dir.orbit.height * k));
+}, { passive: false });
 window.addEventListener("keydown", () => audio.unlock());
 
 function padUrl(code) {
@@ -80,6 +98,7 @@ const camCam = new THREE.PerspectiveCamera(72, 16 / 9, 0.05, 250);
 const camImgs = {};
 let camAt = 0;
 window.__camImages = camImgs;
+window.__shootCams = () => shootCams(true);
 
 function shootCams(force = false) {
   if (!data || (!force && performance.now() - camAt < 2500)) return;
@@ -111,10 +130,6 @@ function shootCams(force = false) {
       im.data[o + 3] = 255;
     }
     g.putImageData(im, 0, 0);
-    g.fillStyle = "rgba(255,255,255,0.85)";
-    g.font = "600 11px 'IBM Plex Mono', monospace";
-    const t = new Date();
-    g.fillText(`${t.toISOString().slice(0, 10)} ${t.toTimeString().slice(0, 8)}`, 8, H - 8);
     camImgs[d.uid] = cv;
   }
 }
@@ -141,15 +156,15 @@ function focusTask(id) {
   house.showCones(false);
   house.setXray(false);
   if (!data) return;
-  if (!id) { dir.overview(data, { floor: house.floorShown < 9 ? house.floorShown : 0 }); return; }
+  if (!id) { dir.overview(data, { floor: house.floorShown < 9 ? house.floorShown : 0, speed: 0 }); return; }
   if (id === "panel" || id === "rack") {
     const f = house.focusPoint(id);
     if (f) { house.setFloor(f.floor); dir.closeup(f.pos.clone().add(new THREE.Vector3(0, id === "rack" ? 0.1 : 0, 0)), f.normal, id === "rack" ? 1.55 : 1.15, 0.12); }
     if (id === "rack") house.setXray(true);
     return;
   }
-  if (id === "wifi") { house.showWifi(true); dir.overview(data, { floor: 0, zoom: 1.15 }); house.setFloor(data.floors.length > 1 ? 0 : 0); return; }
-  if (id === "outdoor") { house.setFloor(99); house.showCones(true); dir.overview(data, { zoom: 1.7 }); return; }
+  if (id === "wifi") { house.showWifi(true); dir.overview(data, { floor: 0, zoom: 1.15, speed: 0 }); house.setFloor(data.floors.length > 1 ? 0 : 0); return; }
+  if (id === "outdoor") { house.setFloor(99); house.showCones(true); dir.overview(data, { zoom: 1.7, speed: 0 }); return; }
   if (id === "tablet") {
     const spot = (data.tabletSpots || []).find((s) => s.id === state.tablet.spot);
     if (spot) { const qn = new THREE.Quaternion(...spot.quat); dir.closeup(new THREE.Vector3(...spot.pos), new THREE.Vector3(0, 0, 1).applyQuaternion(qn), 1.1, 0.05, 30); house.setFloor(spot.floor ?? 0); }
@@ -243,9 +258,9 @@ async function beginJob(job) {
   tasks = tasksFor(job, data);
   R.setMode("afternoon", true);
   house.setFloor(0);
-  dir.overview(data, { floor: 0, zoom: 1.6, az: 2.3 });
+  dir.overview(data, { floor: 0, zoom: 1.6, az: 2.3, speed: 0 });
   dir.snap();
-  dir.overview(data, { floor: 0 });
+  dir.overview(data, { floor: 0, speed: 0, az: 0.75 });
   host.broadcast({ t: "building", data });
   sendState();
   hud.banner("Prąd jest wyłączony. Zacznijcie od rozdzielnicy.");

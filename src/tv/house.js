@@ -555,22 +555,31 @@ export class House {
     const dir = tmpV.copy(camPos).sub(target).setY(0).normalize();
     const N = { N: [0, -1], S: [0, 1], E: [1, 0], W: [-1, 0] };
     for (const wg of this.b.wallGroups || []) {
-      let planes = null;
+      let h = null;
       const fy = this.data.floors[wg.floor]?.y || 0;
       if (mode !== "none") {
-        if (wg.side === "int") planes = mode === "close" ? null : [new THREE.Plane(new THREE.Vector3(0, -1, 0), fy + 1.3)];
+        if (wg.side === "int") h = mode === "close" ? null : fy + 1.3;
         else {
           const n = N[wg.side];
           const dot = n ? n[0] * dir.x + n[1] * dir.z : 0;
-          if (dot > 0.28) planes = [new THREE.Plane(new THREE.Vector3(0, -1, 0), fy + (mode === "close" ? 0.35 : 0.95))];
+          wg._front = wg._front ? dot > 0.12 : dot > 0.36;
+          if (wg._front) h = fy + (mode === "close" ? 0.35 : 1.0);
         }
       }
-      const mats = wg.material ? [wg.material] : [];
-      if (!mats.length) wg.mesh.traverse((o) => { if (o.isMesh) (Array.isArray(o.material) ? o.material : [o.material]).forEach((m) => { if (!mats.includes(m)) mats.push(m); }); });
-      for (const m of mats) {
-        const was = m.clippingPlanes?.[0]?.constant;
-        const now = planes?.[0]?.constant;
-        if (was !== now) { m.clippingPlanes = planes; m.clipShadows = true; m.needsUpdate = true; }
+      if (!wg._mats) {
+        wg._mats = wg.material ? [wg.material] : [];
+        if (!wg._mats.length) wg.mesh.traverse((o) => { if (o.isMesh) (Array.isArray(o.material) ? o.material : [o.material]).forEach((m) => { if (!wg._mats.includes(m)) wg._mats.push(m); }); });
+        for (const m of wg._mats) capify(m);
+      }
+      for (const m of wg._mats) {
+        const was = m.clippingPlanes?.[0]?.constant ?? null;
+        const now = h == null ? null : h;
+        if (was !== now) {
+          m.clippingPlanes = h == null ? null : [new THREE.Plane(new THREE.Vector3(0, -1, 0), h)];
+          m.clipShadows = true;
+          m.side = h == null ? m.userData.side0 : THREE.DoubleSide;
+          m.needsUpdate = true;
+        }
       }
     }
   }
@@ -609,6 +618,19 @@ export class House {
       });
     }
   }
+}
+
+function capify(m) {
+  if (m.userData.capped) return;
+  m.userData.capped = true;
+  m.userData.side0 = m.side;
+  const prev = m.onBeforeCompile;
+  m.onBeforeCompile = (sh, r) => {
+    if (prev) prev.call(m, sh, r);
+    sh.fragmentShader = sh.fragmentShader.replace("#include <dithering_fragment>", "#include <dithering_fragment>\n\tif (!gl_FrontFacing) gl_FragColor = vec4(0.205, 0.215, 0.225, 1.0);");
+  };
+  m.customProgramCacheKey = () => "cap";
+  m.needsUpdate = true;
 }
 
 function heatColor(v) {

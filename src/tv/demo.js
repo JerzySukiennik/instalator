@@ -129,20 +129,21 @@ export function runDemo(state, data, reduce, opts = {}) {
     const ids = state.devs.map((d) => d.uid);
     act({ a: "pair", uids: ids });
   }
-  const pick = (cap) => state.devs.find((d) => d.paired && BY_ID[d.id]?.caps.includes(cap));
+  const pick = (cap, n = 0) => state.devs.filter((d) => d.paired && BY_ID[d.id]?.caps.includes(cap))[n];
   const cards = [];
-  const cam = state.devs.find((d) => BY_ID[d.id]?.caps.includes("camera"));
-  if (cam) cards.push({ id: "c1", kind: "camera", dev: cam.uid, x: 0, y: 0, w: 2, h: 1 });
-  const light = pick("light");
-  if (light) cards.push({ id: "c2", kind: "light", dev: light.uid, x: 2, y: 0, w: 1, h: 1 });
-  const strip = state.devs.find((d) => d.paired && d.place === "strip");
-  if (strip) cards.push({ id: "c3", kind: "light", dev: strip.uid, x: 2, y: 1, w: 1, h: 1 });
-  const trv = pick("trv");
-  cards.push({ id: "c4", kind: "climate", dev: trv?.uid || null, x: 3, y: 0, w: 1, h: 2 });
-  const lock = pick("lock");
-  cards.push({ id: "c5", kind: lock ? "lock" : "scene", dev: lock?.uid || null, x: 0, y: 1, w: 1, h: 1 });
-  cards.push({ id: "c6", kind: "energy", dev: null, x: 1, y: 1, w: 1, h: 1 });
-  cards.push({ id: "c7", kind: "network", dev: null, x: 0, y: 2, w: 2, h: 1 });
-  cards.push({ id: "c8", kind: "media", dev: pick("speaker")?.uid || null, x: 2, y: 2, w: 2, h: 1 });
+  const put = (kind, dev, x, y, w = 1, h = 1) => cards.push({ id: `c${cards.length}`, kind, dev: dev?.uid || null, x, y, w, h });
+  const cam = state.devs.find((d) => BY_ID[d.id]?.caps.includes("camera") && !BY_ID[d.id]?.caps.includes("doorbell")) || state.devs.find((d) => BY_ID[d.id]?.caps.includes("camera"));
+  put("camera", cam, 0, 0, 2, 3);
+  put("climate", pick("trv"), 2, 0, 1, 3);
+  put("light", pick("light", 0), 3, 0);
+  put("light", state.devs.find((d) => d.paired && d.place === "strip"), 3, 1);
+  put("light", pick("light", 2) || pick("light", 1), 3, 2);
+  put("lock", pick("lock"), 0, 3);
+  put("sensor", pick("leak") || pick("smoke"), 1, 3);
+  put("energy", null, 2, 3, 2, 2);
+  put("network", null, 0, 4, 2, 1);
+  put("media", pick("speaker"), 0, 5, 2, 1);
+  put("scene", null, 2, 5);
+  put("sensor", pick("smoke") || pick("contact"), 3, 5);
   act({ a: "dash", cards });
 }

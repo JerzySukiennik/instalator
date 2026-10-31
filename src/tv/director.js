@@ -43,7 +43,7 @@ export class Director {
     this.orbit.center.set(cx, fy + 0.8, cz);
     this.orbit.radius = span * 1.25 + 2.2;
     this.orbit.height = span * 1.05 + 2.4;
-    this.orbit.speed = 0.02;
+    this.orbit.speed = 0;
     this.cutMode = "overview";
     this.R.frame = span + 6;
   }
