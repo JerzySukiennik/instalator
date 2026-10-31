@@ -114,11 +114,12 @@ export class Hud {
       <div class="bud"><div class="budline"><span>wydane <b>${fmtZl(s.budget.spent)}</b></span><span>zostało <b>${fmtZl(left)}</b></span></div><div class="budbar ${left < 0 ? "over" : ""}"><i style="width:${pct}%"></i></div></div>`;
     const reqs = s.reqs || [];
     const done = reqs.filter((r) => r.ok).length;
-    $("#checklist", this.root).innerHTML = `<h4><span>Lista klienta</span><span>${done}/${reqs.length}</span></h4><ul>${j.reqs.map((r) => {
+    const open = j.reqs.filter((r) => !reqs.find((x) => x.id === r.id)?.ok).sort((a, b) => (reqs.find((x) => x.id === b.id)?.p || 0) - (reqs.find((x) => x.id === a.id)?.p || 0));
+    const shown = open.slice(0, 5);
+    $("#checklist", this.root).innerHTML = `<h4><span>Lista klienta</span><span>${done}/${reqs.length}</span></h4><ul>${shown.map((r) => {
       const st = reqs.find((x) => x.id === r.id) || {};
-      const pop = st.ok && !this.prevOk.has(r.id) ? "pop" : "";
-      return `<li class="${st.ok ? "ok" : ""} ${pop}"><span class="box">${st.ok ? icon("check", 14, 3) : ""}</span><span>${esc(r.text)}${!st.ok && st.p > 0 ? `<span class="pg"><i style="width:${Math.round(st.p * 100)}%"></i></span>` : ""}</span></li>`;
-    }).join("")}</ul>`;
+      return `<li><span class="box"></span><span>${esc(r.text)}${st.p > 0 ? `<span class="pg"><i style="width:${Math.round(st.p * 100)}%"></i></span>` : ""}</span></li>`;
+    }).join("")}${open.length > shown.length ? `<li class="more"><span class="box"></span><span>i jeszcze ${open.length - shown.length}</span></li>` : ""}${done ? `<li class="ok sum ${reqs.some((r) => r.ok && !this.prevOk.has(r.id)) ? "pop" : ""}"><span class="box">${icon("check", 14, 3)}</span><span>${done === reqs.length ? "Wszystko zrobione" : `Zrobione: ${done}`}</span></li>` : ""}</ul>`;
     const newly = reqs.filter((r) => r.ok && !this.prevOk.has(r.id));
     this.prevOk = new Set(reqs.filter((r) => r.ok).map((r) => r.id));
     const order = s.turn.order.map((c) => s.players.find((p) => p.cid === c)).filter((p) => p && p.online);
