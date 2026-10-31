@@ -53,8 +53,8 @@ export function confirmBox(title, text, yes, no = "Wróć") {
   return new Promise((res) => {
     const sh = sheet(title, (sc, s, close) => {
       sc.innerHTML = `<p style="margin:0 0 16px;line-height:1.4;color:var(--ink2)">${esc(text)}</p><div style="display:flex;gap:10px"><button class="btn w n">${esc(no)}</button><button class="btn y ok">${esc(yes)}</button></div>`;
-      $(".n", sc).onclick = () => { close(); res(false); };
-      $(".ok", sc).onclick = () => { close(); res(true); };
+      $(".n", sc).onclick = () => { res(false); close(); };
+      $(".ok", sc).onclick = () => { res(true); close(); };
     }, () => res(false));
     return sh;
   });
