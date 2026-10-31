@@ -188,9 +188,10 @@ function tasksView() {
       <div class="h"><span>${solo ? "Co robimy?" : "Twoja tura: wybierz jedno zadanie"}</span><span>${(S.reqs || []).filter((r) => r.ok).length}/${(S.reqs || []).length}</span></div>
       <div class="tasks">${tasks.map((t) => {
         const st = taskStatus(t);
-        const hot = t.id === "panel" && powerOff;
         const done = st && st.n && st.ok === st.n;
-        const sub = t.id === "panel" ? (powerOff ? "Prąd wyłączony. Zacznij tutaj!" : "Bezpieczniki, moduły Shelly") : t.id === "rack" ? "Bramka, switch, patchowanie" : t.id === "wifi" ? `Zasięg ${Math.round((S.der?.cov || 0) * 100)}%` : t.id === "tablet" ? (S.tablet?.mount ? "Projekt pulpitu" : "Kup, powieś, sparuj") : t.id === "handover" ? "Zawołaj klienta" : t.id === "outdoor" ? "Kamery, dzwonek, brama" : roomSub(t.room);
+        const loose = S.devs.filter((d) => d.place !== "fixed" && S.der?.dev[d.uid] && !S.der.dev[d.uid].net && (d.run || ((d.place === "rack" || d.place === "shelf") && d.id !== "rack-shelf" && !["patch-panel-24", "brush-panel", "ups-2u", "pdu-pro"].includes(d.id)))).length;
+        const hot = (t.id === "panel" && powerOff) || (t.id === "rack" && loose > 0 && !powerOff);
+        const sub = t.id === "panel" ? (powerOff ? "Prąd wyłączony. Zacznij tutaj!" : "Bezpieczniki, moduły Shelly") : t.id === "rack" ? (loose ? `${loose} bez kabla albo prądu` : "Bramka, switch, patchowanie") : t.id === "wifi" ? `Zasięg ${Math.round((S.der?.cov || 0) * 100)}%` : t.id === "tablet" ? (S.tablet?.mount ? "Projekt pulpitu" : "Kup, powieś, sparuj") : t.id === "handover" ? "Zawołaj klienta" : t.id === "outdoor" ? "Kamery, dzwonek, brama" : roomSub(t.room);
         return `<button class="task ${hot ? "hot" : ""} ${done ? "done" : ""} ${t.id === "handover" ? "wide" : ""}" data-id="${esc(t.id)}">${icon(t.icon || "home", 26, 1.9)}<div><b>${esc(t.name)}</b><br><small>${esc(sub)}</small></div></button>`;
       }).join("")}</div>
     </div>`;

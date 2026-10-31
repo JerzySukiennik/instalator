@@ -47,6 +47,16 @@ export function isActive(s, cid) {
 
 const uid = (s) => `d${++s.seq}`;
 
+export function advanceTurn(s) {
+  const cur = activeCid(s);
+  s.turn.task = null;
+  const order = s.turn.order.filter((c) => s.players.find((p) => p.cid === c && p.online));
+  if (!order.length) return;
+  const at = order.indexOf(cur);
+  s.turn.order = order;
+  s.turn.i = at < 0 ? s.turn.i % order.length : (at + 1) % order.length;
+}
+
 function spend(s, zl) { s.budget.spent += zl; }
 
 function invTake(s, id) {
@@ -191,10 +201,7 @@ export function reduce(s, cid, a, data) {
       break;
     }
     case "endTurn": {
-      s.turn.task = null;
-      const order = s.turn.order.filter((c) => s.players.find((p) => p.cid === c && p.online));
-      s.turn.order = order.length ? order : s.turn.order;
-      s.turn.i = (s.turn.i + 1) % Math.max(1, s.turn.order.length);
+      advanceTurn(s);
       out.push({ fx: "turn", cid: activeCid(s) });
       break;
     }
@@ -350,7 +357,8 @@ export function reduce(s, cid, a, data) {
       const tabId = Object.keys(s.inv).find((k) => BY_ID[k]?.caps.includes("tablet")) || (s.tablet.dev && s.devs.find((d) => d.uid === s.tablet.dev)?.id);
       if (!tabId) return nope("Najpierw kup tablet.");
       const holder = spot.kind === "wall" ? "tablet-wall-mount" : "tablet-stand";
-      if (!s.inv[holder]) return nope(spot.kind === "wall" ? "Do ściany potrzebny jest uchwyt ścienny." : "Na blat potrzebny jest stojak magnetyczny.");
+      const placedHolder = s.devs.find((d) => d.uid === s.tablet.holder);
+      if (!s.inv[holder] && !(placedHolder && placedHolder.id === holder)) return nope(spot.kind === "wall" ? "Do ściany potrzebny jest uchwyt ścienny." : "Na blat potrzebny jest stojak magnetyczny.");
       if (s.tablet.dev) {
         const old = s.devs.find((d) => d.uid === s.tablet.dev);
         if (old) { s.inv[old.id] = (s.inv[old.id] || 0) + 1; s.devs = s.devs.filter((d) => d !== old); }

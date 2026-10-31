@@ -7,7 +7,7 @@ import { Director } from "./director.js";
 import { Hud } from "./hud.js";
 import { Audio } from "./audio.js";
 import { createHost } from "../net/index.js";
-import { newState, reduce, startJob, tasksFor, snapshotFor, activeCid } from "../shared/game.js";
+import { newState, reduce, startJob, tasksFor, snapshotFor, activeCid, advanceTurn } from "../shared/game.js";
 import { derive } from "../shared/sim.js";
 import { BY_ID, fmtZl } from "../shared/catalog.js";
 import { PROTO, netMode } from "../shared/protocol.js";
@@ -487,7 +487,7 @@ async function boot() {
     onLeave: (cid) => {
       const p = state.players.find((x) => x.cid === cid);
       if (p) { p.online = false; if (p.host) { p.host = false; const n = state.players.find((x) => x.online); if (n) n.host = true; } }
-      if (state.phase === "job" && activeCid(state) === cid) reduce(state, state.players.find((x) => x.online)?.cid || cid, { a: "endTurn" }, data);
+      if (state.phase === "job" && activeCid(state) === cid) { advanceTurn(state); const n = state.players.find((x) => x.cid === activeCid(state)); if (n) { hud.banner(`Tura: ${n.name}`); host.broadcast({ t: "fx", e: { fx: "turn", cid: n.cid } }); } focusTask(null); }
       sendState();
     },
     onMsg, onStream,

@@ -82,7 +82,7 @@ export const CATALOG = [
 
   { id: "hue-bridge-pro", brand: "Philips Hue", name: "Hue Bridge Pro", cat: "centrale", price: 349, where: "shelf", mounts: ["surface"], power: "mains", ports: { rj45: 1 }, caps: ["hub"], desc: "Mostek do wszystkich lamp Hue." },
   { id: "ikea-dirigera", brand: "IKEA", name: "DIRIGERA hub", cat: "centrale", price: 379, where: "shelf", mounts: ["surface"], power: "mains", ports: { rj45: 1 }, caps: ["hub", "thread"], desc: "Centralka IKEA, mostek Matter i Thread." },
-  { id: "aqara-hub-m3", brand: "Aqara", name: "Aqara Hub M3", cat: "centrale", price: 669, where: "shelf", mounts: ["surface", "wall"], power: "poe", poe: 5, caps: ["hub", "thread", "zigbee"], desc: "Centrala Aqara z Zigbee, Thread i Matter." },
+  { id: "aqara-hub-m3", brand: "Aqara", name: "Aqara Hub M3", cat: "centrale", price: 669, where: "shelf", mounts: ["surface", "wall"], power: "poe", poe: 5, ports: { rj45: 1 }, caps: ["hub", "thread", "zigbee"], desc: "Centrala Aqara z Zigbee, Thread i Matter." },
   { id: "tado-bridge-x", brand: "tado°", name: "tado° Bridge X", cat: "centrale", price: 299, where: "shelf", mounts: ["surface"], power: "usb", caps: ["hub", "thread"], desc: "Mostek Thread dla głowic tado°." },
   { id: "ha-green", brand: "Home Assistant", name: "Home Assistant Green", cat: "centrale", price: 769, where: "shelf", mounts: ["surface"], power: "mains", ports: { rj45: 1 }, caps: ["hub", "controller:ha"], desc: "Serce Home Assistant: łączy wszystko ze wszystkim." },
   { id: "ha-zbt2", brand: "Home Assistant", name: "Home Assistant Connect ZBT-2", cat: "centrale", price: 199, where: "shelf", mounts: ["surface"], power: "usb", caps: ["hub", "zigbee", "thread"], desc: "Antena Zigbee i Thread do Home Assistant." },

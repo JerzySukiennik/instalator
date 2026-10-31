@@ -41,7 +41,8 @@ export function mount(root, ctx, taskId, h) {
       const run = runAt(d.uid, i);
       const lbl = d.id === "ont" ? "LAN" : wan && i === 0 ? "WAN" : run ? short(ctx, run) : opts.nums ? String(i + 1) : "";
       const etl = it.etherlight && pt ? `box-shadow:0 0 6px ${pt.color}` : "";
-      s += `<span class="port ${pt ? "used" : ""} ${i - wan < poe && i >= wan ? "poe" : ""} ${pt && ctx.S.der?.dev[d.uid]?.pw ? "led" : ""}" data-uid="${d.uid}" data-p="${i}" style="${pt ? `--c:${pt.color};` : ""}${etl}"><span class="pl">${esc(lbl)}</span></span>`;
+      const need = !pt && ((run && !it.caps?.includes("switch")) || (d.id === "ont") || (wan && i === 0) || (!it.caps?.includes("switch") && !it.caps?.includes("patch") && d.id !== "mb-keystone" && !wan && n === 1));
+      s += `<span class="port ${pt ? "used" : ""} ${need ? "need" : ""} ${i - wan < poe && i >= wan ? "poe" : ""} ${pt && ctx.S.der?.dev[d.uid]?.pw ? "led" : ""}" data-uid="${d.uid}" data-p="${i}" style="${pt ? `--c:${pt.color};` : ""}${etl}"><span class="pl">${esc(lbl)}</span></span>`;
     }
     return s;
   };

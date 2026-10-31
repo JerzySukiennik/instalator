@@ -224,3 +224,6 @@ body.desk .join h1 { font-size: 46px; }
 body.desk .btn, body.desk .task, body.desk .item, body.desk .vjob, body.desk .row button, body.desk .din, body.desk .port, body.desk .platc, body.desk .pcard { cursor: pointer; }
 body.desk .task:hover, body.desk .vjob:hover, body.desk .item:hover { border-color: var(--ink2); }
 .join .btn { flex: none; }
+
+.port.need { outline: 2px solid var(--tape-y); animation: needp 1.1s ease-in-out infinite; }
+@keyframes needp { 50% { outline-color: rgba(243, 207, 69, 0.25); } }
