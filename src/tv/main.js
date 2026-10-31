@@ -486,7 +486,7 @@ async function runHandover() {
       if (r.type === "wifi" || r.type === "wifizone") house.showWifi(true); else house.showWifi(false);
     } });
   }
-  steps.push({ dur: 0.1, run: () => { house.showWifi(false); dir.overview(data, { floor: 0, speed: 0.025 }); hud.bubble(j.client, ""); state.phase = "review"; document.body.classList.remove("closeup"); dir.overview(data, { floor: 0, speed: 0.012, shift: 0.32, zoom: 1.2 }); hud.review(state, () => audio.play("stamp")); audio.play("payment", { delay: 2.4 }); savePortfolio(); sendState(); } });
+  steps.push({ dur: 0.1, run: () => { house.showWifi(false); dir.overview(data, { floor: 0, speed: 0.025 }); hud.bubble(j.client, ""); state.phase = "review"; document.body.classList.remove("closeup"); R.setMode("afternoon"); dir.overview(data, { floor: 0, speed: 0.012, shift: 0.32, zoom: 1.2 }); hud.review(state, () => audio.play("stamp")); audio.play("payment", { delay: 2.4 }); savePortfolio(); sendState(); } });
   script = { steps, i: -1, t: 0 };
 }
 
@@ -596,7 +596,7 @@ async function demo(building, view) {
   await new Promise((r) => setTimeout(r, 120));
   if (view === "night" || view === "dusk") { R.setMode(view, true); dir.overview(data, { floor: 0, speed: 0.02 }); }
   else if (view === "handover") { reduce(state, "demo", { a: "handover" }, data); runHandover(); }
-  else if (view === "review") { reduce(state, "demo", { a: "handover" }, data); state.phase = "review"; R.setMode("dusk", true); dir.overview(data, { floor: 0, speed: 0.012, shift: 0.32, zoom: 1.2 }); }
+  else if (view === "review") { reduce(state, "demo", { a: "handover" }, data); state.phase = "review"; R.setMode("afternoon", true); dir.overview(data, { floor: 0, speed: 0.012, shift: 0.32, zoom: 1.2 }); }
   else if (view.startsWith("kind:")) { const r = data.rooms.find((x) => x.kind === view.slice(5)); if (r) { state.turn.task = `room:${r.id}`; focusTask(`room:${r.id}`); } }
   else if (view !== "overview") { state.turn.task = view; focusTask(view); }
   if (q.get("az")) dir.orbit.az = Number(q.get("az"));

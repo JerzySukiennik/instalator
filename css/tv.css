@@ -270,3 +270,7 @@ body.closeup .achieve { left: 1.4rem; top: auto; bottom: 5.6rem; transform: none
 #turn { font-size: 1.35rem; }
 #turn small { font-size: 0.75rem; }
 .toast { font-size: 1.05rem; }
+
+.achieve small { font-size: 0.78rem; letter-spacing: 0.04em; }
+.achieve > span:last-child { text-wrap: balance; }
+#review .rv-next .tape, .tape { text-wrap: balance; }

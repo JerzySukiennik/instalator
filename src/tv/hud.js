@@ -149,7 +149,7 @@ export class Hud {
     this.achBusy = true;
     let { text, onShow } = q.shift();
     let label = "z listy klienta";
-    if (q.length >= 2) { label = `z listy klienta · ${q.length + 1} naraz`; text = `${text} i ${q.length} więcej`; q.length = 0; }
+    if (q.length >= 2) { label = `z listy klienta · ${q.length + 1} naraz`; text = `${text} +${q.length}`; q.length = 0; }
     const a = document.createElement("div");
     a.className = "achieve";
     a.innerHTML = `<span class="ck">${icon("check", 26, 3)}</span><span><small>${label}</small>${esc(text)}</span>`;
@@ -217,7 +217,7 @@ export class Hud {
         <div class="rv-money"><span>Budżet ${r.left >= 0 ? "zostało" : "przekroczony o"}</span><b>${fmtZl(Math.abs(r.left))}</b><span>Zapłata z napiwkiem</span><b class="pay">0 zł</b></div>
       </div>
       <span class="rv-stamp ${r.stars >= 3 ? "" : "redo"}" style="animation-delay:${(tList + 1.1).toFixed(2)}s">${r.stars >= 3 ? "Odebrano" : "Do poprawki"}<small>${r.met}/${r.total}</small></span>
-      <div class="rv-next" style="animation-delay:${(tList + 1.6).toFixed(2)}s"><span class="tape y">Gospodarz: pobaw się domem albo weź nowe zlecenie</span></div>
+      <div class="rv-next" style="animation-delay:${(tList + 1.6).toFixed(2)}s"><span class="tape y">Gospodarz: zabawa domem albo nowe zlecenie</span></div>
     </div>`);
     const pay = $(".pay", h);
     setTimeout(() => {

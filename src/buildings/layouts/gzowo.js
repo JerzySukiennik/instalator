@@ -5,7 +5,7 @@ import { P } from '../palette.js';
 import { makeSite, lawnColor, jetty, boat, kayak } from '../exterior.js';
 
 const PI = Math.PI, H = 2.72;
-const MARBLE = { type: 'marble', color: '#7d9887', dark: '#516b5c', light: '#c6d4c8', vein: '#a5805f', veinCol: '#e9ece2', veinMix: 0.2, veinW: 0.01, veinLight: 0.85, veins: 0.13, darkK: 0.45, lightK: 0.5, size: [1.2, 0.6], cell: 0.12, mat: 'marble' };
+const MARBLE = { type: 'marble', color: '#7d9887', dark: '#516b5c', light: '#c6d4c8', vein: '#a5805f', veinCol: '#d5ddd2', veinMix: 0.55, veinW: 0.006, veinLight: 0.6, veins: 0.07, darkK: 0.45, lightK: 0.5, size: [1.2, 0.6], cell: 0.12, mat: 'marble' };
 const OSB = { color: '#cfc6b5', flakes: { cols: ['#bcb09b', '#ddd5c6', '#a99c86', '#c9bfac', '#e4ddd0'], n: 105, joint: '#a1957f' } };
 
 export default {
