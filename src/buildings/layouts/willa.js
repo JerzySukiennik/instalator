@@ -79,8 +79,7 @@ export default {
     ] },
     { id: 'GAL', floor: 1, a: [9.2, 0], b: [9.2, 10.6], t: 0.12, open: [
       { id: 'drzwi-pokoj-1', at: 1.6, w: 0.9, kind: 'door', head: 2.15, hinge: 'a', swing: -1, angle: 80 },
-      { id: 'przejscie-korytarz', at: 4.52, w: 1.18, kind: 'arch', head: 2.4 },
-      { id: 'drzwi-lazienka-glowna', at: 7.0, w: 0.9, kind: 'door', head: 2.15, hinge: 'b', swing: -1, angle: 75 }
+      { id: 'przejscie-korytarz', at: 4.52, w: 1.18, kind: 'arch', head: 2.4 }
     ] },
     { id: 'C1', floor: 1, a: [9.2, 4.46], b: [19, 4.46], t: 0.12, open: [
       { id: 'drzwi-lazienka-2', at: 4.2, w: 0.8, kind: 'door', head: 2.15, hinge: 'a', swing: -1, angle: 75 },
@@ -154,7 +153,7 @@ export default {
     { t: 'bike', room: 'garaz', x: 5.75, z: 5.4, r: 0.1, color: '#2f6b8a' },
     { t: 'workbench', room: 'garaz', x: 0.58, z: 5.6, r: PI / 2, w: 1.6, d: 0.6 },
     { t: 'heatPump', room: 'taras', x: 18.3, z: 12.6, r: PI, w: 1.0, h: 0.8 },
-    { t: 'waterHeater', room: 'techniczne', x: 0.6, z: 9.95, r: 0, h: 1.9, r2: 0.3 },
+    { t: 'waterHeater', room: 'techniczne', x: 0.6, z: 9.95, r: 0, h: 1.9, rad: 0.3 },
     { t: 'waterHeater', room: 'techniczne', x: 1.3, z: 9.95, r: 0, h: 1.5, color: '#9ea2a6' },
     { t: 'shelfUnit', room: 'techniczne', x: 2.55, z: 10.1, r: PI, w: 0.8, d: 0.4, h: 1.8 },
     { t: 'washer', room: 'pralnia', x: 3.55, z: 10.08, r: PI },
@@ -208,7 +207,7 @@ export default {
     { t: 'downlight', room: 'hol', x: 7.4, z: 1.2, color: '#2c2f33', circuit: 'L3' },
     { t: 'downlight', room: 'hol', x: 8.9, z: 1.2, color: '#2c2f33', circuit: 'L3' },
     { t: 'downlight', room: 'hol', x: 8.1, z: 3.3, color: '#2c2f33', circuit: 'L3' },
-    { t: 'flush', room: 'wc', x: 10.95, z: 1.2, r: 0.14, circuit: 'L3' },
+    { t: 'flush', room: 'wc', x: 10.95, z: 1.2, rad: 0.14, circuit: 'L3' },
     { t: 'flush', room: 'garderoba', x: 10.95, z: 3.3, circuit: 'L3' },
     { t: 'pendant', room: 'gabinet', x: 13.25, z: 1.6, style: 'dome', drop: 0.85, color: '#b89b5e', circuit: 'L3' },
     { t: 'pendant', room: 'kuchnia', x: 15.95, z: 3.0, style: 'globe', drop: 1.05, circuit: 'L2' },
@@ -222,8 +221,8 @@ export default {
     { t: 'downlight', room: 'salon', x: 12.4, z: 6.0, color: '#2c2f33', circuit: 'L1' },
     { t: 'downlight', room: 'salon', x: 9.6, z: 8.8, color: '#2c2f33', circuit: 'L1' },
     { t: 'downlight', room: 'salon', x: 12.4, z: 8.8, color: '#2c2f33', circuit: 'L1' },
-    { t: 'flush', room: 'garaz', x: 1.6, z: 3.3, r: 0.2, circuit: 'L4' },
-    { t: 'flush', room: 'garaz', x: 4.7, z: 3.3, r: 0.2, circuit: 'L4' },
+    { t: 'flush', room: 'garaz', x: 1.6, z: 3.3, rad: 0.2, circuit: 'L4' },
+    { t: 'flush', room: 'garaz', x: 4.7, z: 3.3, rad: 0.2, circuit: 'L4' },
     { t: 'flush', room: 'techniczne', x: 1.6, z: 8.6, circuit: 'L4' },
     { t: 'flush', room: 'pralnia', x: 4.7, z: 8.6, circuit: 'L4' },
     { t: 'outdoor', room: 'hol', x: 6.6, z: -0.225, r: PI, y: 2.2, ext: true, style: 'cyl', circuit: 'L7' },

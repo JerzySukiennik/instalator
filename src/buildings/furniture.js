@@ -157,7 +157,7 @@ KIT.armchair = (g, o) => {
 
 KIT.pouf = (g, o) => {
   g.use('matte');
-  g.cyl(0, 0, 0, o.r ?? 0.24, o.r ?? 0.24, o.h ?? 0.42, 12, o.color ?? P.wool, { top: shade(o.color ?? P.wool, 1.05) });
+  g.cyl(0, 0, 0, o.rad ?? 0.24, o.rad ?? 0.24, o.h ?? 0.42, 12, o.color ?? P.wool, { top: shade(o.color ?? P.wool, 1.05) });
   return { size: [0.5, 0.42, 0.5] };
 };
 
@@ -191,7 +191,7 @@ KIT.coffeeTable = (g, o) => {
 };
 
 KIT.sideTable = (g, o) => {
-  const r = o.r ?? 0.22, h = o.h ?? 0.5;
+  const r = o.rad ?? 0.22, h = o.h ?? 0.5;
   g.use('satin');
   g.cyl(0, h - 0.025, 0, r, r, 0.025, 16, o.top ?? P.oak);
   g.use('metal');
@@ -1056,7 +1056,7 @@ KIT.boiler = (g, o) => {
 KIT.boiler.wall = true;
 
 KIT.waterHeater = (g, o) => {
-  const r = o.r ?? 0.28, h = o.h ?? 1.7;
+  const r = o.rad ?? 0.28, h = o.h ?? 1.7;
   g.use('gloss');
   g.cyl(0, 0, 0, r, r, h, 18, o.color ?? '#efeee9', { top: '#e3e2dd' });
   g.use('matte');
@@ -1222,7 +1222,7 @@ KIT.picture = (g, o) => {
 KIT.picture.wall = true;
 
 KIT.clock = (g, o) => {
-  const r = o.r ?? 0.15;
+  const r = o.rad ?? 0.15;
   g.use('matte');
   g.at(0, r, 0, 0, Math.PI / 2);
   g.cyl(0, 0, 0, r, r, 0.035, 20, o.color ?? '#2b2c2f');
@@ -1524,7 +1524,7 @@ KIT.grill = (g, o) => {
 };
 
 KIT.trampoline = (g, o) => {
-  const r = o.r ?? 1.5;
+  const r = o.rad ?? 1.5;
   g.use('matte');
   g.cyl(0, 0.82, 0, r, r, 0.04, 28, '#2e4a6b', { top: '#1d2733' });
   g.cyl(0, 0.83, 0, r * 0.88, r * 0.88, 0.022, 28, '#1a1b1d', { noBottom: true });
@@ -1793,7 +1793,7 @@ LIGHTS.pendant = (g, o, glow) => {
 };
 
 LIGHTS.flush = (g, o, glow) => {
-  const r = o.r ?? 0.17;
+  const r = o.rad ?? 0.17;
   g.use('matte');
   g.cyl(0, -0.03, 0, r + 0.01, r + 0.01, 0.03, 18, o.color ?? '#f2f1ed');
   glow.lathe([[r, -0.03], [r * 0.97, -0.08], [r * 0.75, -0.14], [0, -0.16]], 16, '#ffffff');

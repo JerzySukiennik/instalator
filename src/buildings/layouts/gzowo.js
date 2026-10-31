@@ -102,7 +102,7 @@ export default {
     { t: 'track', room: 'kuchnia', x: 4.85, z: -3.05, l: 1.9, n: 3, k: 1, circuit: 'L2' },
     { t: 'track', room: 'kuchnia', x: 4.85, z: -3.05, l: 1.9, n: 3, k: 2, circuit: 'L2' },
     { t: 'pendant', room: 'sypialnia', x: -8.0, z: 2.6, style: 'cage', drop: 0.6, circuit: 'L3' },
-    { t: 'flush', room: 'lazienka', x: -8.6, z: -0.8, r: 0.15, circuit: 'L2' },
+    { t: 'flush', room: 'lazienka', x: -8.6, z: -0.8, rad: 0.15, circuit: 'L2' },
     { t: 'flush', room: 'korytarz', x: -6.95, z: -0.8, circuit: 'L2' },
     { t: 'flush', room: 'schowek', x: -8.0, z: -3.4, circuit: 'L2' },
     { t: 'outdoor', room: 'kuchnia', x: 6.44, z: 1.25, r: PI / 2, y: 2.0, ext: true, style: 'cyl', circuit: 'L4' },

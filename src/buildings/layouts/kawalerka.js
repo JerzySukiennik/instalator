@@ -55,7 +55,7 @@ export default {
     { t: 'plant', room: 'pokoj', x: 6.25, z: 2.55, kind: 'snake', pot: '#c47a55' },
     { t: 'picture', room: 'pokoj', x: 0.0, z: 3.92, r: PI / 2, y: 1.25, w: 0.9, h: 0.6, art: 'landscape', frame: '#c39a6b' },
     { t: 'picture', room: 'pokoj', x: 2.6, z: 5.5, r: PI, y: 1.35, w: 0.4, h: 0.5, art: 'abstract' },
-    { t: 'clock', room: 'aneks', x: 4.02, z: 1.4, r: PI / 2, y: 1.75, r2: 0.14 },
+    { t: 'clock', room: 'aneks', x: 4.02, z: 1.4, r: PI / 2, y: 1.75, rad: 0.14 },
     { t: 'curtain', room: 'pokoj', x: 1.6, z: 5.5, r: PI, y: 0.0, w: 2.0, h: 2.5, color: '#c9b9a0' },
     { t: 'curtain', room: 'pokoj', x: 5.42, z: 5.5, r: PI, y: 0.0, w: 2.3, h: 2.5, color: '#c9b9a0' },
     { t: 'wardrobe', room: 'przedpokoj', x: 3.6, z: 0.95, r: -PI / 2, w: 1.2, d: 0.58, h: 2.35, color: '#ece8e0', mirror: 0, handles: 'bar' },
@@ -69,7 +69,7 @@ export default {
     { t: 'towelRail', room: 'lazienka', x: 1.3, z: 2.0, r: PI, y: 0.25, w: 0.45, h: 1.1, towel: '#9fb2b8' },
     { t: 'laundry', room: 'lazienka', x: 1.6, z: 1.72, r: 0 },
     { t: 'chair', room: 'balkon', x: 4.6, z: 6.75, r: PI * 0.85, style: 'black' },
-    { t: 'sideTable', room: 'balkon', x: 5.2, z: 6.8, r: 0, r2: 0.2, h: 0.55, top: '#2b2c2f' },
+    { t: 'sideTable', room: 'balkon', x: 5.2, z: 6.8, r: 0, rad: 0.2, h: 0.55, top: '#2b2c2f' },
     { t: 'plant', room: 'balkon', x: 6.45, z: 6.85, kind: 'olive', s: 0.8, pot: '#b5654a' },
     { t: 'plant', room: 'balkon', x: 6.45, z: 6.25, kind: 'small', s: 1.2, pot: '#b5654a' }
   ],
@@ -80,7 +80,7 @@ export default {
     { t: 'downlight', room: 'aneks', x: 5.35, z: 0.8, circuit: 'L2' },
     { t: 'downlight', room: 'aneks', x: 5.75, z: 1.45, circuit: 'L2' },
     { t: 'flush', room: 'przedpokoj', x: 2.95, z: 1.0, circuit: 'L2' },
-    { t: 'flush', room: 'lazienka', x: 1.0, z: 1.05, r: 0.15, circuit: 'L2' },
+    { t: 'flush', room: 'lazienka', x: 1.0, z: 1.05, rad: 0.15, circuit: 'L2' },
     { t: 'outdoor', room: 'balkon', x: 5.32, z: 5.9, r: 0, y: 2.2, ext: true, style: 'cyl', circuit: 'L1' }
   ],
   circuits: [

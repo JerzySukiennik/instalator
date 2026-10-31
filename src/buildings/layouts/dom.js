@@ -107,7 +107,7 @@ export default {
   items: [
     { t: 'kitchen', room: 'kuchnia', x: 7.26, z: 0.5, r: 0, mods: [{ t: 'drawers', w: 0.6 }, { t: 'base', w: 0.6 }, { t: 'dw', w: 0.6 }, { t: 'sink', w: 0.8 }, { t: 'drawers', w: 0.68 }, { t: 'fridge', w: 0.6 }], uppers: [{ w: 0.6, t: 'cab' }, { w: 0.6, t: 'cab' }, { w: 0.6, t: 'none' }, { w: 0.8, t: 'none' }, { w: 0.68, t: 'glass' }, { w: 0.6, t: 'none' }], front: '#a5ae9a', carcass: '#e9e6df', worktop: '#c79f70', handle: 'bar', splashTiles: true, splashCol: '#efeee8', clutter: ['board', 'jar', 'dishrack', 'kettle', 'coffee'] },
     { t: 'island', room: 'kuchnia', x: 7.15, z: 2.35, r: 0, w: 2.2, d: 0.9, front: '#a5ae9a', worktop: '#ecebe6', hob: 0.45, stools: 3, stoolCol: '#c79f70' },
-    { t: 'clock', room: 'kuchnia', x: 5.32, z: 2.4, r: PI / 2, y: 1.7, r2: 0.16 },
+    { t: 'clock', room: 'kuchnia', x: 5.32, z: 2.4, r: PI / 2, y: 1.7, rad: 0.16 },
     { t: 'plant', room: 'kuchnia', x: 8.95, z: 3.3, kind: 'ficus', s: 0.85 },
 
     { t: 'sofa', room: 'salon', x: 8.6, z: 4.85, r: -PI / 2, w: 2.5, d: 0.95, chaise: 1, chaiseD: 1.65, color: '#a69d8f', pillows: ['#b5654a', '#e3dccf', '#5f6f5a', '#d9a441'], throw: '#5f6f5a' },
@@ -132,7 +132,7 @@ export default {
     { t: 'washer', room: 'techniczne', x: 0.52, z: 2.22, r: PI, y: 0.87, h: 0.82 },
     { t: 'utilitySink', room: 'techniczne', x: 1.25, z: 2.25, r: PI },
     { t: 'shelfUnit', room: 'techniczne', x: 2.4, z: 2.3, r: PI, w: 0.9, d: 0.4, h: 1.8 },
-    { t: 'waterHeater', room: 'techniczne', x: 2.6, z: 0.52, r: PI, r2: 0.25, h: 1.4 },
+    { t: 'waterHeater', room: 'techniczne', x: 2.6, z: 0.52, r: PI, rad: 0.25, h: 1.4 },
     { t: 'boiler', room: 'techniczne', x: 2.0, z: 0.2, r: 0, y: 1.3 },
     { t: 'box', room: 'techniczne', x: 0.6, z: 0.5, w: 0.5, d: 0.4, h: 0.35, color: '#c9a77a', noData: true },
 
@@ -200,7 +200,7 @@ export default {
     { t: 'downlight', room: 'kuchnia', x: 8.55, z: 0.95, circuit: 'L1' },
     { t: 'pendant', room: 'salon', x: 7.2, z: 4.8, style: 'drum', drop: 0.8, color: '#e8dfcf', circuit: 'L1' },
     { t: 'pendant', room: 'salon', x: 4.15, z: 6.9, style: 'globe', drop: 0.85, circuit: 'L1' },
-    { t: 'flush', room: 'wc', x: 1.5, z: 3.5, r: 0.14, circuit: 'L2' },
+    { t: 'flush', room: 'wc', x: 1.5, z: 3.5, rad: 0.14, circuit: 'L2' },
     { t: 'flush', room: 'techniczne', x: 1.5, z: 1.3, circuit: 'L2' },
     { t: 'pendant', room: 'goscinny', x: 1.5, z: 6.3, style: 'cone', drop: 0.6, color: '#e8dfcf', circuit: 'L2' },
     { t: 'outdoor', room: 'hol', x: 2.45, z: -0.2, r: PI, y: 1.95, ext: true, circuit: 'L4' },
@@ -318,7 +318,7 @@ function buildSite(api) {
   S.item('trashBins', 15.8, -0.45, -7.4, PI, { cols: ['#2b2c2f', '#e3c25a', '#3f7fbf', '#4f8a4a'] });
   S.car(12.0, -3.4, PI, { color: '#aeb3b8', kind: 'suv' });
   S.item('bike', 15.2, -0.45, 1.5, 0.3, { color: '#d9483b' });
-  S.item('trampoline', 12.5, -0.45, 21, 0, { r: 1.7 });
+  S.item('trampoline', 12.5, -0.45, 21, 0, { rad: 1.7 });
   S.item('swing', 2.5, -0.45, 26.5, 0.15);
   S.item('sandbox', 0.8, -0.45, 14.0, 0.2);
   S.item('shed', -4.6, -0.45, 27.2, 0.0, { w: 2.6, d: 2.0 });

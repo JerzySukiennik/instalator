@@ -279,7 +279,7 @@ function clientPath() {
   n.y = 0; n.normalize();
   const fy = data.floors[0]?.y || 0;
   const outside = E.clone().addScaledVector(n, 1.3).setY(fy);
-  const start = data.street ? new THREE.Vector3(...data.street.pos).setY(fy) : E.clone().addScaledVector(n, 9).setY(fy);
+  const start = fy > 1.5 ? E.clone().addScaledVector(n, 2.6).setY(fy) : data.street ? new THREE.Vector3(...data.street.pos).setY(fy) : E.clone().addScaledVector(n, 9).setY(fy);
   const inside = E.clone().addScaledVector(n, -1.4).setY(fy);
   const spot = (data.tabletSpots || []).find((s) => s.id === state.tablet.spot);
   let end = inside.clone().addScaledVector(n, -1.2);
