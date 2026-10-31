@@ -1,5 +1,5 @@
 {
- "phase": "Runda 5: po wygranej domów 4/4 dociągamy zbliżenia (szafa, rozdzielnica), pulpity Apple/Google i nowy HUD (czeka na wybór kierunku A/B/C)",
+ "phase": "Runda 6: 10/11 wygranych na ślepo (domy 4/4, szafa 2/2, rozdzielnica, pulpity 3/3); dociągamy ekran odbioru (runda 7)",
  "pieces": [
   {
    "id": "devices",
@@ -18,8 +18,8 @@
    "name": "4 budynki w przekroju",
    "owner": "builder Opus + krytyk Opus",
    "status": "won",
-   "round": 4,
-   "verdict": "4/4 ślepe A/B wygrane z Electrician Simulator (domy szeroko, noc, salon)",
+   "round": 6,
+   "verdict": "4/4 w rundach 4, 5 i 6",
    "shots": [
     "kawalerka.png"
    ],
@@ -37,37 +37,37 @@
    "id": "panel",
    "name": "Rozdzielnica",
    "owner": "lead + krytyk Opus",
-   "status": "loop",
-   "round": 4,
-   "verdict": "przegrana z Electrician Simulator (puste pudło z kostkami)",
+   "status": "won",
+   "round": 6,
+   "verdict": "wygrana z Electrician Smart Devices: otwarta rozdzielnica z podpisami",
    "shots": [
     "pad-panel3d-c.png"
    ],
-   "gap": "skrzynka siedziała w ścianie; teraz otwarta rozdzielnica z szynami, opisami i kablami; ocena w rundzie 5"
+   "gap": ""
   },
   {
    "id": "rack",
    "name": "Szafa rack UniFi i patchowanie",
    "owner": "lead + krytyk Opus",
-   "status": "loop",
-   "round": 4,
-   "verdict": "0/2 z Data Center w rundzie 4",
+   "status": "won",
+   "round": 6,
+   "verdict": "2/2 z Data Center: zbliżenie 3/4, diody, taśma LED, HUD chowa się w zbliżeniu",
    "shots": [
     "pad-rack3d-sheet.png"
    ],
-   "gap": "poprawione: kadr na zajęte U, diody, taśma LED, kabel ONT po ścianie, wiązka kabli od góry; ocena w rundzie 5"
+   "gap": ""
   },
   {
    "id": "tablet",
    "name": "Tablet i dashboardy HA / Apple / Google",
    "owner": "lead + krytyk Opus",
-   "status": "loop",
-   "round": 4,
-   "verdict": "HA wygrywa 1/3; Apple i Google przegrywają przez obraz z kamery low-poly",
+   "status": "won",
+   "round": 6,
+   "verdict": "3/3 (krytyk: 2 wygrane częściowo przez przycięte zrzuty wzorca); kamera low-poly wciąż najsłabsza",
    "shots": [
     "../shots/dash/sheet.png"
    ],
-   "gap": "zegar zgodny z porą dnia, IR wieczorem, rozmyta tapeta z domu; ocena w rundzie 5"
+   "gap": ""
   },
   {
    "id": "phone",
@@ -99,9 +99,9 @@
    "id": "hud",
    "name": "HUD na TV i UI telefonu",
    "owner": "lead + krytyk Opus",
-   "status": "loop",
-   "round": 1,
-   "verdict": "2/6 w ślepych parach; 3 kierunki (Protokół, Kontroler, Skrzynka) czekają na wybór Jurka",
+   "status": "won",
+   "round": 6,
+   "verdict": "Jurek: zostaje obecny styl, poprawiony układ, wielkości i UX (lista tylko otwartych punktów, większy tekst, HUD znika w zbliżeniach)",
    "shots": [
     "../warianty-hud.html"
    ]
@@ -111,8 +111,9 @@
    "name": "Odbiór z klientem",
    "owner": "lead",
    "status": "loop",
-   "round": 1,
-   "verdict": "nowy ekran protokołu odbioru z pieczątką; ocena w rundzie 5"
+   "round": 6,
+   "verdict": "przegrana: dom obok protokołu ciemny, białe żyłki marmuru jak pęknięcia",
+   "gap": "runda 7: złota godzina, łagodniejsze żyłki"
   },
   {
    "id": "aaa",
