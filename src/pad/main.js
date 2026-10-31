@@ -187,23 +187,63 @@ function tasksView() {
   const apsMine = S.devs.filter((d) => BY_ID[d.id]?.caps.includes("ap"));
   const apsDark = apsMine.length && !(S.der?.aps || []).length;
   const tasks = S.tasks || [];
+  const loose = S.devs.filter((d) => d.place !== "fixed" && S.der?.dev[d.uid] && !S.der.dev[d.uid].net && (d.run || ((d.place === "rack" || d.place === "shelf") && d.id !== "rack-shelf" && !["patch-panel-24", "brush-panel", "ups-2u", "pdu-pro"].includes(d.id)))).length;
+  const cards = tasks.map((t) => {
+    const open = reqsFor(t).filter((r) => !S.reqs.find((x) => x.id === r.id)?.ok);
+    const all = reqsFor(t);
+    const hot = (t.id === "panel" && (powerOff || rackDark)) || (t.id === "rack" && loose > 0 && !powerOff && !rackDark) || (t.id === "wifi" && apsDark);
+    const base = t.id === "panel" ? (powerOff ? "Prąd wyłączony. Zacznij tutaj!" : rackDark ? "Szafa bez prądu: włącz bezpieczniki" : "Bezpieczniki, moduły Shelly") : t.id === "rack" ? (rackDark ? "Szafa bez prądu" : loose ? `${loose} bez kabla albo prądu` : "Bramka, switch, patchowanie") : t.id === "wifi" ? (apsDark ? `Zasięg 0%: punkty nie działają` : `Zasięg ${Math.round((S.der?.cov || 0) * 100)}%`) : t.id === "tablet" ? (S.tablet?.mount ? "Projekt pulpitu" : "Kup, powieś, sparuj") : t.id === "handover" ? "Zawołaj klienta" : t.id === "outdoor" ? "Kamery, dzwonek, brama" : roomSub(t.room);
+    const sub = hot ? base : open.length ? `Brakuje: ${shortReq(open[0])}${open.length > 1 ? ` +${open.length - 1}` : ""}` : base;
+    const group = t.id === "handover" ? "end" : hot || open.length ? "todo" : all.length ? "done" : "rest";
+    const prog = all.length ? `${all.length - open.length}/${all.length}` : "";
+    return { t, hot, sub, group, prog };
+  });
+  const tile = ({ t, hot, sub, group, prog }) => `<button class="task ${hot ? "hot" : ""} ${group === "done" ? "done" : ""} ${group === "todo" && !hot ? "todo" : ""} ${t.id === "handover" ? "wide" : ""}" data-id="${esc(t.id)}">${icon(t.icon || "home", 26, 1.9)}${prog ? `<span class="prog">${prog}</span>` : ""}<div><b>${esc(t.name)}</b><br><small>${esc(sub)}</small></div></button>`;
+  const sect = (g, label) => { const xs = cards.filter((c) => c.group === g); return xs.length ? `${label ? `<div class="h sub"><span>${label}</span></div>` : ""}<div class="tasks">${xs.map(tile).join("")}</div>` : ""; };
   app.innerHTML = `${topBar(S.job.client.name, S.job.buildingName)}
     <div class="body">
       <div class="h"><span>${solo ? "Co robimy?" : "Twoja tura: wybierz jedno zadanie"}</span><button class="tape y" id="reqs">Lista ${(S.reqs || []).filter((r) => r.ok).length}/${(S.reqs || []).length}</button></div>
-      <div class="tasks">${tasks.map((t) => {
-        const st = taskStatus(t);
-        const done = st && st.n && st.ok === st.n;
-        const loose = S.devs.filter((d) => d.place !== "fixed" && S.der?.dev[d.uid] && !S.der.dev[d.uid].net && (d.run || ((d.place === "rack" || d.place === "shelf") && d.id !== "rack-shelf" && !["patch-panel-24", "brush-panel", "ups-2u", "pdu-pro"].includes(d.id)))).length;
-        const hot = (t.id === "panel" && (powerOff || rackDark)) || (t.id === "rack" && loose > 0 && !powerOff && !rackDark);
-        const sub = t.id === "panel" ? (powerOff ? "Prąd wyłączony. Zacznij tutaj!" : rackDark ? "Szafa bez prądu: włącz bezpieczniki" : "Bezpieczniki, moduły Shelly") : t.id === "rack" ? (rackDark ? "Szafa bez prądu" : loose ? `${loose} bez kabla albo prądu` : "Bramka, switch, patchowanie") : t.id === "wifi" ? (apsDark ? `Zasięg 0%: punkty nie działają` : `Zasięg ${Math.round((S.der?.cov || 0) * 100)}%`) : t.id === "tablet" ? (S.tablet?.mount ? "Projekt pulpitu" : "Kup, powieś, sparuj") : t.id === "handover" ? "Zawołaj klienta" : t.id === "outdoor" ? "Kamery, dzwonek, brama" : roomSub(t.room);
-        return `<button class="task ${hot ? "hot" : ""} ${done ? "done" : ""} ${t.id === "handover" ? "wide" : ""}" data-id="${esc(t.id)}">${icon(t.icon || "home", 26, 1.9)}<div><b>${esc(t.name)}</b><br><small>${esc(sub)}</small></div></button>`;
-      }).join("")}</div>
+      ${sect("todo", "Do zrobienia")}${sect("rest", "Reszta domu")}${sect("done", "Gotowe")}${sect("end", "")}
     </div>`;
   app.querySelectorAll(".task").forEach((b) => (b.onclick = () => { haptic(); ctx.openTask(b.dataset.id); }));
   $("#reqs").onclick = () => sheet(`${S.job.client.name}: lista`, (sc) => {
     sc.innerHTML = `<p style="margin:0 0 12px;color:var(--ink2);font-style:italic;line-height:1.4">„${esc(S.job.client.hello)}”</p><div class="list">${S.job.reqs.map((r) => { const st = S.reqs.find((x) => x.id === r.id) || {}; return `<div class="row"><span class="chk ${st.ok ? "on" : ""}">${st.ok ? icon("check", 14, 3) : ""}</span><div class="grow"><b style="font-weight:600">${esc(r.text)}</b>${st.ok ? "" : `<span>${esc(st.hint || "")}</span>`}</div></div>`; }).join("")}</div>`;
   });
   ctx.mounted = { update: () => route(true) };
+}
+
+const ALL_KINDS = ["living", "bed", "kitchen", "office", "hall"];
+const ZONES = ["entrance", "driveway", "garden", "terrace", "jetty", "gate", "garage", "street"];
+
+const ZONE_PL = { entrance: "wejście", driveway: "podjazd", garden: "ogród", terrace: "taras", jetty: "pomost", gate: "brama", garage: "garaż", street: "ulica" };
+
+function shortReq(r) {
+  const m = { heat: "głowica na kaloryferze", light: "smart światło", color: "kolorowe światło", audio: "głośnik", motion: "czujnik ruchu", smoke: "czujnik dymu", leak: "czujnik zalania", tv: "podświetlenie TV", kitchen: "taśma pod szafkami", soundbar: "soundbar", vacuum: "robot sprzątający", contact: "czujnik drzwi", doorbell: "wideodomofon", gate: "sterowanie bramą", weather: "stacja pogody", lock: "zamek", ev: "ładowarka do auta" };
+  if (r.type === "cam") return ZONE_PL[r.zone] ? `kamera: ${ZONE_PL[r.zone]}` : "kamera";
+  return m[r.type] || r.text;
+}
+
+function reqsFor(t) {
+  const S = ctx.S;
+  const reqs = S.job?.reqs || [];
+  const kind = t.room ? ctx.B?.rooms.find((r) => r.id === t.room)?.kind : null;
+  return reqs.filter((r) => {
+    if (t.id === "panel") return ["power", "labels", "energy", "blinds"].includes(r.type);
+    if (t.id === "rack") return ["nvr", "ups"].includes(r.type);
+    if (t.id === "wifi") return ["wifi", "wifizone"].includes(r.type);
+    if (t.id === "tablet") return ["tablet", "dash"].includes(r.type);
+    if (t.id === "outdoor") return ["doorbell", "gate", "weather", "lock", "ev"].includes(r.type) || (r.type === "cam" && ZONES.includes(r.zone));
+    if (!kind) return false;
+    if (["light", "color", "audio", "motion"].includes(r.type)) return r.kind === kind;
+    if (r.type === "heat") return r.kind === "all" ? ALL_KINDS.includes(kind) : r.kind === kind;
+    if (r.type === "smoke") return r.kind === "all" ? ALL_KINDS.includes(kind) : kind === "bed";
+    if (r.type === "leak") return kind === "bath";
+    if (r.type === "cam") return r.zone === kind;
+    if (r.type === "tv" || r.type === "soundbar" || r.type === "vacuum") return kind === "living";
+    if (r.type === "kitchen") return kind === "kitchen";
+    if (r.type === "contact") return kind === "hall";
+    return false;
+  });
 }
 
 function roomSub(roomId) {

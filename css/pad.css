@@ -270,3 +270,10 @@ body.desk .task:hover, body.desk .vjob:hover, body.desk .item:hover { border-col
 .cov .go { margin-top: 6px; pointer-events: auto; }
 .prod.dim { opacity: 0.55; }
 .prod .where.nofit { color: #b97a1f; font-weight: 700; }
+
+.h.sub { margin-top: 14px; }
+.task { position: relative; }
+.task .prog { position: absolute; right: 12px; top: 12px; font-family: var(--mono); font-size: 13px; font-weight: 700; color: var(--ink2); }
+.task.todo { box-shadow: inset 4px 0 0 #3f7fd6, 0 3px 0 #d8d1c3; }
+.task.done { opacity: 0.62; }
+.task.done .prog { display: none; }

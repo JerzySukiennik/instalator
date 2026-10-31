@@ -1,28 +1,29 @@
 {
- "phase": "Runda 1 krytyków: modele (rozpoznawanie na ślepo) i pulpity tabletu; budynki w budowie",
+ "phase": "Runda 5: po wygranej domów 4/4 dociągamy zbliżenia (szafa, rozdzielnica), pulpity Apple/Google i nowy HUD (czeka na wybór kierunku A/B/C)",
  "pieces": [
   {
    "id": "devices",
    "name": "Modele urządzeń (UniFi, Hue, Shelly…)",
    "owner": "builder Opus + krytyk Opus",
    "status": "won",
-   "round": 1,
+   "round": 2,
    "shots": [
     "models-grid.png",
     "../shots/models/cmp_rack1.png"
    ],
-   "verdict": "22/22 rozpoznane na ślepo spośród zdjęć produktów"
+   "verdict": "22/22 rozpoznane na ślepo; runda 2: szlif 15 detali, diody portów, rozdzielnica z szynami DIN"
   },
   {
    "id": "buildings",
    "name": "4 budynki w przekroju",
    "owner": "builder Opus + krytyk Opus",
-   "status": "building",
-   "round": 0,
-   "verdict": "kawalerka w bloku gotowa, reszta w toku",
+   "status": "won",
+   "round": 4,
+   "verdict": "4/4 ślepe A/B wygrane z Electrician Simulator (domy szeroko, noc, salon)",
    "shots": [
     "kawalerka.png"
-   ]
+   ],
+   "gap": "poprawiony marmur w Gzowie, trawa, parapety; miejsca na tablet do sprawdzenia"
   },
   {
    "id": "core",
@@ -36,35 +37,37 @@
    "id": "panel",
    "name": "Rozdzielnica",
    "owner": "lead + krytyk Opus",
-   "status": "building",
-   "round": 0,
-   "verdict": "rozdzielnica 3D na telefonie z modeli z TV",
+   "status": "loop",
+   "round": 4,
+   "verdict": "przegrana z Electrician Simulator (puste pudło z kostkami)",
    "shots": [
     "pad-panel3d-c.png"
-   ]
+   ],
+   "gap": "skrzynka siedziała w ścianie; teraz otwarta rozdzielnica z szynami, opisami i kablami; ocena w rundzie 5"
   },
   {
    "id": "rack",
    "name": "Szafa rack UniFi i patchowanie",
    "owner": "lead + krytyk Opus",
-   "status": "building",
-   "round": 0,
-   "verdict": "telefon pokazuje ten sam rack 3D co TV (po uwadze Jurka)",
+   "status": "loop",
+   "round": 4,
+   "verdict": "0/2 z Data Center w rundzie 4",
    "shots": [
     "pad-rack3d-sheet.png"
-   ]
+   ],
+   "gap": "poprawione: kadr na zajęte U, diody, taśma LED, kabel ONT po ścianie, wiązka kabli od góry; ocena w rundzie 5"
   },
   {
    "id": "tablet",
    "name": "Tablet i dashboardy HA / Apple / Google",
    "owner": "lead + krytyk Opus",
    "status": "loop",
-   "round": 1,
-   "verdict": "0/3: prawdziwe apki wygrały",
+   "round": 4,
+   "verdict": "HA wygrywa 1/3; Apple i Google przegrywają przez obraz z kamery low-poly",
    "shots": [
     "../shots/dash/sheet.png"
    ],
-   "gap": "placeholder kamery, za duże puste kafelki, złe ikony — poprawione, czeka na rundę 2"
+   "gap": "zegar zgodny z porą dnia, IR wieczorem, rozmyta tapeta z domu; ocena w rundzie 5"
   },
   {
    "id": "phone",
@@ -91,6 +94,50 @@
    "status": "won",
    "round": 0,
    "verdict": "73 produkty z cenami PL, 102 zdjęcia, 54 zrzuty wzorców, 35 dźwięków"
+  },
+  {
+   "id": "hud",
+   "name": "HUD na TV i UI telefonu",
+   "owner": "lead + krytyk Opus",
+   "status": "loop",
+   "round": 1,
+   "verdict": "2/6 w ślepych parach; 3 kierunki (Protokół, Kontroler, Skrzynka) czekają na wybór Jurka",
+   "shots": [
+    "../warianty-hud.html"
+   ]
+  },
+  {
+   "id": "review",
+   "name": "Odbiór z klientem",
+   "owner": "lead",
+   "status": "loop",
+   "round": 1,
+   "verdict": "nowy ekran protokołu odbioru z pieczątką; ocena w rundzie 5"
+  },
+  {
+   "id": "aaa",
+   "name": "Krytyk AAA bez wzorca",
+   "owner": "krytyk Opus",
+   "status": "loop",
+   "round": 4,
+   "verdict": "nie (21-50/100); główna luka: TV za słabo pokazuje montaż",
+   "gap": "zrobione: zbliżenia, chowanie przeszkód i drzew, większe urządzenia, puls przy montażu, mapa Wi-Fi, stożki kamer"
+  },
+  {
+   "id": "perf",
+   "name": "Płynność (MBP 2019, 1080p)",
+   "owner": "lead",
+   "status": "won",
+   "round": 1,
+   "verdict": "kawalerka 222 fps, dom 157, Gzowo 139, willa 80 (noc 71)"
+  },
+  {
+   "id": "live",
+   "name": "Deploy + Gzowo Labs",
+   "owner": "lead",
+   "status": "won",
+   "round": 1,
+   "verdict": "instalator.gzowo.fun (v1), test online TV + telefon OK, wpis na gzowo.fun/p/instalator"
   }
  ],
  "log": [
