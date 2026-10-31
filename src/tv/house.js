@@ -83,6 +83,7 @@ export class House {
 
   async load(id) {
     await deviceModels();
+    if (DM && DM.setDeviceEnvMap && !this.envSet) { try { DM.setDeviceEnvMap(this.R.envMap, 1); this.envSet = true; } catch (e) {} }
     this.clear();
     let b = null;
     if (id !== "standin") {
@@ -359,7 +360,7 @@ export class House {
     for (const b of this.breakers?.values() || []) {
       const it = b.item;
       const on = it.kind === "main" ? s.panel.main : it.kind === "rcd" ? !!s.panel.rcd[it.rcd] : !!s.panel.br[it.circuit];
-      b.target = on ? 0 : 0.55;
+      b.target = on ? 0 : (b.lever?.userData?.off ?? 0.95);
     }
     this.night = night;
   }
@@ -382,7 +383,37 @@ export class House {
     return obj.localToWorld(local);
   }
 
+  portLeds(s) {
+    const lit = new Map();
+    for (const p of s.patches) { lit.set(`${p.a[0]}#${p.a[1]}`, p.color); lit.set(`${p.b[0]}#${p.b[1]}`, p.color); }
+    for (const [uid, v] of this.vis) {
+      const it = BY_ID[v.d.id] || {};
+      const ports = (v.obj.userData.ports || []).filter((p) => p.kind !== "sfp" && p.kind !== "power");
+      if (!ports.length) continue;
+      const sorted = [...ports.filter((p) => p.kind === "wan"), ...ports.filter((p) => p.kind !== "wan")];
+      const pw = this.der?.dev[uid]?.pw;
+      sorted.forEach((p, i) => {
+        if (!p.led || !p.led.emissive) return;
+        const c = lit.get(`${uid}#${i}`);
+        if (c && pw) { p.led.emissive.set(it.etherlight ? c : "#39d67a"); p.led.emissiveIntensity = it.etherlight ? 1.5 : 1.1; }
+        else p.led.emissiveIntensity = 0;
+      });
+    }
+  }
+
+  setDoors(open) {
+    for (const enc of [this.panelEnc, this.cab]) {
+      const door = enc?.userData?.door;
+      if (!door) continue;
+      const target = open ? (door.userData?.open ?? -1.75) : 0;
+      const from = door.rotation.y;
+      if (Math.abs(from - target) < 0.01) continue;
+      this.anims.push({ t: 0, dur: 0.7, step: (k) => { const e = 1 - Math.pow(1 - k, 3); door.rotation.y = from + (target - from) * e; } });
+    }
+  }
+
   syncPatches(s) {
+    this.portLeds(s);
     const key = JSON.stringify(s.patches) + this.vis.size;
     if (key === this.cableKey) return;
     this.cableKey = key;

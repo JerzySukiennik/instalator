@@ -135,6 +135,7 @@ function paintTablet(snap) {
 }
 
 function focusTask(id) {
+  house.setDoors(id === "panel" || id === "rack");
   house.showWifi(false);
   house.showCones(false);
   house.setXray(false);
