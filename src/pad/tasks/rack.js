@@ -32,7 +32,8 @@ export function mount(root, ctx, taskId, h) {
   colorsHost.innerHTML = COLORS.map((c) => `<button data-c="${c}" style="background:${c}"></button>`).join("");
   colorsHost.querySelectorAll("button").forEach((b) => (b.onclick = () => { color = b.dataset.c; haptic(); colorsHost.querySelectorAll("button").forEach((x) => x.classList.toggle("on", x === b)); }));
   colorsHost.firstElementChild.classList.add("on");
-  body.querySelectorAll(".zoom button").forEach((b) => (b.onclick = () => { zoom = b.dataset.z === "+" ? Math.min(3, zoom + 1) : Math.max(1, zoom - 1); haptic(); layout(); }));
+  let userZoom = false, focusKey = "";
+  body.querySelectorAll(".zoom button").forEach((b) => (b.onclick = () => { userZoom = true; zoom = b.dataset.z === "+" ? Math.min(3, zoom + 1) : Math.max(1, zoom - 1); haptic(); layout(); }));
 
   const patchAt = (uid, p) => ctx.S.patches.find((x) => (x.a[0] === uid && x.a[1] === p) || (x.b[0] === uid && x.b[1] === p));
   const runAt = (uid, p) => ctx.S.devs.find((d) => d.run && d.run.pp === uid && d.run.port === p);
@@ -216,7 +217,7 @@ export function mount(root, ctx, taskId, h) {
         const need = !pt && ((run && !it.caps?.includes("switch")) || d.id === "ont" || (wan && i === 0) || (!it.caps?.includes("switch") && !it.caps?.includes("patch") && d.id !== "mb-keystone" && !wan && n === 1));
         const cls = `${pt ? "used" : ""} ${need ? "need" : ""} ${isHint(d.uid, i) ? "hint" : ""} ${i >= wan && i - wan < poe ? "poe" : ""}`;
         html += `<span class="p3 ${cls}" data-uid="${d.uid}" data-p="${i}" style="left:${x}px;top:${y}px"></span>`;
-        if (run && !pt) html += `<span class="pl3" style="left:${x}px;top:${y - 16}px">${esc(short(ctx, run))}</span>`;
+        if (run && !pt && (isHint(d.uid, i) || zoom >= 3)) html += `<span class="pl3" style="left:${x}px;top:${y - 16}px">${esc(short(ctx, run))}</span>`;
         if ((wan && i === 0) || d.id === "ont") html += `<span class="pl3" style="left:${x}px;top:${y - 16}px">${d.id === "ont" ? "INTERNET" : "WAN"}</span>`;
         ports.push({ uid: d.uid, p: i, x, y });
       }
@@ -238,6 +239,20 @@ export function mount(root, ctx, taskId, h) {
     ovl.innerHTML = html;
     ovl.querySelectorAll(".slot3").forEach((e) => (e.onclick = () => { haptic(true); ctx.send({ a: "rackPut", id: sel, u: Number(e.dataset.u) }); if ((ctx.S.inv[sel] || 1) <= 1) sel = null; }));
     drawCables();
+    autoFocus();
+  };
+
+  const autoFocus = () => {
+    if (!step || !step.link || userZoom) return;
+    const key = JSON.stringify(step.link.from) + JSON.stringify(step.link.to);
+    if (key === focusKey) return;
+    focusKey = key;
+    if (zoom < 2) { zoom = 2; layout(); }
+    requestAnimationFrame(() => {
+      const a = at(step.link.from[0], step.link.from[1]), b = at(step.link.to[0], step.link.to[1]);
+      if (!a || !b) return;
+      wrap.scrollTo({ left: Math.max(0, (a[0] + b[0]) / 2 - wrap.clientWidth / 2), top: Math.max(0, (a[1] + b[1]) / 2 - wrap.clientHeight / 2), behavior: "smooth" });
+    });
   };
 
   const cablePath = (a, b) => {
