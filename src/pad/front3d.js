@@ -53,8 +53,8 @@ export async function createFront(host, { bg = "#2b2f33" } = {}) {
     },
     apply() {
       const aspect = view.h / view.w;
-      camera.left = view.cx - view.halfW; camera.right = view.cx + view.halfW;
-      camera.top = view.cy + view.halfW * aspect; camera.bottom = view.cy - view.halfW * aspect;
+      camera.left = -view.halfW; camera.right = view.halfW;
+      camera.top = view.halfW * aspect; camera.bottom = -view.halfW * aspect;
       camera.position.set(view.cx, view.cy, 5);
       camera.lookAt(view.cx, view.cy, 0);
       camera.updateProjectionMatrix();

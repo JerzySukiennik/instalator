@@ -113,8 +113,10 @@ export function mount(root, ctx, taskId, h) {
     enc.updateMatrixWorld(true);
     const rails = enc.userData.rails || [];
     const box = new T.Box3();
+    const usedRows = [...lay.items.map((it) => it.row), ...ctx.S.devs.filter((d) => d.place === "din").map((d) => d.row ?? 0)];
+    const lastRow = sel ? lay.rows - 1 : Math.min(lay.rows - 1, Math.max(0, ...usedRows));
     if (rails.length) {
-      for (const r of rails.slice(0, lay.rows)) {
+      for (const r of rails.slice(0, lastRow + 1)) {
         box.expandByPoint(enc.localToWorld(new T.Vector3(r.x0 - 0.012, r.y + 0.07, r.z || 0)));
         box.expandByPoint(enc.localToWorld(new T.Vector3(r.x0 + lay.per * 0.0175 + 0.012, r.y - 0.075, r.z || 0)));
       }
@@ -167,7 +169,7 @@ export function mount(root, ctx, taskId, h) {
     ovl.querySelectorAll(".slot3").forEach((e) => (e.onclick = () => {
       if (ctx.S.panel.main) toast("Najpierw wyłącz zasilanie główne!", true); else haptic(true);
       ctx.send({ a: "dinPut", id: sel, row: Number(e.dataset.r), slot: Number(e.dataset.s) });
-      if (!ctx.S.panel.main && (ctx.S.inv[sel] || 1) <= 1) sel = null;
+      if (!ctx.S.panel.main && (ctx.S.inv[sel] || 1) <= 1) { sel = null; setTimeout(layout, 400); }
     }));
     ovl.querySelectorAll(".lab3").forEach((l) => (l.onclick = (e) => { e.stopPropagation(); labelSheet(l.dataset.c); }));
     ovl.querySelectorAll(".md3").forEach((m) => (m.onclick = () => moduleSheet(m.dataset.uid)));
@@ -188,7 +190,7 @@ export function mount(root, ctx, taskId, h) {
       return `<div class="row" data-c="${c.id}"><span class="chk ${live ? "on" : ""}">${live ? icon("bolt", 13, 2.4) : ""}</span><div class="grow"><b>${esc(c.breaker)} · ${c.kind === "light" ? "światło" : c.kind === "socket" ? "gniazdka" : c.kind === "heating" ? "ogrzewanie" : "urządzenie"}</b><span>${room ? `opis: ${esc(room.name)}${right === false && ctx.S.job.reqs.some((r) => r.type === "labels") ? " (sprawdź!)" : ""}` : "bez opisu: stuknij, żeby podpisać"}</span></div>${icon("plus", 18, 2)}</div>`;
     }).join("");
     list.querySelectorAll(".row").forEach((r) => (r.onclick = () => labelSheet(r.dataset.c)));
-    tray(trayHost, ctx, invList(ctx, (it) => it.where === "din"), sel, (id) => { sel = id; draw(); }, { cats: ["rozdzielnica"], hint: sel ? (ctx.S.panel.main ? "Wyłącz GŁÓWNY, potem stuknij zielone miejsce" : "Stuknij zielone miejsce na szynie") : "Moduły ze skrzynki" });
+    tray(trayHost, ctx, invList(ctx, (it) => it.where === "din"), sel, (id) => { sel = id; draw(); layout(); }, { cats: ["rozdzielnica"], hint: sel ? (ctx.S.panel.main ? "Wyłącz GŁÓWNY, potem stuknij zielone miejsce" : "Stuknij zielone miejsce na szynie") : "Moduły ze skrzynki" });
   };
 
   const labelSheet = (cid) => {
