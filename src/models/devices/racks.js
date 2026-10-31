@@ -27,6 +27,22 @@ function cabinet(units) {
     kit.box('satin', BLACK, s * (W / 2 - t / 2), 0, D / 2, t, H, D);
     for (let i = 0; i < 5; i++) kit.box('matte', '#0c0c0d', s * (W / 2 + 0.0001), y1 - 0.06 - i * 0.012, D * 0.55, 0.0004, 0.004, 0.16, { r: 0.0018, seg: 2, axis: 'x' });
   }
+  const iw = W - 2 * t - 0.002, ih = H - 2 * t - 0.002;
+  kit.box('matte', '#17181b', 0, y1 - t - 0.0006, D / 2, iw, 0.0008, D - 0.004);
+  kit.box('matte', '#17181b', 0, y0 + t + 0.0006, D / 2, iw, 0.0008, D - 0.004);
+  kit.box('matte', '#141518', 0, 0, t + 0.0006, iw, ih, 0.0008);
+  for (const s of [-1, 1]) kit.box('matte', '#191a1d', s * (W / 2 - t - 0.0006), 0, D / 2, 0.0008, ih, D - 0.004);
+  const perf = labelMat('cab-perf', 256, 256, (ctx) => {
+    ctx.clearRect(0, 0, 256, 256);
+    ctx.fillStyle = 'rgba(0,0,0,0.85)';
+    for (let i = 0; i < 16; i++) for (let j = 0; j < 16; j++) ctx.fillRect(6 + i * 16, 6 + j * 16, 8, 4);
+  }, { rough: 0.9 });
+  kit.quad(perf, null, iw * 0.7, ih * 0.75, 0, 0, t + 0.0012);
+  for (const s of [-1, 1]) for (let k = 0; k < 4; k++) {
+    const y = y0 + 0.08 + k * (H - 0.16) / 3;
+    kit.box('metal', '#5a5e63', s * (W / 2 - 0.05), y, 0.06, 0.004, 0.004, 0.05);
+    kit.box('metal', '#5a5e63', s * (W / 2 - 0.05), y, 0.085, 0.03, 0.004, 0.004);
+  }
   kit.box('satin', '#26272a', 0, y1 - 0.025, D - 0.012, W - 0.006, 0.05, 0.024);
   kit.box('satin', '#26272a', 0, y0 + 0.025, D - 0.012, W - 0.006, 0.05, 0.024);
   for (const s of [-1, 1]) kit.box('satin', '#26272a', s * (W / 2 - 0.03), 0, D - 0.012, 0.06, H - 0.1, 0.024);
@@ -43,6 +59,9 @@ function cabinet(units) {
     kit.box('metal', '#a9acb0', s * 0.2405, 0, zr - 0.02, 0.002, ru + 0.03, 0.038);
     kit.quad(rail, null, 0.012, ru, x, 0, zr + 0.0002);
   }
+  kit.box('alu', '#9da1a6', 0, y1 - t - 0.0028, zr - 0.035, W - 0.07, 0.004, 0.018, { r: 0.0012, seg: 1 });
+  kit.led('#dbe6ff', 'strip', (m) => kit.box(m, null, 0, y1 - t - 0.0049, zr - 0.035, W - 0.08, 0.0008, 0.012), { intensity: 2.4 });
+  kit.ao({ axis: 2, lo: 0.0, hi: D * 0.85, k: 0.42 });
   const door = new Kit();
   const dW = W - 0.004, dH = H - 0.004, fw = 0.032;
   door.shape('satin', '#202124', rectPts(dW / 2, 0, dW, dH), 0.018, 0, 0, 0, { holes: [rectPts(dW / 2, 0, dW - 2 * fw, dH - 2 * fw)] });

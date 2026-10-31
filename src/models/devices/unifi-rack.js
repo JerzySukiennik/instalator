@@ -17,16 +17,16 @@ function ears(kit, w, u, color = SILVER) {
     const cx = s * (w / 2 + ew / 2);
     const ys = u === 1 ? [0.00635, 0.0381] : [0.00635, u * U - 0.00635];
     const holes = ys.map((y) => rrPts(0.0095, 0.0064, 0.0031, 3, s * 0.23255, y));
-    kit.shape('metal', color, rectPts(cx, u * U / 2, ew, hh), 0.0018, 0, 0, 0, { holes });
-    kit.box('metal', COL.uniSilverDark, s * (w / 2 + 0.0009), u * U / 2, -0.012, 0.0018, hh * 0.8, 0.026);
+    kit.shape('alu', color, rectPts(cx, u * U / 2, ew, hh), 0.0018, 0, 0, 0, { holes });
+    kit.box('alu', COL.uniSilverDark, s * (w / 2 + 0.0009), u * U / 2, -0.012, 0.0018, hh * 0.8, 0.026);
   }
 }
 
 function chassis(kit, o) {
   const { w, h, depth, u = 1 } = o;
   const y0 = (u * U - h) / 2, yc = y0 + h / 2;
-  kit.shape('metal', o.color || SILVER, rectPts(0, yc, w, h), T, 0, 0, ZF - T, { holes: o.holes || [] });
-  kit.add('metal', o.side || COL.uniSilverDark, openBox(w, h, depth).translate(0, yc, ZF - T - depth / 2));
+  kit.shape('alu', o.color || SILVER, rectPts(0, yc, w, h), T, 0, 0, ZF - T, { holes: o.holes || [] });
+  kit.add('alu', o.side || COL.uniSilverDark, openBox(w, h, depth).translate(0, yc, ZF - T - depth / 2));
   if (o.ears !== false) ears(kit, w, u, o.color || SILVER);
   return { y0, yc, top: y0 + h };
 }
@@ -59,6 +59,7 @@ function etherGroup(kit, x0, y, n, pitch, firstId, kinds, color) {
     kit.add(mat, null, cupGeo(rj45Pts(px, y, true), 0.008).translate(0, 0, ZF - T - 0.0006));
     kit.add('matte', '#a3a4a6', new THREE.ShapeGeometry(new THREE.Shape(rj45Pts(px, y, true))).translate(0, 0, ZF - T - 0.0085));
     kit.quad(pinMat(), null, 0.0068, 0.0028, px, y - 0.0023, ZF - T - 0.0084);
+    kit.box(mat, null, px - 0.0036, y + 0.0084, ZF + 0.00006, 0.0022, 0.0013, 0.00012);
     kit.port(firstId + i, kinds(firstId + i), px, y, ZF, mat);
     kit.leds.push({ material: mat, role: 'port', color });
   }
@@ -67,7 +68,7 @@ function etherGroup(kit, x0, y, n, pitch, firstId, kinds, color) {
 
 function bay(kit, x, y, w, h, o = {}) {
   cup(kit, rectPts(x, y, w, h), 0.006, ZF - T, '#141516', '#141516');
-  kit.box('metal', o.tray || '#c3c6c9', x + 0.0012, y, ZF - T - 0.0012, w - 0.0034, h - 0.0018, 0.0016);
+  kit.box('alu', o.tray || '#c3c6c9', x + 0.0012, y, ZF - T - 0.0012, w - 0.0034, h - 0.0018, 0.0016);
   kit.box('matte', '#202123', x - w / 2 + 0.0016, y, ZF - T - 0.0011, 0.0018, h - 0.0024, 0.0016);
   kit.led('#f4f7ff', 'status', (m) => kit.cyl(m, null, x + w / 2 - 0.009, y + h * 0.18, ZF - T - 0.0002, 0.0006, 0.0006, { axis: 'z', seg: 8 }), { intensity: 1.4 });
   return rectPts(x, y, w, h);
@@ -218,21 +219,43 @@ function patchPanel24() {
     face.holes.push(new THREE.Path(rj45Pts(px, py - 0.0012, false)));
     kit.add('matte', '#202123', new THREE.ShapeGeometry(face).translate(0, 0, ZF - T + 0.0002));
     rj45(kit, px, py - 0.0012, ZF - T + 0.0002, { up: false, wall: '#242527', depth: 0.0075 });
-    kit.box('matte', '#2c2d30', px, py + 0.0079, ZF - T + 0.0005, 0.0094, 0.0016, 0.0006);
-    kit.port(i + 1, 'rj45', px, py - 0.0012, ZF);
+    kit.box('matte', '#2c2d30', px - 0.0022, py + 0.0079, ZF - T + 0.0005, 0.0052, 0.0016, 0.0006);
+    const led = kit.led(i % 4 === 3 ? '#ffb020' : '#41e05a', 'port', (m) => kit.box(m, null, px + 0.0042, py + 0.0079, ZF - T + 0.0006, 0.0024, 0.0015, 0.0006), { intensity: 0 });
+    kit.port(i + 1, 'rj45', px, py - 0.0012, ZF, led);
   }
   for (const s of [-1, 1]) holes.push(rrPts(0.0095, 0.0064, 0.0031, 3, s * 0.23255, 0.00635), rrPts(0.0095, 0.0064, 0.0031, 3, s * 0.23255, 0.0381));
-  kit.shape('metal', SILVER, rectPts(0, yc, W, H), T, 0, 0, ZF - T, { holes });
-  kit.box('metal', COL.uniSilverDark, 0, y0 + 0.0008, -0.06, 0.43, 0.0016, 0.12);
-  for (const s of [-1, 1]) kit.box('metal', SILVER, s * 0.2155, yc, -0.06, 0.0016, H - 0.004, 0.12);
-  kit.cyl('chrome', '#d8dadc', 0, y0 + 0.012, -0.112, 0.0055, 0.43, { axis: 'x', seg: 10 });
+  kit.shape('alu', '#c2c5c8', rectPts(0, yc, W, H), T, 0, 0, ZF - T, { holes });
+  kit.box('alu', COL.uniSilverDark, 0, y0 + 0.0008, -0.06, 0.43, 0.0016, 0.12);
+  for (const s of [-1, 1]) kit.box('alu', '#b9bcbf', s * 0.2155, yc, -0.06, 0.0016, H - 0.004, 0.12);
+  kit.cyl('alu', '#cfd2d5', 0, y0 + 0.012, -0.112, 0.0055, 0.43, { axis: 'x', seg: 10 });
   const pm = frontPrint('patch24-front', W, H, [
     ...Array.from({ length: 24 }, (_, i) => ({ t: String(i + 1), x: W / 2 + x0 + i * pitch, y: 0.0405, size: 0.0019, weight: 600, color: '#3f454b' })),
     { logo: 0.0045, x: 0.03, y: 0.022, color: '#7f868d' },
-  ], { metal: 0.5, rough: 0.45 });
+  ], { metal: 0.3, rough: 0.6 });
   printPlane(kit, pm, W, H, -W / 2, y0, ZF + 0.00008);
   kit.ud.rackUnits = 1;
   return kit.build();
+}
+
+function bristleGeo(xa, xb, yc, z0, n, seed) {
+  let st = seed;
+  const rnd = () => ((st = (st * 16807) % 2147483647) / 2147483647);
+  const pos = [];
+  for (const s of [-1, 1]) {
+    for (let i = 0; i < n; i++) {
+      const x = xa + (i + rnd()) * ((xb - xa) / n);
+      const yb = yc + s * 0.0114, len = 0.0104 + rnd() * 0.0018;
+      const zb = z0 - 0.0028 + rnd() * 0.0016;
+      const tx = x + (rnd() - 0.5) * 0.0018, ty = yb - s * len, tz = zb + 0.0014 + rnd() * 0.0022;
+      const w0 = 0.0012 + rnd() * 0.0008, w1 = 0.00035;
+      const a = [x - w0 / 2, yb, zb], b = [x + w0 / 2, yb, zb], c = [tx + w1 / 2, ty, tz], d = [tx - w1 / 2, ty, tz];
+      if (s > 0) pos.push(...a, ...c, ...b, ...a, ...d, ...c);
+      else pos.push(...a, ...b, ...c, ...a, ...c, ...d);
+    }
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  return g;
 }
 
 function brushPanel() {
@@ -240,16 +263,13 @@ function brushPanel() {
   const W = 0.4826, H = 0.0437, y0 = (U - H) / 2, yc = y0 + H / 2;
   const holes = [rrPts(0.405, 0.023, 0.0035, 3, 0, yc)];
   for (const s of [-1, 1]) holes.push(rrPts(0.0095, 0.0064, 0.0031, 3, s * 0.23255, 0.00635), rrPts(0.0095, 0.0064, 0.0031, 3, s * 0.23255, 0.0381));
-  kit.shape('metal', SILVER, rectPts(0, yc, W, H), T, 0, 0, ZF - T, { holes });
-  cup(kit, rrPts(0.405, 0.023, 0.0035, 3, 0, yc), 0.012, ZF - T, '#141414', '#0a0a0a');
-  const n = 54;
-  for (const s of [-1, 1]) {
-    for (let i = 0; i < n; i++) {
-      const x = -0.2 + (i + 0.5) * (0.4 / n);
-      const shade = ['#1b1b1c', '#252527', '#141415'][i % 3];
-      kit.box('rubber', shade, x, yc + s * 0.0058, ZF - T - 0.0014 - (i % 2) * 0.0004, 0.4 / n + 0.0002, 0.0104, 0.0016, { rx: s * 0.18 });
-    }
-  }
+  kit.shape('alu', SILVER, rectPts(0, yc, W, H), T, 0, 0, ZF - T, { holes });
+  cup(kit, rrPts(0.405, 0.023, 0.0035, 3, 0, yc), 0.014, ZF - T, '#141414', '#050505');
+  kit.box('rubber', '#1a1a1b', 0, yc + 0.0109, ZF - T - 0.0026, 0.404, 0.0014, 0.004);
+  kit.box('rubber', '#1a1a1b', 0, yc - 0.0109, ZF - T - 0.0026, 0.404, 0.0014, 0.004);
+  const hash = (v) => { const x = Math.sin(v * 12.9898) * 43758.5453; return x - Math.floor(x); };
+  const shades = ['#1c1c1e', '#2a2a2d', '#141416', '#333336', '#202022'];
+  kit.add('rubber', '#1c1c1e', bristleGeo(-0.2005, 0.2005, yc, ZF - T, 180, 11), { face: (cx) => shades[Math.floor(hash(cx * 1000) * shades.length)] });
   kit.ud.rackUnits = 1;
   return kit.build();
 }

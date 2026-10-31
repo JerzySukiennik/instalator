@@ -66,6 +66,7 @@ export function materials() {
     matte2: lam({ side: THREE.DoubleSide }),
     satin: std({ roughness: 0.58, metalness: 0, envMapIntensity: 0.28 }),
     gloss: std({ roughness: 0.2, metalness: 0, envMapIntensity: 0.55 }),
+    marble: std({ roughness: 0.24, metalness: 0, envMapIntensity: 0.95 }),
     metal: std({ roughness: 0.32, metalness: 0.82, envMapIntensity: 0.9 }),
     glass: new THREE.MeshStandardMaterial({ color: '#d4e3e8', roughness: 0.05, metalness: 0, transparent: true, opacity: 0.25, envMap: env, envMapIntensity: 1.1, depthWrite: false, side: THREE.DoubleSide }),
     site: lam(),

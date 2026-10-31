@@ -15,13 +15,13 @@ await page.waitForFunction(() => window.__demoReady === true, null, { timeout: 9
 const shots = await page.evaluate(async () => {
   const { renderDash } = await import("/src/dash/render.js");
   const { snapshotFor } = await import("/src/shared/game.js");
-  if (window.__shootCams) window.__shootCams();
+  const opts = window.__dashOpts ? window.__dashOpts() : { camImages: window.__camImages || {} };
   const snap = snapshotFor(window.__tv.state, window.__tv.data);
   const out = {};
   for (const p of ["ha", "apple", "google"]) {
     const c = document.createElement("canvas");
     c.width = 1180; c.height = 820;
-    renderDash(c.getContext("2d"), 1180, 820, { ...snap, tablet: { ...snap.tablet, platform: p } }, window.__tv.data, { camImages: window.__camImages || {} });
+    renderDash(c.getContext("2d"), 1180, 820, { ...snap, tablet: { ...snap.tablet, platform: p } }, window.__tv.data, opts);
     out[p] = c.toDataURL("image/png");
   }
   return out;

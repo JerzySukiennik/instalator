@@ -9,11 +9,13 @@ import { fillPattern } from './generator.js';
 const TAU = Math.PI * 2;
 const treeCache = new Map();
 
-export const GRASS = { a: C('#7fa046'), b: C('#6e9440'), hi: C('#8ea852'), dry: C('#9a9a62'), shade: C('#6a8a3e') };
+export const GRASS = { a: C('#7fa046'), b: C('#6e9440'), hi: C('#8ea852'), dry: C('#9a9a62'), shade: C('#6a8a3e'), deep: C('#628a3c'), warm: C('#94a456') };
 
 export function lawnColor(x, z, out = new THREE.Color()) {
   const z1 = fbm(x / 12 + 4, z / 12 - 6, 2, 21), z2 = fbm(x / 7 - 2, z / 7 + 5, 2, 24);
+  const z3 = fbm(x / 34 + 9, z / 34 - 4, 2, 27);
   out.copy(GRASS.a).lerp(GRASS.b, smooth(0.5, 0.36, z1)).lerp(GRASS.hi, smooth(0.52, 0.66, z1) * 0.85).lerp(GRASS.dry, smooth(0.6, 0.72, z2) * 0.4);
+  out.lerp(GRASS.deep, smooth(0.42, 0.28, z3) * 0.35).lerp(GRASS.warm, smooth(0.58, 0.74, z3) * 0.3);
   return out;
 }
 
@@ -88,13 +90,15 @@ function treeGeo(type) {
     }
   } else if (type === 'flowers') {
     const R = rng(71);
-    const cols = ['#d9483b', '#f2c14e', '#efe9f2', '#b26bc2', '#f08ab0', '#f6a23c'];
-    for (let i = 0; i < 9; i++) {
-      const x = (R() - 0.5) * 0.7, z = (R() - 0.5) * 0.7, h = 0.25 + R() * 0.25;
-      g.line([x, 0, z], [x, h, z], 0.006, '#5f7f3a', 3);
-      g.blob(x, h, z, 0.05, 0.035, 0.05, cols[Math.floor(R() * cols.length)], i, { detail: 0, jitter: 0.1 });
+    const cols = ['#c9a3c2', '#efe9e0', '#d6b0b8', '#b9a6d0', '#e8d9a8'];
+    g.blob(0, 0.2, 0, 0.5, 0.26, 0.42, '#5d7a42', 3, { detail: 1, jitter: 0.1, flat: true });
+    g.blob(0.32, 0.16, 0.12, 0.3, 0.2, 0.28, '#66844a', 4, { detail: 0, jitter: 0.1, flat: true });
+    const c0 = cols[Math.floor(R() * cols.length)];
+    for (let i = 0; i < 16; i++) {
+      const a = R() * TAU, r = Math.sqrt(R()) * 0.42, x = Math.cos(a) * r, z = Math.sin(a) * r * 0.85;
+      const y = 0.2 + 0.22 * Math.sqrt(Math.max(0, 1 - (r / 0.5) ** 2));
+      g.blob(x, y + 0.03, z, 0.055, 0.04, 0.055, i % 4 === 0 ? '#efe9e0' : c0, i + 9, { detail: 0, jitter: 0.08 });
     }
-    g.blob(0, 0.08, 0, 0.42, 0.12, 0.42, '#5d7a42', 3, { detail: 0 });
   }
   const geo = g.geometry('t');
   treeCache.set(type, geo);
@@ -111,7 +115,7 @@ function tuftGeo() {
     const bx = (R() - 0.5) * 0.08, bz = (R() - 0.5) * 0.08;
     const tip = [bx + Math.cos(a) * lean, h, bz + Math.sin(a) * lean];
     const ca = Math.cos(a + 1.57) * w, sa = Math.sin(a + 1.57) * w;
-    g.tri([bx - ca, 0, bz - sa], [bx + ca, 0, bz + sa], tip, '#4f6e2e', '#4f6e2e', '#9cb85a');
+    g.tri([bx - ca, 0, bz - sa], [bx + ca, 0, bz + sa], tip, '#c9cdc0', '#c9cdc0', '#ffffff');
   }
   const geo = g.geometry('t');
   treeCache.set('tuft', geo);
@@ -133,7 +137,7 @@ export function makeSite(api, o = {}) {
     trees(list) { for (const t of list) S.tree(...t); },
     tuft(x, z, s = 1) { tufts.push({ x, z, s, y: S.ground(x, z) }); },
     scatter(n, test, seed = 1, sMin = 0.8, sMax = 1.3, x0 = -40, z0 = -40, x1 = 40, z1 = 40) {
-      sMin *= 0.62; sMax *= 0.62; n = Math.round(n * 1.35);
+      sMin *= 0.7; sMax *= 0.7; n = Math.round(n * 0.62);
       const R = rng(seed);
       let k = 0;
       for (let i = 0; i < n * 6 && k < n; i++) {
@@ -433,7 +437,7 @@ export function makeSite(api, o = {}) {
         tufts.forEach((it, i) => {
           mesh.setMatrixAt(i, m4.compose(p.set(it.x, it.y, it.z), q.setFromAxisAngle(up, hash(it.x, it.z) * TAU), sc.set(it.s, it.s * (0.8 + hash(it.z, it.x) * 0.6), it.s)));
           lawnColor(it.x, it.z, tint);
-          tint.multiplyScalar(1.25);
+          tint.multiplyScalar(0.93);
           mesh.setColorAt(i, tint);
         });
         mesh.receiveShadow = true;

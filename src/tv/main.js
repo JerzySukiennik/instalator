@@ -140,13 +140,50 @@ function refresh(snap) {
 const camRT = new THREE.WebGLRenderTarget(384, 216, { type: THREE.FloatType });
 const camCam = new THREE.PerspectiveCamera(72, 16 / 9, 0.05, 250);
 const camImgs = {};
-let camAt = 0;
+let camAt = 0, wallImg = null, wallAt = 0;
+
+function shootWall() {
+  if (!data || (wallImg && performance.now() - wallAt < 30000)) return;
+  wallAt = performance.now();
+  const W = 384, H = 216;
+  const xs = data.rooms.flatMap((r) => r.poly.map((q) => q[0])), zs = data.rooms.flatMap((r) => r.poly.map((q) => q[1]));
+  const cx = (Math.min(...xs) + Math.max(...xs)) / 2, cz = (Math.min(...zs) + Math.max(...zs)) / 2;
+  const rad = Math.max(Math.max(...xs) - Math.min(...xs), Math.max(...zs) - Math.min(...zs));
+  camCam.position.set(cx + Math.sin(0.8) * rad * 1.1, rad * 0.55, cz + Math.cos(0.8) * rad * 1.1);
+  camCam.lookAt(cx, 0.5, cz);
+  camCam.updateMatrixWorld();
+  const buf = new Float32Array(W * H * 4);
+  R.renderer.setRenderTarget(camRT);
+  R.renderer.render(R.scene, camCam);
+  R.renderer.setRenderTarget(null);
+  R.renderer.readRenderTargetPixels(camRT, 0, 0, W, H, buf);
+  const cv = wallImg || document.createElement("canvas");
+  cv.width = W; cv.height = H;
+  const g = cv.getContext("2d");
+  const im = g.createImageData(W, H);
+  const exp = R.renderer.toneMappingExposure * 1.3;
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const i = ((H - 1 - y) * W + x) * 4, o = (y * W + x) * 4;
+    for (let c = 0; c < 3; c++) { let v = buf[i + c] * exp; v = v / (1 + v); im.data[o + c] = Math.min(255, Math.pow(v, 1 / 2.2) * 270); }
+    im.data[o + 3] = 255;
+  }
+  g.putImageData(im, 0, 0);
+  wallImg = cv;
+}
 window.__camImages = camImgs;
 window.__shootCams = () => shootCams(true);
+window.__dashOpts = () => { shootCams(true); shootWall(); return { camImages: camImgs, clock: gameNow(), wallpaper: wallImg }; };
+
+function gameNow() {
+  const d = new Date();
+  const t = { day: [11, 40], afternoon: [14, 50], dusk: [16, 35], night: [21, 10] }[R.mode] || [14, 50];
+  d.setHours(t[0], t[1] + Math.floor(performance.now() / 60000) % 40, d.getSeconds());
+  return d;
+}
 
 function cctv(g, buf, W, H, key) {
   const im = g.createImageData(W, H);
-  const ir = R.mode === "night";
+  const ir = R.mode === "night" || R.mode === "dusk";
   const exp = R.renderer.toneMappingExposure * (ir ? 2.6 : 1.45);
   const ar = W / H, k = 0.2, rmax = 1 + 1 / (ar * ar), s = 1 / (1 + k * rmax);
   let seedN = 0;
@@ -154,14 +191,19 @@ function cctv(g, buf, W, H, key) {
   seedN ^= Math.floor(performance.now() / 500);
   const rnd = () => { seedN ^= seedN << 13; seedN >>>= 0; seedN ^= seedN >>> 17; seedN ^= seedN << 5; seedN >>>= 0; return seedN / 4294967296; };
   const px = [0, 0, 0];
-  const sample = (fx, fy) => {
+  const one = [0, 0, 0];
+  const tap = (fx, fy) => {
     fx = Math.max(0, Math.min(W - 1.001, fx)); fy = Math.max(0, Math.min(H - 1.001, fy));
     const x0 = fx | 0, y0 = fy | 0, tx = fx - x0, ty = fy - y0;
+    const r0 = (H - 1 - y0) * W, r1 = (H - 2 - y0 < 0 ? 0 : H - 2 - y0) * W;
     for (let c = 0; c < 3; c++) {
-      const a = buf[((H - 1 - y0) * W + x0) * 4 + c], b = buf[((H - 1 - y0) * W + x0 + 1) * 4 + c];
-      const cc = buf[((H - 2 - y0 < 0 ? 0 : H - 2 - y0) * W + x0) * 4 + c], dd = buf[((H - 2 - y0 < 0 ? 0 : H - 2 - y0) * W + x0 + 1) * 4 + c];
-      px[c] = (a * (1 - tx) + b * tx) * (1 - ty) + (cc * (1 - tx) + dd * tx) * ty;
+      const a = buf[(r0 + x0) * 4 + c], b = buf[(r0 + x0 + 1) * 4 + c], cc = buf[(r1 + x0) * 4 + c], dd = buf[(r1 + x0 + 1) * 4 + c];
+      one[c] = (a * (1 - tx) + b * tx) * (1 - ty) + (cc * (1 - tx) + dd * tx) * ty;
     }
+  };
+  const sample = (fx, fy) => {
+    px[0] = px[1] = px[2] = 0;
+    for (const [ox, oy] of [[-0.7, -0.4], [0.7, 0.4], [-0.4, 0.7], [0.4, -0.7]]) { tap(fx + ox, fy + oy); px[0] += one[0] / 4; px[1] += one[1] / 4; px[2] += one[2] / 4; }
   };
   for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
     const u = ((x + 0.5) / W) * 2 - 1, v = ((y + 0.5) / H) * 2 - 1;
@@ -172,7 +214,7 @@ function cctv(g, buf, W, H, key) {
     let l = 0;
     for (let c = 0; c < 3; c++) { let cc = px[c] * exp; cc = cc / (1 + cc); px[c] = Math.pow(cc, 1 / 2.2); l += px[c] * [0.299, 0.587, 0.114][c]; }
     const vig = 1 - 0.42 * Math.pow(r2 / rmax, 1.4);
-    const n = (rnd() - 0.5) * (ir ? 0.11 : 0.06);
+    const n = (rnd() - 0.5) * (ir ? 0.12 : 0.085);
     for (let c = 0; c < 3; c++) {
       let cc = ir ? l * [0.94, 1, 1.03][c] : l + (px[c] - l) * 0.78;
       cc = cc * 1.08 - 0.03;
@@ -182,7 +224,7 @@ function cctv(g, buf, W, H, key) {
     im.data[o + 3] = 255;
   }
   g.putImageData(im, 0, 0);
-  const t = new Date();
+  const t = gameNow();
   const two = (n) => String(n).padStart(2, "0");
   const stamp = `${two(t.getDate())}.${two(t.getMonth() + 1)}.${t.getFullYear()} ${two(t.getHours())}:${two(t.getMinutes())}:${two(t.getSeconds())}`;
   g.font = "600 11px 'IBM Plex Mono', monospace";
@@ -226,7 +268,8 @@ function paintTablet(snap) {
   const disp = obj.userData.display;
   if (!tabletCanvas) { tabletCanvas = document.createElement("canvas"); tabletCanvas.width = 1180; tabletCanvas.height = 820; }
   shootCams();
-  renderDash(tabletCanvas.getContext("2d"), tabletCanvas.width, tabletCanvas.height, snap, data, { camImages: camImgs });
+  if (state.tablet.platform === "apple") shootWall();
+  renderDash(tabletCanvas.getContext("2d"), tabletCanvas.width, tabletCanvas.height, snap, data, { camImages: camImgs, clock: gameNow(), wallpaper: wallImg });
   if (!tabletTex) { tabletTex = new THREE.CanvasTexture(tabletCanvas); tabletTex.colorSpace = THREE.SRGBColorSpace; tabletTex.anisotropy = 4; }
   tabletTex.needsUpdate = true;
   if (disp && disp.mesh) {

@@ -8,6 +8,7 @@ export const SURF = {
   satin: surf({ roughness: 0.44, metalness: 0 }),
   gloss: surf({ roughness: 0.16, metalness: 0 }),
   metal: surf({ roughness: 0.4, metalness: 0.7 }),
+  alu: surf({ roughness: 0.58, metalness: 0.32 }),
   chrome: surf({ roughness: 0.2, metalness: 0.92 }),
   glass: surf({ roughness: 0.06, metalness: 0.1 }),
   rubber: surf({ roughness: 0.94, metalness: 0 }),
@@ -21,7 +22,7 @@ export const CLEAR = {
   frost: new THREE.MeshStandardMaterial({ color: '#f4f6f6', roughness: 0.5, metalness: 0, transparent: true, opacity: 0.55, depthWrite: false, flatShading: true }),
 };
 
-const ENV = { satin: 0.3, gloss: 0.55, metal: 1.0, chrome: 1.15, glass: 0.9 };
+const ENV = { satin: 0.3, gloss: 0.55, metal: 1.0, alu: 0.55, chrome: 1.15, glass: 0.9 };
 
 export function setDeviceEnvMap(tex, scale = 1) {
   for (const [k, v] of Object.entries(ENV)) {

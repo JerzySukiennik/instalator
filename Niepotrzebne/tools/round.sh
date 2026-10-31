@@ -1,6 +1,6 @@
 #!/bin/zsh
-# Instalator: capture one gauntlet round of shots (TV views, phone screens, dashboards, thumbnails) and build blind packs.
-# usage: Niepotrzebne/tools/round.sh <round>
+# Instalator: capture one gauntlet round (TV views, phone screens, lobby/board/desk flow, dashboards) and build the blind packs.
+# usage: BASE=http://localhost:8775/ Niepotrzebne/tools/round.sh <round>
 set -u
 cd "$(dirname "$0")/../.."
 R=${1:?round}
@@ -8,8 +8,13 @@ S=Niepotrzebne/gauntlet/shots/$R
 P=Niepotrzebne/gauntlet/pack/$R
 REF=Niepotrzebne/gauntlet/ref
 mkdir -p $S $P/aaa
-tv() { nice -n 10 node Niepotrzebne/tools/shot.mjs tv $S/tv-$1.png "$2" 2>&1 | grep -E "info|error|timeout" | tail -2; }
-pad() { PWAIT=1800 nice -n 10 node Niepotrzebne/tools/shot.mjs pad $S/pad-$1.png "$2" "$3" 2>&1 | grep -E "error|timeout" | tail -2; }
+tv() { nice -n 10 node Niepotrzebne/tools/shot.mjs tv $S/tv-$1.png "$2" 2>&1 | grep -E "pageerror|timeout" | tail -2; }
+pad() {
+  for i in 1 2; do
+    PWAIT=1800 nice -n 10 node Niepotrzebne/tools/shot.mjs pad $S/pad-$1.png "$2" "$3" 2>&1 | grep -E "pageerror|timeout" | tail -2
+    [ -f $S/pad-$1.png ] && break
+  done
+}
 tv overview-kawalerka "demo=kawalerka&view=overview&az=0.8"
 tv overview-dom "demo=dom&view=overview&az=0.7"
 tv overview-gzowo "demo=gzowo&view=overview&az=2.4"
@@ -32,8 +37,11 @@ pad wifi "demo=willa&view=overview" "window.__pad.send({a:'buy',id:'u7-pro',n:1}
 pad dash "demo=dom&view=overview" "window.__pad.openTask('tablet'); await new Promise(r=>setTimeout(r,900)); document.querySelector('[data-s=\"dash\"]')?.click(); return 1"
 pad shop "demo=dom&view=overview" "window.__pad.openTask('rack'); await new Promise(r=>setTimeout(r,700)); document.querySelector('.shopb')?.click(); return 1"
 nice -n 10 node Niepotrzebne/tools/dashshot.mjs $S dom > /dev/null 2>&1
+nice -n 10 node Niepotrzebne/tools/uishot.mjs ${S}ui > /dev/null 2>&1
 cp $S/*.png $P/aaa/ 2>/dev/null
+cp ${S}ui/*.png $P/aaa/ 2>/dev/null
 python3 Niepotrzebne/tools/abpack.py $R house $S/tv-living-dom.png $REF/steam/electrician-smart/07.jpg $S/tv-overview-dom.png $REF/steam/electrician/07.jpg $S/tv-overview-willa.png $REF/steam/electrician-smart/05.jpg $S/tv-night-dom.png $REF/steam/electrician-smart-vr/05.jpg
 python3 Niepotrzebne/tools/abpack.py $R rack $S/tv-rack-dom.png $REF/steam/datacenter/07.jpg $S/tv-rack-willa.png $REF/steam/datacenter/06.jpg
 python3 Niepotrzebne/tools/abpack.py $R hud $S/tv-review-gzowo.png $REF/steam/electrician/06.jpg $S/tv-panel-dom.png $REF/steam/electrician-smart/08.jpg
+AB_SIZE=1180x820 python3 Niepotrzebne/tools/abpack.py $R dash $S/dash-google.png $REF/dashpairs/google.png $S/dash-apple.png $REF/dashpairs/apple.png $S/dash-ha.png $REF/dashpairs/ha.png
 ls $P

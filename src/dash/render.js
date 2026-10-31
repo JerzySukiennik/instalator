@@ -56,6 +56,10 @@ function zoneName(data, d) {
 }
 
 const fmt = (n, d = 1) => n.toFixed(d).replace(".", ",");
+const DAYS = ["niedz", "pon", "wt", "śr", "czw", "pt", "sob"];
+const MONTHS = ["sty", "lut", "mar", "kwi", "maj", "cze", "lip", "sie", "wrz", "paź", "lis", "gru"];
+const hm = (d) => `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+let CLOCK = new Date();
 const seed = (str) => { let h = 7; for (const ch of String(str || "")) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return (h % 1000) / 1000; };
 
 export function cardInfo(snap, data, c) {
@@ -124,10 +128,11 @@ export function cardInfo(snap, data, c) {
 
 export function renderDash(ctx, w, h, snap, data, opts = {}) {
   const p = snap.tablet?.platform || "ha";
+  CLOCK = opts.clock || new Date();
   const cards = opts.cards || snap.tablet?.dash?.cards || [];
   ctx.save();
   ctx.clearRect(0, 0, w, h);
-  if (p === "apple") appleChrome(ctx, w, h, snap);
+  if (p === "apple") appleChrome(ctx, w, h, snap, opts.wallpaper);
   else if (p === "google") googleChrome(ctx, w, h, snap);
   else haChrome(ctx, w, h, snap);
   const g = gridRect(w, h, p);
@@ -201,11 +206,12 @@ function haTile(ctx, r, c, info, opts) {
     ctx.lineCap = "round"; ctx.lineWidth = 12;
     ctx.strokeStyle = "#ececec"; ctx.beginPath(); ctx.arc(cx, cy, rad, Math.PI * 0.75, Math.PI * 2.25); ctx.stroke();
     ctx.strokeStyle = info.on ? col : "#bdbdbd"; ctx.beginPath(); ctx.arc(cx, cy, rad, Math.PI * 0.75, Math.PI * (0.75 + 1.5 * ((info.value - 10) / 20))); ctx.stroke();
+    const tgt = info.extra?.target ?? Math.round(info.value + 1);
     ctx.fillStyle = "#212121"; ctx.textAlign = "center"; ctx.font = `400 40px ${F.ha}`; ctx.fillText(fmt(info.value), cx, cy + 12);
-    ctx.font = `400 14px ${F.ha}`; ctx.fillStyle = "#727272"; ctx.fillText("°C · grzanie", cx, cy + 36);
+    ctx.font = `400 14px ${F.ha}`; ctx.fillStyle = "#727272"; ctx.fillText(info.active ? `°C · grzanie do ${tgt}` : "°C · bezczynny", cx, cy + 36);
     ctx.font = `500 16px ${F.ha}`; ctx.fillStyle = "#212121"; ctx.fillText(info.title, cx, r.y + 30);
     ctx.textAlign = "left";
-    pmRow(ctx, r.x + 14, r.y + r.h - 54, r.w - 28, 40, "#f5f5f5", "#212121", `${fmt(info.value)} °C`, F.ha, 10);
+    pmRow(ctx, r.x + 14, r.y + r.h - 54, r.w - 28, 40, "#f5f5f5", "#212121", `Cel ${fmt(tgt, 1)} °C`, F.ha, 10);
     return;
   }
   const compact = r.h < 120;
@@ -243,15 +249,25 @@ function saturated(hex) {
   return Math.max(r, g, b) - Math.min(r, g, b) > 90;
 }
 
-function appleChrome(ctx, w, h, snap) {
-  const g = ctx.createLinearGradient(0, 0, 0, h);
-  g.addColorStop(0, "#7d93a8"); g.addColorStop(0.42, "#a59377"); g.addColorStop(0.7, "#c68a4e"); g.addColorStop(1, "#7a4f2c");
-  ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
-  const sun = ctx.createRadialGradient(w * 0.62, h * 0.82, 10, w * 0.62, h * 0.82, w * 0.55);
-  sun.addColorStop(0, "rgba(255,214,150,0.75)"); sun.addColorStop(1, "rgba(255,214,150,0)");
-  ctx.fillStyle = sun; ctx.fillRect(0, 0, w, h);
+function appleChrome(ctx, w, h, snap, wall) {
+  if (wall) {
+    ctx.save();
+    ctx.filter = "blur(22px) saturate(1.25)";
+    ctx.drawImage(wall, -60, -60, w + 120, h + 120);
+    ctx.restore();
+    const v = ctx.createLinearGradient(0, 0, 0, h);
+    v.addColorStop(0, "rgba(10,14,20,0.28)"); v.addColorStop(0.5, "rgba(10,14,20,0.12)"); v.addColorStop(1, "rgba(10,14,20,0.42)");
+    ctx.fillStyle = v; ctx.fillRect(0, 0, w, h);
+  } else {
+    const g = ctx.createLinearGradient(0, 0, 0, h);
+    g.addColorStop(0, "#7d93a8"); g.addColorStop(0.42, "#a59377"); g.addColorStop(0.7, "#c68a4e"); g.addColorStop(1, "#7a4f2c");
+    ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
+    const sun = ctx.createRadialGradient(w * 0.62, h * 0.82, 10, w * 0.62, h * 0.82, w * 0.55);
+    sun.addColorStop(0, "rgba(255,214,150,0.75)"); sun.addColorStop(1, "rgba(255,214,150,0)");
+    ctx.fillStyle = sun; ctx.fillRect(0, 0, w, h);
+  }
   ctx.fillStyle = "rgba(42,52,60,0.62)"; ctx.fillRect(0, 0, 232, h);
-  ctx.fillStyle = "rgba(255,255,255,0.92)"; ctx.font = `600 14px ${F.apple}`; ctx.fillText("18:24  pt 31 paź", 20, 26);
+  ctx.fillStyle = "rgba(255,255,255,0.92)"; ctx.font = `600 14px ${F.apple}`; ctx.fillText(`${hm(CLOCK)}  ${DAYS[CLOCK.getDay()]} ${CLOCK.getDate()} ${MONTHS[CLOCK.getMonth()]}`, 20, 26);
   ctx.fillText("100%", w - 62, 26);
   ctx.fillStyle = "rgba(255,255,255,0.18)"; rr(ctx, 14, 70, 204, 40, 12); ctx.fill();
   drawIcon(ctx, "home", 28, 78, 24, "#ffffff", 2);
@@ -282,7 +298,7 @@ function appleTile(ctx, r, c, info, opts) {
   if (c.kind === "camera") return camTile(ctx, r, info, opts, "apple");
   const col = { light: "#ffd60a", climate: "#ff9f0a", lock: "#30d158", energy: "#30d158", scene: "#ff9f0a", network: "#0a84ff", media: "#ffffff", sensor: "#64d2ff" }[c.kind] || "#0a84ff";
   const on = info.active;
-  ctx.fillStyle = on ? "rgba(246,244,240,0.94)" : "rgba(48,36,28,0.48)";
+  ctx.fillStyle = on ? "rgba(246,244,240,0.94)" : "rgba(28,30,34,0.42)";
   rr(ctx, r.x, r.y, r.w, r.h, 22); ctx.fill();
   if (c.kind === "climate" && r.h > 150) {
     ctx.fillStyle = on ? "#ff8c00" : "#ffffff"; ctx.font = `600 64px ${F.apple}`; ctx.fillText(`${Math.round(info.value)}°`, r.x + 20, r.y + 82);
@@ -310,7 +326,7 @@ function appleTile(ctx, r, c, info, opts) {
 
 function googleChrome(ctx, w, h, snap) {
   ctx.fillStyle = "#eef3f8"; ctx.fillRect(0, 0, w, h);
-  ctx.fillStyle = "#1f1f1f"; ctx.font = `500 15px ${F.google}`; ctx.fillText("18:24", 22, 26);
+  ctx.fillStyle = "#1f1f1f"; ctx.font = `500 15px ${F.google}`; ctx.fillText(hm(CLOCK), 22, 26);
   ctx.fillText("5G", w - 70, 26);
   const rail = [["home", "Dom", true], ["activity", "Aktywność", false], ["auto", "Automatyzacje", false]];
   rail.forEach(([ic, t, on], i) => {
@@ -360,8 +376,9 @@ function googleTile(ctx, r, c, info, opts) {
     ctx.fillStyle = "#ffdad3"; rr(ctx, r.x, r.y, r.w, r.h, 30); ctx.fill();
     drawIcon(ctx, "temp", r.x + 20, r.y + 22, 24, "#8c1d00", 2);
     ctx.fillStyle = "#5c1400"; ctx.font = `500 17px ${F.google}`; clipText(ctx, info.title, r.x + 52, r.y + 40, r.w - 70);
-    ctx.textAlign = "center"; ctx.font = `500 64px ${F.google}`; ctx.fillStyle = "#5c1400"; ctx.fillText(`${Math.round(info.value)}`, r.x + r.w / 2, r.y + r.h * 0.5 + 14);
-    ctx.font = `500 15px ${F.google}`; ctx.fillText(info.state, r.x + r.w / 2, r.y + r.h * 0.5 + 40);
+    const tgt = info.extra?.target ?? Math.round(info.value + 1);
+    ctx.textAlign = "center"; ctx.font = `500 64px ${F.google}`; ctx.fillStyle = "#5c1400"; ctx.fillText(`${tgt}`, r.x + r.w / 2, r.y + r.h * 0.5 + 14);
+    ctx.font = `500 15px ${F.google}`; ctx.fillText(`W pokoju ${fmt(info.value)}° • ${info.extra?.hum ?? 50}%`, r.x + r.w / 2, r.y + r.h * 0.5 + 40);
     ctx.textAlign = "left";
     const bw = (r.w - 44) / 2;
     ctx.fillStyle = "#ffb4a1"; rr(ctx, r.x + 16, r.y + r.h - 64, bw, 48, 24); ctx.fill(); rr(ctx, r.x + 28 + bw, r.y + r.h - 64, bw, 48, 24); ctx.fill();

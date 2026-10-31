@@ -211,8 +211,8 @@ export function fillPattern(g, rect, y, f, seed) {
         const band = Math.sin(wx * 1.25 + wz * 0.65);
         const fine = Math.sin(wx * 3.7 - wz * 2.1 + fbm(x * 0.9, z * 0.9, 2, 8) * 5.0);
         const cloud = fbm(x * 0.8 + 2, z * 0.8 - 5, 3, 11);
-        c.lerp(dark, smooth(0.15, 0.95, -band) * 0.62);
-        c.lerp(light, smooth(0.45, 0.98, band) * 0.55 * smooth(0.3, 0.7, cloud));
+        c.lerp(dark, smooth(0.15, 0.95, -band) * (f.darkK ?? 0.62));
+        c.lerp(light, smooth(0.45, 0.98, band) * (f.lightK ?? 0.55) * smooth(0.3, 0.7, cloud));
         c.lerp(vein, (1 - smooth(0.0, 0.2, Math.abs(fine))) * 0.18 * smooth(-0.2, 0.5, band));
         c.multiplyScalar(0.97 + noise2(x * 5, z * 5, 3) * 0.06);
       } else if (type === 'concrete') {
@@ -237,8 +237,8 @@ export function fillPattern(g, rect, y, f, seed) {
       const nV = Math.round((x1 - x0) * (z1 - z0) * (f.veins ?? 0.12));
       for (let k = 0; k < nV; k++) {
         let px = x0 + R() * (x1 - x0), pz = z0 + R() * (z1 - z0), ang = (f.veinDir ?? 0.55) + (R() - 0.5) * 0.6;
-        const steps = 18 + Math.floor(R() * 30), wv = 0.006 + R() * 0.012, light = R() < 0.72;
-        const vc = (light ? C(f.light || '#a7b2a8').clone().lerp(base, 0.35) : vein.clone().lerp(base, 0.45)).multiplyScalar(0.92 + R() * 0.16);
+        const steps = 18 + Math.floor(R() * 30), wv = (f.veinW ?? 0.006) + R() * (f.veinW ?? 0.006) * 2, light = R() < (f.veinLight ?? 0.72);
+        const vc = (light ? C(f.veinCol || f.light || '#a7b2a8').clone().lerp(base, f.veinMix ?? 0.35) : vein.clone().lerp(base, f.veinMix ?? 0.45)).multiplyScalar(0.92 + R() * 0.16);
         for (let s2 = 0; s2 < steps; s2++) {
           ang += (R() - 0.5) * 0.32;
           const L = 0.07 + R() * 0.09, nx2 = px + Math.cos(ang) * L, nz2 = pz + Math.sin(ang) * L;
@@ -393,7 +393,8 @@ export function generate(spec) {
     const t2 = W.t / 2;
     const ops = W.open.map((o) => {
       const s0 = o.at, s1 = o.at + o.w;
-      return { ...o, s0, s1, y0: y + (o.sill ?? 0), y1: y + (o.head ?? 2.05) };
+      const sl = o.sill ?? 0, sill = o.kind === 'window' && sl > 0.5 && sl < (spec.minSill ?? 0.98) ? (spec.minSill ?? 0.98) : sl;
+      return { ...o, sill, s0, s1, y0: y + sill, y1: y + (o.head ?? 2.05) };
     }).sort((a, b) => a.s0 - b.s0);
     const pieces = [];
     let cur = u0;
@@ -1430,6 +1431,7 @@ export function generate(spec) {
   for (const fl of floors) {
     const g = stat[fl.index], parent = floorGroups[fl.index].group;
     for (const key of ['matte', 'matte2', 'satin', 'gloss', 'metal']) mk(g.geometry(key), M[key], parent, { name: `${key}-${fl.index}` });
+    mk(g.geometry('marble'), M.marble, parent, { cast: false, name: `marble-${fl.index}` });
     mk(g.geometry('glass'), M.glass, parent, { cast: false, name: `glass-${fl.index}` });
     const ao = ovl[fl.index].mesh();
     if (ao) parent.add(ao);

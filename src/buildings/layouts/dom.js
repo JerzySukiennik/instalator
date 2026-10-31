@@ -317,7 +317,6 @@ function buildSite(api) {
   g.bx(8.93, 0.3, -8.25, 9.27, 0.65, -7.9, C('#3b3e43'));
   S.item('trashBins', 15.8, -0.45, -7.4, PI, { cols: ['#2b2c2f', '#e3c25a', '#3f7fbf', '#4f8a4a'] });
   S.car(12.0, -3.4, PI, { color: '#aeb3b8', kind: 'suv' });
-  S.item('bike', 15.2, -0.45, 1.5, 0.3, { color: '#d9483b' });
   S.item('trampoline', 12.5, -0.45, 21, 0, { rad: 1.7 });
   S.item('swing', 2.5, -0.45, 26.5, 0.15);
   S.item('sandbox', 0.8, -0.45, 14.0, 0.2);
