@@ -9,7 +9,7 @@ import { netPlan, netStep } from "../../shared/netguide.js";
 
 export function frame(root, ctx, title, sub, h, opts = {}) {
   const solo = ctx.S.players.filter((p) => p.online).length <= 1;
-  root.innerHTML = `${h.topBar(title, sub, { back: true })}<div class="body ${opts.flush ? "flush" : ""}"></div>${opts.noFoot ? "" : `<div class="foot"><button class="btn w sm shopb">${icon("cart", 20, 2)} Sklep</button>${opts.extra || ""}<button class="btn ${solo ? "w" : ""} endb">${solo ? "Gotowe" : "Koniec tury"}</button></div>`}`;
+  root.innerHTML = `${h.topBar(title, sub, { back: true })}<div class="body ${opts.flush ? "flush" : ""}"></div>${opts.noFoot ? "" : `<div class="foot"><button class="btn w sm shopb">${icon("cart", 20, 2)} Sklep</button>${opts.extra || ""}<button class="btn y endb">${solo ? "Gotowe" : "Koniec tury"}</button></div>`}`;
   $(".back", root).onclick = () => { haptic(); ctx.stream({ t: "ghost" }); ctx.closeTask(); };
   if ($(".shopb", root)) $(".shopb", root).onclick = () => openShop(ctx, opts.cats || null);
   if ($(".endb", root)) $(".endb", root).onclick = () => { ctx.stream({ t: "ghost" }); h.endTurn(); };

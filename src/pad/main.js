@@ -202,7 +202,7 @@ function tasksView() {
   const sect = (g, label) => { const xs = cards.filter((c) => c.group === g); return xs.length ? `${label ? `<div class="h sub"><span>${label}</span></div>` : ""}<div class="tasks">${xs.map(tile).join("")}</div>` : ""; };
   app.innerHTML = `${topBar(S.job.client.name, S.job.buildingName)}
     <div class="body">
-      <div class="h"><span>${solo ? "Co robimy?" : "Twoja tura: wybierz jedno zadanie"}</span><button class="tape y" id="reqs">Lista ${(S.reqs || []).filter((r) => r.ok).length}/${(S.reqs || []).length}</button></div>
+      <div class="h"><span>${solo ? "Co robimy?" : "Twoja tura: jedno zadanie"}</span><button class="tape y" id="reqs" style="white-space:nowrap">Lista ${(S.reqs || []).filter((r) => r.ok).length}/${(S.reqs || []).length}</button></div>
       ${sect("todo", "Do zrobienia")}${sect("rest", "Reszta domu")}${sect("done", "Gotowe")}${sect("end", "")}
     </div>`;
   app.querySelectorAll(".task").forEach((b) => (b.onclick = () => { haptic(); ctx.openTask(b.dataset.id); }));
@@ -218,7 +218,9 @@ const ZONES = ["entrance", "driveway", "garden", "terrace", "jetty", "gate", "ga
 const ZONE_PL = { entrance: "wejście", driveway: "podjazd", garden: "ogród", terrace: "taras", jetty: "pomost", gate: "brama", garage: "garaż", street: "ulica" };
 
 function shortReq(r) {
-  const m = { heat: "głowica na kaloryferze", light: "smart światło", color: "kolorowe światło", audio: "głośnik", motion: "czujnik ruchu", smoke: "czujnik dymu", leak: "czujnik zalania", tv: "podświetlenie TV", kitchen: "taśma pod szafkami", soundbar: "soundbar", vacuum: "robot sprzątający", contact: "czujnik drzwi", doorbell: "wideodomofon", gate: "sterowanie bramą", weather: "stacja pogody", lock: "zamek", ev: "ładowarka do auta" };
+  if (r.type === "wifi") return `zasięg ${Math.round((r.min || 0.9) * 100)}%`;
+  if (r.type === "wifizone") return `Wi-Fi: ${ZONE_PL[r.zone] || r.zone}`;
+  const m = { power: "prąd w całym domu", labels: "opisy obwodów", energy: "pomiar prądu", blinds: "rolety", nvr: "nagrywanie kamer", ups: "UPS", tablet: "tablet", dash: "kafelki na tablecie", heat: "głowica na kaloryferze", light: "smart światło", color: "kolorowe światło", audio: "głośnik", motion: "czujnik ruchu", smoke: "czujnik dymu", leak: "czujnik zalania", tv: "podświetlenie TV", kitchen: "taśma pod szafkami", soundbar: "soundbar", vacuum: "robot sprzątający", contact: "czujnik drzwi", doorbell: "wideodomofon", gate: "sterowanie bramą", weather: "stacja pogody", lock: "zamek", ev: "ładowarka do auta" };
   if (r.type === "cam") return ZONE_PL[r.zone] ? `kamera: ${ZONE_PL[r.zone]}` : "kamera";
   return m[r.type] || r.text;
 }

@@ -266,7 +266,7 @@ function jobCard(j, i, thumb) {
     <div class="place">${esc(j.place)}</div>
     <div class="client">${avatar(j.client.look, 44)}<div><b>${esc(j.client.name)}</b><span>${esc(j.client.who)}</span></div></div>
     <div class="quote">„${esc(j.client.hello)}”</div>
-    <ul>${reqs.slice(0, 6).map((r) => `<li>${icon(REQ_ICON[r.type] || "box", 16)}<span>${esc(r.text)}</span></li>`).join("")}${reqs.length > 6 ? `<li>${icon("plus", 16)}<span>i jeszcze ${reqs.length - 6}</span></li>` : ""}</ul>
+    <ul>${reqs.slice(0, 4).map((r) => `<li>${icon(REQ_ICON[r.type] || "box", 18)}<span>${esc(r.text)}</span></li>`).join("")}${reqs.length > 4 ? `<li class="more">${icon("plus", 18)}<span>i jeszcze ${reqs.length - 4}</span></li>` : ""}</ul>
     <div class="money"><b>${fmtZl(j.budget)}</b><span class="plat">${esc(j.platformName)}</span></div>
     <div class="votes"></div>
   </div>`;
