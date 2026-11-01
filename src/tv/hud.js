@@ -70,7 +70,7 @@ export class Hud {
     if (el.dataset.key !== key) {
       el.dataset.key = key;
       el.innerHTML = `
-        <div class="top"><h2>Zlecenia na dziś</h2><span class="tape y">${document.body.classList.contains("desk") ? "Wybierz w panelu po prawej" : "Głosujcie na telefonach"}</span></div>
+        <div class="top"><h2>Zlecenia na dziś</h2><span class="tape y">${document.body.classList.contains("pc") ? "Kliknij kartę, żeby zagłosować" : document.body.classList.contains("desk") ? "Wybierz w panelu po prawej" : "Głosujcie na telefonach"}</span></div>
         <div class="grid">${s.board.jobs.map((j, i) => jobCard(j, i, thumbs?.[j.building])).join("")}</div>
         <div class="foot"><span class="tape">${document.body.classList.contains("desk") ? "Przelosuj albo bierzemy" : "Gospodarz: przelosuj albo bierzemy"}</span></div>`;
       el.querySelectorAll(".money b").forEach((b, i) => {

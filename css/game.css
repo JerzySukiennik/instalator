@@ -131,3 +131,7 @@ body.pc .job:hover { outline: 3px solid rgba(243, 207, 69, 0.7); }
 .dashwrap .pk button { text-align: left; font: inherit; font-size: 0.9rem; padding: 0.25rem 0.5rem; border: 0; border-radius: 0.4rem; background: var(--paper); cursor: pointer; }
 .dashwrap .pk button:hover { background: var(--tape-y); }
 .dashwrap .pk small { color: var(--mute); }
+
+body.pc #board { padding-bottom: 6.5rem; }
+body.pc #board .job.voted { outline: 4px solid var(--tape-y); }
+body.pc.nocross #cross { display: none; }

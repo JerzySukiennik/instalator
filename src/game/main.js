@@ -113,6 +113,7 @@ const ui = {
   snap(snap) {
     const prev = S;
     S = snap;
+    document.body.classList.toggle("nocross", !["job", "handover", "play"].includes(snap.phase));
     if (snap.phase === "lobby") { showRoom(); return; }
     $("#room")?.remove();
     if (snap.phase === "board") {
@@ -224,6 +225,7 @@ function addPing(pos, color) {
 
 function menu() {
   mode = "menu";
+  document.body.classList.add("nocross");
   const m = document.createElement("div");
   m.id = "menu";
   let saved = "";
@@ -286,7 +288,8 @@ function boardBar() {
   b.innerHTML = host ? `<button class="btnp w" id="reroll">Przelosuj</button><button class="btnp" id="pick">Bierzemy zlecenie z najwięcej głosami</button>` : `<span class="tape">Kliknij kartę, żeby zagłosować. Gospodarz wybiera.</span>`;
   if ($("#reroll")) $("#reroll").onclick = () => session.send({ a: "reroll" });
   if ($("#pick")) $("#pick").onclick = () => session.send({ a: "pick" });
-  document.querySelectorAll("#board .job").forEach((c) => (c.onclick = () => session.send({ a: "vote", i: Number(c.dataset.i) })));
+  const mine = S.board?.votes?.[session.me];
+  document.querySelectorAll("#board .job").forEach((c) => { c.classList.toggle("voted", Number(c.dataset.i) === mine); c.onclick = () => session.send({ a: "vote", i: Number(c.dataset.i) }); });
 }
 
 function openList() {
