@@ -326,7 +326,7 @@ function toggleMap() {
 addEventListener("keydown", (e) => {
   if (mode === "menu") return;
   if (e.code === "Escape" && win) { closeWin(); return; }
-  if (mode === "station") { if (e.code === "Escape" || e.code === "KeyE") { station.exit(); mode = "fpp"; player.lock(); } return; }
+  if (mode === "station") { if (e.code === "Escape" || e.code === "KeyE") { station.exit(); mode = "fpp"; R.camera.fov = 70; R.camera.updateProjectionMatrix(); house.closeFill = false; player.lock(); } return; }
   if (!S || !data) return;
   if (e.code === "Tab") { e.preventDefault(); toggleMap(); return; }
   if (e.code === "KeyB") { if (win) closeWin(); else openWin(openShop(gui, { S, data, send: (a) => session.send(a), onClose: () => { win = null; } })); return; }
@@ -402,14 +402,20 @@ function loop(now) {
     house.cutaway(R.camera.position, player.pos, "none");
     poseT -= dt;
     if (poseT <= 0 && session && player.enabled) { poseT = 0.1; session.pose({ p: player.pos.toArray(), yaw: player.yaw, pitch: player.pitch, tool: heldId() }); }
-  } else if (mode === "map" || mode === "station") {
+  } else if (mode === "station") {
     $("#prompt").classList.remove("show");
     $("#ring").classList.remove("show");
-    dir.update(dt);
-    house.closeFill = mode === "station";
-    house.update(dt, dir.tgt, R.camera);
-    house.cutaway(R.camera.position, dir.tgt, mode === "station" ? "close" : dir.cutMode);
     station.update(dt);
+    house.closeFill = true;
+    R.focus.copy(station.focus); R.frame = 6;
+    house.update(dt, station.focus, R.camera);
+    house.cutaway(R.camera.position, station.focus, "close");
+  } else if (mode === "map") {
+    $("#prompt").classList.remove("show");
+    dir.update(dt);
+    house.closeFill = false;
+    house.update(dt, dir.tgt, R.camera);
+    house.cutaway(R.camera.position, dir.tgt, dir.cutMode);
   } else if (mode === "menu") {
     dir.update(dt);
     house.update(dt, dir.tgt, R.camera);

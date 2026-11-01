@@ -22,10 +22,13 @@ export class Station {
     this.kind = kind; this.S = S; this.data = data; this.send = send; this.held = held;
     const f = this.house.focusPoint(kind);
     const cam = this.R.camera;
-    this.dir.pos.copy(cam.position);
-    this.dir.tgt.copy(cam.position).add(new THREE.Vector3(0, 0, -1).applyQuaternion(cam.quaternion).multiplyScalar(1.5));
-    if (f) { this.house.setFloor(f.floor); this.dir.closeup(f.pos, f.normal, f.dist || (kind === "rack" ? 1.2 : 0.8), kind === "rack" ? 0.06 : 0.1); }
-    this.house.setDoors(true);
+    this.from = cam.position.clone();
+    this.lookFrom = cam.position.clone().add(new THREE.Vector3(0, 0, -1).applyQuaternion(cam.quaternion).multiplyScalar(1.5));
+    this.focus = f ? f.pos.clone() : this.lookFrom.clone();
+    this.to = f ? f.pos.clone().addScaledVector(f.normal, f.dist || (kind === "rack" ? 1.2 : 0.8)).add(new THREE.Vector3(0, kind === "rack" ? 0.06 : 0.1, 0)) : this.from.clone();
+    this.fov0 = cam.fov;
+    this.tw = 0;
+    if (f) this.house.setFloor(f.floor);
     this.house.occludeWalls = true;
     for (const o of [this.house.panelEnc, this.house.cab]) if (o?.userData?.door) o.userData.door.visible = false;
     for (const cg of this.house.b?.ceilingGroups || []) cg.group.visible = false;
@@ -47,7 +50,6 @@ export class Station {
     this.layer = this.side = null;
     removeEventListener("mouseup", this.up);
     removeEventListener("mousemove", this.move);
-    this.house.setDoors(false);
     this.house.occludeWalls = false;
     for (const o of [this.house.panelEnc, this.house.cab]) if (o?.userData?.door) o.userData.door.visible = true;
     for (const cg of this.house.b?.ceilingGroups || []) cg.group.visible = true;
@@ -64,8 +66,17 @@ export class Station {
     return [r.left + ((p.x + 1) / 2) * r.width, r.top + ((1 - p.y) / 2) * r.height, p.z < 1];
   }
 
-  update() {
+  update(dt = 0.016) {
     if (!this.kind || !this.layer) return;
+    if (this.tw < 1) {
+      this.tw = Math.min(1, this.tw + dt / 0.55);
+      const e = 1 - Math.pow(1 - this.tw, 3), cam = this.R.camera;
+      cam.position.lerpVectors(this.from, this.to, e);
+      cam.lookAt(new THREE.Vector3().lerpVectors(this.lookFrom, this.focus, e));
+      cam.fov = this.fov0 + (40 - this.fov0) * e;
+      cam.updateProjectionMatrix();
+      cam.updateMatrixWorld();
+    }
     for (const el of this.layer.querySelectorAll("[data-w]")) {
       const w = el._w;
       if (!w) continue;

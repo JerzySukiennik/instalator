@@ -709,7 +709,7 @@ export class House {
         const dv = tgt.sub(cam.position);
         const l = dv.length();
         rc.set(cam.position, dv.normalize());
-        rc.far = l - 0.12;
+        rc.far = this.occludeWalls ? l + 0.04 : l - 0.12;
         for (const h of rc.intersectObject(this.b.group || this.root, true)) {
           let o = h.object;
           if (walls.has(o) || !o.visible) continue;
