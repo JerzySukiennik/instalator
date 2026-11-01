@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<title>Instalator · miniatury</title>
+<script type="importmap">
+{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.187.0/build/three.module.js", "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.187.0/examples/jsm/" } }
+</script>
+<style>html,body{margin:0;background:transparent}canvas{display:block}</style>
+</head>
+<body>
+<canvas id="c" width="320" height="320"></canvas>
+<script type="module">
+import * as THREE from "three";
+import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
+import { buildDevice } from "/src/models/devices.js";
+const canvas = document.getElementById("c");
+const r = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, preserveDrawingBuffer: true });
+r.setPixelRatio(1);
+r.outputColorSpace = THREE.SRGBColorSpace;
+r.toneMapping = THREE.AgXToneMapping;
+r.toneMappingExposure = 1.25;
+const scene = new THREE.Scene();
+const pm = new THREE.PMREMGenerator(r);
+scene.environment = pm.fromScene(new RoomEnvironment(), 0.04).texture;
+scene.add(new THREE.HemisphereLight("#ffffff", "#9a9184", 1.1));
+const key = new THREE.DirectionalLight("#fff4e6", 2.2); key.position.set(2, 3, 4); scene.add(key);
+const rim = new THREE.DirectionalLight("#dfe8ff", 1.0); rim.position.set(-3, 2, -2); scene.add(rim);
+const cam = new THREE.PerspectiveCamera(28, 1, 0.001, 50);
+window.__thumb = (id) => {
+  scene.children.filter((o) => o.userData.dev).forEach((o) => scene.remove(o));
+  const g = buildDevice(id, {});
+  g.userData.dev = true;
+  if (["ceiling", "socketE27", "socketGU10"].includes(g.userData.mount)) g.rotation.x = Math.PI;
+  g.updateMatrixWorld(true);
+  const box = new THREE.Box3().setFromObject(g);
+  const size = box.getSize(new THREE.Vector3()), c = box.getCenter(new THREE.Vector3());
+  g.position.sub(c);
+  const wrap = new THREE.Group(); wrap.add(g); wrap.userData.dev = true;
+  scene.add(wrap);
+  const rad = Math.max(size.x, size.y, size.z) * 0.62;
+  const dist = rad / Math.sin((cam.fov * Math.PI) / 360);
+  const dir = new THREE.Vector3(0.55, 0.42, 1).normalize();
+  if (size.y > size.x * 1.6 && size.y > size.z * 1.6) dir.set(0.45, 0.2, 1).normalize();
+  cam.position.copy(dir.multiplyScalar(dist));
+  cam.lookAt(0, 0, 0);
+  for (const l of g.userData.leds || []) if (l.material) l.material.emissiveIntensity = 1.2;
+  r.render(scene, cam);
+  return canvas.toDataURL("image/png");
+};
+window.__ready = true;
+</script>
+</body>
+</html>

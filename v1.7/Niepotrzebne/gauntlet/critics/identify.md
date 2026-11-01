@@ -1,0 +1,3 @@
+You are a strict product-identification judge. Folder: {PACK}. Each `itemNN.png` shows, on the left, a 3D MODEL render, and to its right four real product photos labelled A, B, C, D. Exactly one photo is the product the model depicts.
+
+For each item, open it with the Read tool and decide which letter the model is. Judge silhouette, proportions, colours, LED/ring/screen placement, ports, buttons, logo placement. Return ONLY JSON: {"items":[{"item":"item01","answer":"A|B|C|D","confidence":1-5,"decided_by":"which visual detail","biggest_mismatch":"what about the model differs most from the photo you picked"}]}. If the model matches none convincingly, still pick the closest and give confidence 1.

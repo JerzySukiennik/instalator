@@ -1,0 +1,407 @@
+<!doctype html>
+<!-- Instalator: building viewer (dollhouse cutaway, 2D plan of BuildingData, eye-level close shot, tablet/mount close-ups) for src/buildings. -->
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Instalator: budynki</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #d9dfe2; overflow: hidden; font: 13px/1.35 -apple-system, system-ui, sans-serif; color: #222; }
+  canvas { display: block; }
+  #plan { position: absolute; inset: 0; background: #f4f1ea; display: none; }
+  #hud { position: absolute; left: 10px; top: 10px; background: rgba(255,255,255,0.86); border-radius: 8px; padding: 8px 10px; max-width: 520px; }
+  #hud a { color: #1f5e8c; margin-right: 6px; text-decoration: none; }
+  #hud b { font-weight: 600; }
+  .shot #hud { display: none; }
+</style>
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.187.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.187.0/examples/jsm/"
+} }
+</script>
+</head>
+<body>
+<canvas id="c"></canvas>
+<canvas id="plan"></canvas>
+<div id="hud"></div>
+<script>addEventListener('error', (e) => { window.__err = String(e.message || e); }); addEventListener('unhandledrejection', (e) => { window.__err = String(e.reason); });</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { BUILDING_IDS, buildBuilding } from '../../src/buildings/index.js';
+import { setupRenderer, previewLight, makeComposer } from '../../src/buildings/preview-light.js';
+import { clearanceReport } from '../../src/buildings/clearance.js';
+
+const Q = new URLSearchParams(location.search);
+const id = Q.get('id') || 'kawalerka', view = Q.get('view') || 'dollhouse', shot = Q.has('shot');
+const floorQ = Q.has('floor') ? +Q.get('floor') : null;
+if (shot) document.body.classList.add('shot');
+const W = innerWidth, H = innerHeight;
+const canvas = document.getElementById('c');
+const renderer = setupRenderer(new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance', preserveDrawingBuffer: true }));
+renderer.setPixelRatio(1);
+renderer.setSize(W, H, false);
+const scene = new THREE.Scene();
+const FPP = view === 'fpp';
+const camera = new THREE.PerspectiveCamera(+(Q.get('fov') || (FPP ? 62 : 36)), W / H, FPP ? 0.05 : 0.3, 1500);
+const rig = previewLight(scene, { rig: Q.get('rig') || (FPP ? 'game' : 'rybna'), shadowSize: +(Q.get('shadow') || 4096) });
+const { composer } = makeComposer(renderer, scene, camera, W, H, { bloom: Q.has('lights') ? 0.5 : 0.32 });
+
+const t0 = performance.now();
+const b = await buildBuilding(id, { fpp: FPP || Q.has('fppdata') });
+const buildMs = Math.round(performance.now() - t0);
+scene.add(b.group);
+const d = b.data;
+window.__b = b;
+
+const topFloor = floorQ ?? d.floors.length - 1;
+for (const fg of b.floorGroups) fg.group.visible = FPP || fg.floor <= topFloor;
+if (Q.has('roof') && b.roof) b.roof.group.visible = true;
+if (Q.has('door')) b.setDoorOpen(d.entrance?.door, +Q.get('door'));
+if (Q.get('ctx') === '0' && b.context) b.context.visible = false;
+if (Q.has('lights')) {
+  const vis = b.fixtures.filter((f) => (f.floor ?? 0) <= topFloor);
+  for (const f of vis) f.emissive.emissiveIntensity = 2.4;
+  const pick = vis.filter((f, i) => f.kind !== 'oczko' || i % 2 === 0).slice(0, +(Q.get('nl') || 8));
+  for (const f of pick) {
+    const l = new THREE.PointLight('#ffcf98', f.kind === 'oczko' ? 2.2 : 3.4, 6.5, 1.6);
+    l.position.set(f.lightPos[0], f.lightPos[1] - 0.1, f.lightPos[2]);
+    scene.add(l);
+  }
+}
+
+const rooms = d.rooms.filter((r) => r.floor <= topFloor && r.kind !== 'outdoor');
+let x0 = 1e9, z0 = 1e9, x1 = -1e9, z1 = -1e9;
+for (const r of rooms) for (const [x, z] of r.poly) { x0 = Math.min(x0, x); z0 = Math.min(z0, z); x1 = Math.max(x1, x); z1 = Math.max(z1, z); }
+const fl = d.floors[topFloor];
+const center = new THREE.Vector3((x0 + x1) / 2, fl.y + 0.8, (z0 + z1) / 2);
+if (Q.has('tx')) center.set(+Q.get('tx'), +Q.get('ty'), +Q.get('tz'));
+else if (view === 'dollhouse' && topFloor === d.floors.length - 1 && ((Q.get('preset') && d.views?.[Q.get('preset')]) || d.views?.dollhouse)?.target) center.set(...((Q.get('preset') && d.views?.[Q.get('preset')]) || d.views.dollhouse).target);
+const span = Math.max(x1 - x0, z1 - z0, 6);
+rig.frame(new THREE.Vector3((x0 + x1) / 2, d.floors[0].y, (z0 + z1) / 2), span * 0.75 + 6, Q.has('sunaz') ? +Q.get('sunaz') : d.views?.dollhouse?.sunAz, Q.has('sunel') ? +Q.get('sunel') : d.views?.dollhouse?.sunEl);
+
+function cutaway(mode) {
+  const dir = new THREE.Vector3().subVectors(camera.position, controls ? controls.target : center).setY(0).normalize();
+  const N = { N: [0, -1], S: [0, 1], E: [1, 0], W: [-1, 0] };
+  for (const wg of b.wallGroups) {
+    let planes = null;
+    const fy = d.floors[wg.floor].y;
+    if (mode !== 'none') {
+      if (wg.side === 'int') planes = mode === 'close' || Q.get('int') === 'full' ? null : [new THREE.Plane(new THREE.Vector3(0, -1, 0), fy + 1.3)];
+      else {
+        const n = N[wg.side];
+        const dot = n ? n[0] * dir.x + n[1] * dir.z : 0;
+        if (dot > (mode === 'close' ? 0.36 : 0.28)) planes = [new THREE.Plane(new THREE.Vector3(0, -1, 0), fy + (mode === 'close' ? 0.35 : 0.95))];
+      }
+    }
+    const mats = [];
+    wg.mesh.traverse((o) => { if (o.isMesh) (Array.isArray(o.material) ? o.material : [o.material]).forEach((m) => { if (!mats.includes(m)) mats.push(m); }); });
+    for (const m of mats) { m.clippingPlanes = planes; m.clipShadows = true; m.needsUpdate = true; }
+  }
+}
+
+let controls = null;
+const dv = (Q.get('preset') && d.views?.[Q.get('preset')]) || d.views?.dollhouse || {};
+if (view === 'dollhouse') {
+  const az = Q.has('az') ? +Q.get('az') : dv.az ?? 0.7, el = Q.has('el') ? +Q.get('el') : dv.el ?? 0.66;
+  const dist = (span * 1.25 + 5) * (Q.has('dist') ? +Q.get('dist') : dv.dist ?? 1);
+  camera.position.set(center.x + Math.sin(az) * Math.cos(el) * dist, center.y + Math.sin(el) * dist, center.z + Math.cos(az) * Math.cos(el) * dist);
+  controls = new OrbitControls(camera, canvas);
+  controls.target.copy(center);
+  controls.update();
+  cutaway('overview');
+  for (const cg of b.ceilingGroups || []) cg.group.visible = false;
+} else if (view === 'close') {
+  const cv = d.views?.close || { pos: [center.x, fl.y + 1.6, center.z + 2], target: [center.x, fl.y + 1.2, center.z - 2] };
+  camera.position.set(...cv.pos);
+  camera.fov = cv.fov || 60;
+  camera.updateProjectionMatrix();
+  controls = new OrbitControls(camera, canvas);
+  controls.target.set(...cv.target);
+  controls.update();
+  for (const cg of b.ceilingGroups || []) cg.group.visible = cg.floor <= topFloor;
+  scene.add(new THREE.HemisphereLight('#fff1dc', '#b8a48a', 0.55));
+  cutaway('none');
+} else if (FPP) {
+  let fl0 = +(Q.get('floor') || 0), x = +Q.get('x'), z = +Q.get('z'), yaw = +(Q.get('yaw') || 0), pitch = +(Q.get('pitch') || -0.08);
+  const rid = Q.get('room');
+  if (Q.get('spawn') !== null && d.walk) { x = d.walk.spawn.pos[0]; z = d.walk.spawn.pos[2]; yaw = d.walk.spawn.yaw; fl0 = -1; }
+  else if (rid) {
+    const room = d.rooms.find((r) => r.id === rid);
+    fl0 = room.floor;
+    const pip2 = (px, pz, poly) => { let ins = false; for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) { const a = poly[i], c = poly[j]; if ((a[1] > pz) !== (c[1] > pz) && px < ((c[0] - a[0]) * (pz - a[1])) / (c[1] - a[1]) + a[0]) ins = !ins; } return ins; };
+    const segD = (px, pz, a, c) => { const dx = c[0] - a[0], dz = c[1] - a[1], t = Math.max(0, Math.min(1, ((px - a[0]) * dx + (pz - a[1]) * dz) / (dx * dx + dz * dz || 1))); return Math.hypot(px - a[0] - dx * t, pz - a[1] - dz * t); };
+    let cx = 0, cz = 0;
+    for (const p of room.poly) { cx += p[0]; cz += p[1]; }
+    cx /= room.poly.length; cz /= room.poly.length;
+    if (!pip2(cx, cz, room.poly)) { const p0 = room.poly[0], p2 = room.poly[2]; cx = (p0[0] + p2[0]) / 2; cz = (p0[1] + p2[1]) / 2; }
+    const fy = d.floors[room.floor].y, obs = (b.obstacles || []).filter((o) => (o.floor ?? 0) === room.floor && o.y1 > fy + 0.1 && o.y0 < fy + 1.7);
+    let best = null;
+    let x0 = 1e9, z0 = 1e9, x1 = -1e9, z1 = -1e9;
+    for (const [px, pz] of room.poly) { x0 = Math.min(x0, px); z0 = Math.min(z0, pz); x1 = Math.max(x1, px); z1 = Math.max(z1, pz); }
+    for (let px = x0 + 0.2; px < x1; px += 0.2) for (let pz = z0 + 0.2; pz < z1; pz += 0.2) {
+      if (!pip2(px, pz, room.poly)) continue;
+      let dw = 1e9;
+      for (let i = 0; i < room.poly.length; i++) dw = Math.min(dw, segD(px, pz, room.poly[i], room.poly[(i + 1) % room.poly.length]));
+      if (dw < 0.35) continue;
+      if (obs.some((o) => { for (const [ox, oz] of [[0, 0], [0.25, 0], [-0.25, 0], [0, 0.25], [0, -0.25]]) if (pip2(px + ox, pz + oz, o.poly)) return true; return false; })) continue;
+      const sc = Math.hypot(px - cx, pz - cz) - Math.max(0, dw - 0.8) * 2;
+      if (!best || sc > best.sc) best = { sc, px, pz };
+    }
+    if (best) { x = best.px; z = best.pz; } else { x = cx; z = cz; }
+    let door = null;
+    for (const w of d.walls) {
+      if (w.floor !== room.floor) continue;
+      const dx = w.b[0] - w.a[0], dz = w.b[1] - w.a[1], L = Math.hypot(dx, dz), n = [-dz / L, dx / L];
+      for (const o of w.openings) {
+        if (o.kind !== 'door' || !(d.walk?.passable || []).includes(o.id)) continue;
+        const t = (o.t0 + o.t1) / 2, c = [w.a[0] + dx * t, w.a[1] + dz * t];
+        for (const sd of [1, -1]) { const p = [c[0] + n[0] * sd * 0.8, c[1] + n[1] * sd * 0.8]; if (pip2(p[0], p[1], room.poly) && !door) door = p; }
+      }
+    }
+    if (door && !Q.has('free')) {
+      x = door[0]; z = door[1];
+      let far = null;
+      for (const p of room.poly) { const dd = Math.hypot(p[0] - x, p[1] - z); if (!far || dd > far.dd) far = { dd, p }; }
+      cx = (cx + far.p[0]) / 2; cz = (cz + far.p[1]) / 2;
+    }
+    yaw = Math.atan2(-(cx - x), -(cz - z));
+    if (Math.hypot(cx - x, cz - z) < 0.3) yaw = 0;
+    if (Q.has('yaw')) yaw = +Q.get('yaw');
+  }
+  const gy = b.groundAt ? b.groundAt(x, z, fl0 >= 0 ? d.floors[fl0].y + 0.3 : 50) : d.floors[Math.max(0, fl0)].y;
+  camera.position.set(x, gy + (d.walk?.eye ?? 1.65), z);
+  camera.rotation.set(pitch, yaw, 0, 'YXZ');
+  window.__fpp = { x, z, yaw, y: gy };
+  scene.add(new THREE.HemisphereLight('#fff6ea', '#cbbfa8', +(Q.get('fill') || 0)));
+  let cx2 = 0, cz2 = 0;
+  for (const r of d.rooms) for (const p of r.poly) { cx2 += p[0]; cz2 += p[1]; }
+  const nP = d.rooms.reduce((a, r) => a + r.poly.length, 0);
+  rig.frame(new THREE.Vector3(cx2 / nP, d.floors[0].y, cz2 / nP), span * 0.75 + 6, Q.has('sunaz') ? +Q.get('sunaz') : undefined, Q.has('sunel') ? +Q.get('sunel') : undefined);
+} else if (view === 'spot') {
+  const sid = Q.get('spot');
+  const sp = d.tabletSpots.find((t) => t.id === sid) || d.mounts.find((m) => m.id === sid) || d.tabletSpots.find((t) => t.kind === 'wall');
+  const n = new THREE.Vector3(0, 0, 1).applyQuaternion(new THREE.Quaternion(...sp.quat));
+  const at = new THREE.Vector3(...sp.pos);
+  const devMat = new THREE.MeshLambertMaterial({ color: sp.rating ? '#15171b' : '#d94f2b' });
+  if (sp.kind === 'surface') {
+    const g = new THREE.Group();
+    g.position.copy(at);
+    g.quaternion.set(...sp.quat);
+    const base = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.012, 0.1), devMat);
+    base.position.set(0, 0.006, -0.02);
+    const tab = new THREE.Mesh(new THREE.BoxGeometry(0.27, 0.19, 0.012), devMat);
+    tab.position.set(0, 0.115, -0.03);
+    tab.rotation.x = -0.2;
+    g.add(base, tab);
+    scene.add(g);
+    g.updateMatrixWorld(true);
+    tab.getWorldPosition(at);
+  } else {
+    const dev = new THREE.Mesh(new THREE.BoxGeometry(...(sp.rating ? [0.27, 0.19, 0.014] : [0.09, 0.09, 0.03])), devMat);
+    dev.quaternion.set(...sp.quat);
+    dev.position.copy(at).addScaledVector(n, sp.rating ? 0.009 : 0.017);
+    scene.add(dev);
+    at.addScaledVector(n, 0.008);
+  }
+  let dist = +(Q.get('dist') || 0.62);
+  if (Q.get('dist') === 'auto') {
+    b.group.updateMatrixWorld(true);
+    const rc = new THREE.Raycaster(at.clone().addScaledVector(n, 0.05), n, 0, 2.2);
+    const hit = rc.intersectObject(b.group, true).find((h) => h.object.visible !== false && h.object.name !== 'ao');
+    dist = Math.max(0.62, Math.min(2.0, (hit ? hit.distance + 0.05 : 2.2) - 0.12));
+  }
+  camera.position.copy(at).addScaledVector(n, dist).add(new THREE.Vector3(0, 0.02, 0));
+  camera.fov = +(Q.get('fov') || 30);
+  camera.near = 0.05;
+  camera.updateProjectionMatrix();
+  camera.lookAt(at);
+  for (const fg of b.floorGroups) fg.group.visible = fg.floor <= (sp.floor ?? 0);
+  for (const cg of b.ceilingGroups || []) cg.group.visible = cg.floor <= (sp.floor ?? 0);
+  scene.add(new THREE.HemisphereLight('#fff1dc', '#b8a48a', 0.55));
+  const dir = new THREE.Vector3().subVectors(camera.position, at).setY(0).normalize();
+  const N = { N: [0, -1], S: [0, 1], E: [1, 0], W: [-1, 0] };
+  for (const wg of b.wallGroups) {
+    const fy = d.floors[wg.floor].y, nn = N[wg.side];
+    const planes = sp.kind !== 'outdoorWall' && wg.side !== 'int' && nn && nn[0] * dir.x + nn[1] * dir.z > 0.36 ? [new THREE.Plane(new THREE.Vector3(0, -1, 0), fy + 0.35)] : null;
+    wg.mesh.traverse((o) => { if (o.isMesh) (Array.isArray(o.material) ? o.material : [o.material]).forEach((m) => { m.clippingPlanes = planes; m.clipShadows = true; m.needsUpdate = true; }); });
+  }
+} else {
+  canvas.style.display = 'none';
+}
+if (Q.has('marks') && view !== 'plan') {
+  const mk = (p, col, s) => { const m = new THREE.Mesh(new THREE.BoxGeometry(s, s, s), new THREE.MeshBasicMaterial({ color: col, toneMapped: false })); m.position.set(...p); scene.add(m); };
+  for (const t of d.tabletSpots) mk(t.pos, t.rating === 'good' ? '#2bd36b' : t.rating === 'ok' ? '#ffc93c' : '#ff4d4d', 0.22);
+  for (const m of d.mounts) if (m.kind === 'wall' || m.kind === 'outdoorWall') mk(m.pos, m.kind === 'wall' ? '#3f8cff' : '#18c2b0', 0.1);
+}
+
+let dirty = true;
+function render() {
+  if (view === 'plan') return;
+  renderer.info.autoReset = false;
+  renderer.info.reset();
+  if (view === 'spot' || FPP) { renderer.render(scene, camera); const st = { calls: renderer.info.render.calls, tris: renderer.info.render.triangles, buildMs }; renderer.info.reset(); composer.render(); window.__stats = st; dirty = false; return; }
+  if (view === 'dollhouse') cutaway('overview');
+  renderer.render(scene, camera);
+  const stats = { calls: renderer.info.render.calls, tris: renderer.info.render.triangles, buildMs };
+  renderer.info.reset();
+  composer.render();
+  window.__stats = stats;
+  dirty = false;
+}
+if (controls) controls.addEventListener('change', () => { if (!dirty) { dirty = true; requestAnimationFrame(render); } });
+
+function countTris() {
+  let tris = 0, meshes = 0;
+  b.group.traverse((o) => {
+    if (!o.isMesh || !o.geometry) return;
+    const g = o.geometry, n = g.index ? g.index.count / 3 : g.attributes.position.count / 3;
+    tris += o.isInstancedMesh ? n * o.count : n;
+    meshes++;
+  });
+  return { tris: Math.round(tris), meshes };
+}
+
+function hud(extra = '') {
+  const cnt = countTris();
+  const kinds = {};
+  for (const m of d.mounts) kinds[m.kind] = (kinds[m.kind] || 0) + 1;
+  const links = BUILDING_IDS.map((x) => `<a href="?id=${x}&view=${view}">${x}</a>`).join('') + ' | ' + ['dollhouse', 'plan', 'close'].map((v) => `<a href="?id=${id}&view=${v}">${v}</a>`).join('') + ' | ' + d.floors.map((f) => `<a href="?id=${id}&view=${view}&floor=${f.index}">piętro ${f.index}</a>`).join('');
+  document.getElementById('hud').innerHTML = `<b>${d.name}</b> (${d.area} m²) build ${buildMs} ms<br>${links}<br>draw calls ${window.__stats?.calls ?? '-'}, tris ${window.__stats?.tris ?? '-'} (geometry ${cnt.tris}, meshes ${cnt.meshes})<br>mounts ${d.mounts.length}: ${Object.entries(kinds).map(([k, v]) => `${k} ${v}`).join(', ')}<br>tablet spots ${d.tabletSpots.length}, strips ${d.strips.length}, fixtures ${b.fixtures.length}, circuits ${d.circuits.length}${extra}`;
+}
+
+function drawPlan() {
+  const pc = document.getElementById('plan');
+  pc.style.display = 'block';
+  pc.width = W; pc.height = H;
+  const x = pc.getContext('2d');
+  const f = floorQ ?? 0;
+  const rs = d.rooms.filter((r) => r.floor === f);
+  let a0 = 1e9, b0 = 1e9, a1 = -1e9, b1 = -1e9;
+  for (const r of rs) for (const [px, pz] of r.poly) { a0 = Math.min(a0, px); b0 = Math.min(b0, pz); a1 = Math.max(a1, px); b1 = Math.max(b1, pz); }
+  if (Q.has('walk') && Q.has('site') && d.walk?.bounds) [a0, b0, a1, b1] = d.walk.bounds;
+  const pad = 70, s = Math.min((W - pad * 2) / (a1 - a0 + 2), (H - pad * 2) / (b1 - b0 + 2));
+  const T = (px, pz) => [pad + (px - a0 + 1) * s, pad + (pz - b0 + 1) * s];
+  const KC = { living: '#efe3c8', kitchen: '#f3dcc0', bath: '#cfe3ea', wc: '#cfe3ea', bed: '#e3d8ef', hall: '#e6e2da', tech: '#d9d9d9', garage: '#d3d3cf', balcony: '#dfe9d2', terrace: '#dfe9d2', office: '#e5ecd6', outdoor: '#e9f0dc' };
+  x.fillStyle = '#f4f1ea'; x.fillRect(0, 0, W, H);
+  x.font = '12px -apple-system, system-ui';
+  for (const r of rs) {
+    x.beginPath();
+    r.poly.forEach(([px, pz], i) => { const [u, v] = T(px, pz); i ? x.lineTo(u, v) : x.moveTo(u, v); });
+    x.closePath(); x.fillStyle = KC[r.kind] || '#eee'; x.fill();
+  }
+  for (const it of d.furniture.filter((q) => q.floor === f)) {
+    x.save();
+    const [u, v] = T(it.pos[0], it.pos[2]);
+    x.translate(u, v); x.rotate(-it.rot);
+    const w = it.size[0] * s, dd = it.size[2] * s;
+    x.fillStyle = it.wall ? 'rgba(90,120,160,0.25)' : 'rgba(120,100,80,0.18)'; x.strokeStyle = 'rgba(80,60,40,0.55)';
+    x.fillRect(-w / 2, -dd / 2, w, dd); x.strokeRect(-w / 2, -dd / 2, w, dd);
+    x.fillStyle = 'rgba(60,50,40,0.7)'; x.font = '9px -apple-system'; x.fillText(it.kind, -w / 2 + 2, 3);
+    x.restore();
+  }
+  for (const wl of d.walls.filter((q) => q.floor === f)) {
+    const [ax, az] = T(...wl.a), [bx, bz] = T(...wl.b);
+    x.strokeStyle = wl.exterior ? '#2b2724' : '#5a544e'; x.lineWidth = Math.max(2, wl.thick * s); x.lineCap = 'square';
+    x.beginPath(); x.moveTo(ax, az); x.lineTo(bx, bz); x.stroke();
+    for (const o of wl.openings) {
+      const p0 = [ax + (bx - ax) * o.t0, az + (bz - az) * o.t0], p1 = [ax + (bx - ax) * o.t1, az + (bz - az) * o.t1];
+      x.strokeStyle = o.kind === 'door' ? '#f4f1ea' : o.kind === 'glass' ? '#7fc4e6' : '#a9dcf2'; x.lineWidth = Math.max(2, wl.thick * s) + 1; x.lineCap = 'butt';
+      x.beginPath(); x.moveTo(...p0); x.lineTo(...p1); x.stroke();
+      if (o.kind !== 'door') { x.strokeStyle = '#3d8fb8'; x.lineWidth = 1.5; x.beginPath(); x.moveTo(...p0); x.lineTo(...p1); x.stroke(); }
+    }
+  }
+  x.lineCap = 'round';
+  for (const st of d.strips.filter((q) => q.floor === f)) {
+    x.strokeStyle = '#ff7a2f'; x.lineWidth = 3; x.beginPath();
+    st.points.forEach((p, i) => { const [u, v] = T(p[0], p[2]); i ? x.lineTo(u, v) : x.moveTo(u, v); }); x.stroke();
+  }
+  const MC = { ceiling: '#7f8c99', wall: '#3f7fbf', socketE27: '#f2b705', socketGU10: '#f28705', surface: '#5aa35a', floor: '#9b7d5a', radiator: '#d9483b', door: '#7a4fb5', doorLock: '#b5179e', window: '#2fa3c6', outdoorWall: '#2a9d8f', doorbell: '#e76f51', tv: '#264653', gate: '#6d597a', garage: '#6d597a', boiler: '#bc4749', socket: '#444', switch: '#aaa' };
+  for (const m of d.mounts.filter((q) => q.floor === f)) {
+    const [u, v] = T(m.pos[0], m.pos[2]);
+    x.fillStyle = MC[m.kind] || '#000';
+    const r = m.kind === 'ceiling' ? 2.2 : m.kind === 'wall' ? 2.2 : 3.4;
+    x.beginPath(); x.arc(u, v, r, 0, Math.PI * 2); x.fill();
+    if (m.kind === 'radiator' || m.kind === 'outdoorWall' || m.kind === 'doorbell' || m.kind === 'window' || m.kind === 'door') { x.strokeStyle = MC[m.kind]; x.lineWidth = 1.2; x.beginPath(); x.moveTo(u, v); x.lineTo(u + m.normal[0] * 10, v + m.normal[2] * 10); x.stroke(); }
+  }
+  const RC = { good: '#2b9348', ok: '#e9c46a', poor: '#d62828' };
+  for (const t of d.tabletSpots.filter((q) => q.floor === f)) {
+    const [u, v] = T(t.pos[0], t.pos[2]);
+    x.fillStyle = RC[t.rating]; x.strokeStyle = '#000'; x.lineWidth = 1;
+    x.beginPath(); for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + (i * Math.PI) / 5, rr = i % 2 ? 4 : 9; x.lineTo(u + Math.cos(a) * rr, v + Math.sin(a) * rr); } x.closePath(); x.fill(); x.stroke();
+  }
+  const anchor = (a, label, col) => {
+    if (!a || a.floor !== f) return;
+    const [u, v] = T(a.pos[0], a.pos[2]);
+    x.fillStyle = col; x.fillRect(u - 6, v - 6, 12, 12); x.fillStyle = '#000'; x.font = 'bold 11px -apple-system'; x.fillText(label, u + 8, v - 6);
+  };
+  anchor(d.panel, 'rozdzielnica', '#e63946'); anchor(d.rack, 'rack', '#1d3557'); anchor(d.mediaBox, 'skrzynka', '#1d3557'); anchor(d.wan, 'WAN', '#457b9d');
+  if (d.entrance && (d.entrance.floor ?? 0) === f) { const [u, v] = T(d.entrance.pos[0], d.entrance.pos[2]); x.fillStyle = '#000'; x.font = 'bold 12px -apple-system'; x.fillText('wejście', u + 6, v + 4); x.beginPath(); x.arc(u, v, 5, 0, 7); x.fill(); }
+  for (const z of d.zones.filter((q) => q.floor === f)) { const [u, v] = T(z.pos[0], z.pos[2]); x.strokeStyle = '#2a9d8f'; x.setLineDash([4, 3]); x.beginPath(); x.arc(u, v, z.r * s, 0, 7); x.stroke(); x.setLineDash([]); x.fillStyle = '#2a9d8f'; x.fillText(z.kind, u + 4, v); }
+  x.fillStyle = '#222'; x.font = '12px -apple-system';
+  for (const r of rs) { let cx = 0, cz = 0; for (const p of r.poly) { cx += p[0]; cz += p[1]; } cx /= r.poly.length; cz /= r.poly.length; const [u, v] = T(cx, cz); x.font = 'bold 13px -apple-system'; x.fillText(`${r.name}`, u - 30, v - 6); x.font = '11px -apple-system'; x.fillText(`${r.area} m²`, u - 30, v + 8); }
+  x.font = 'bold 15px -apple-system'; x.fillText(`${d.name} | ${d.floors[f].name} | plan z BuildingData`, pad, 32);
+  const leg = Object.entries(MC); x.font = '11px -apple-system';
+  leg.forEach(([k, c], i) => { x.fillStyle = c; x.beginPath(); x.arc(W - 150, 60 + i * 15, 4, 0, 7); x.fill(); x.fillStyle = '#222'; x.fillText(k, W - 140, 64 + i * 15); });
+  if (Q.has('walk') && d.walk) {
+    for (const q of d.walk.surfaces) { if (q.floor !== f) continue; x.beginPath(); q.poly.forEach(([px, pz], i) => { const [u, v] = T(px, pz); i ? x.lineTo(u, v) : x.moveTo(u, v); }); x.closePath(); x.fillStyle = q.room ? 'rgba(80,170,90,0.08)' : 'rgba(40,150,220,0.28)'; x.fill(); }
+    for (const o of b.obstacles || []) {
+      if ((o.floor ?? 0) !== f || o.y0 > d.floors[f].y + 1.8 || o.y1 < d.floors[f].y - 0.6) continue;
+      x.beginPath(); o.poly.forEach(([px, pz], i) => { const [u, v] = T(px, pz); i ? x.lineTo(u, v) : x.moveTo(u, v); }); x.closePath();
+      x.strokeStyle = o.what === 'wall' ? 'rgba(200,30,30,0.9)' : 'rgba(230,80,20,0.85)'; x.lineWidth = 1.2; x.stroke(); x.fillStyle = 'rgba(230,60,30,0.10)'; x.fill();
+    }
+    for (const st of d.walk.stairs) if (st.floor === f) { const [u, v] = T(...st.from), [u2, v2] = T(st.from[0] + st.dir[0] * st.len, st.from[1] + st.dir[1] * st.len); x.strokeStyle = '#1b6ef3'; x.lineWidth = 3; x.beginPath(); x.moveTo(u, v); x.lineTo(u2, v2); x.stroke(); }
+    const sp = d.walk.spawn;
+    if (f === 0 || sp.pos[1] > d.floors[f].y - 0.5) { const [u, v] = T(sp.pos[0], sp.pos[2]); x.fillStyle = '#1b6ef3'; x.beginPath(); x.arc(u, v, 7, 0, 7); x.fill(); x.strokeStyle = '#1b6ef3'; x.lineWidth = 3; x.beginPath(); x.moveTo(u, v); x.lineTo(u + sp.dir[0] * 30, v + sp.dir[1] * 30); x.stroke(); }
+    for (const gt of d.walk.gates) { const [u, v] = T(...gt.a), [u2, v2] = T(...gt.b); x.strokeStyle = gt.open ? '#22b14c' : '#7a2020'; x.lineWidth = 4; x.beginPath(); x.moveTo(u, v); x.lineTo(u2, v2); x.stroke(); }
+  }
+  window.__stats = { calls: 0, tris: 0, buildMs };
+}
+
+function check() {
+  const out = [];
+  const circ = new Set(d.circuits.map((c) => c.id));
+  for (const f of d.fixtures) if (!circ.has(f.circuit)) out.push(`fixture ${f.id} circuit ${f.circuit} missing`);
+  for (const m of d.mounts) {
+    if ((m.kind === 'socketE27' || m.kind === 'socketGU10') && (!m.fixture || !m.circuit)) out.push(`mount ${m.id} without fixture/circuit`);
+    if (m.kind === 'radiator' && !m.room) out.push(`radiator ${m.id} without room`);
+  }
+  const roomsWithLight = new Set(d.fixtures.map((f) => f.room));
+  for (const r of d.rooms) if (r.kind !== 'outdoor' && !roomsWithLight.has(r.id)) out.push(`room ${r.id} without fixture`);
+  for (const r of d.rooms) if (r.kind !== 'outdoor' && !d.circuits.some((c) => c.kind === 'light' && c.rooms.includes(r.id))) out.push(`room ${r.id} without light circuit`);
+  for (const w of d.walls) for (const o of w.openings) if (o.t0 < 0 || o.t1 > 1 || o.t0 >= o.t1) out.push(`opening ${o.id} bad t`);
+  const ids = new Set(); for (const m of d.mounts) { if (ids.has(m.id)) out.push(`dup mount ${m.id}`); ids.add(m.id); }
+  const need = { kawalerka: ['entrance'], dom: ['entrance', 'driveway', 'garden', 'gate'], gzowo: ['entrance', 'terrace', 'jetty', 'gate'], willa: ['entrance', 'driveway', 'garden', 'gate', 'garage'] }[id] || [];
+  for (const k of need) if (!d.zones.some((z) => z.kind === k)) out.push(`zone ${k} missing`);
+  for (const k of ['panel', 'wan', 'entrance', 'street', 'camera']) if (!d[k]) out.push(`${k} missing`);
+  if (!d.rack && !d.mediaBox) out.push('rack/mediaBox missing');
+  for (const kind of ['ceiling', 'wall', 'socketE27', 'surface', 'floor', 'door', 'doorLock', 'window', 'outdoorWall', 'doorbell', 'tv']) if (!d.mounts.some((m) => m.kind === kind)) out.push(`no mount kind ${kind}`);
+  for (const st of d.strips) if (st.points.length < 2) out.push(`strip ${st.id} too short`);
+  for (const m of d.mounts) if (m.room !== 'outdoor' && !d.rooms.some((r) => r.id === m.room)) out.push(`mount ${m.id} room ${m.room} unknown`);
+  if (!d.tabletSpots.some((t) => t.rating === 'good')) out.push('no good tablet spot');
+  out.push(...clearanceReport(d, b.clearanceObstacles));
+  const wk = d.walk;
+  if (!wk || !wk.spawn || !wk.stairs || !wk.passable) out.push('walk missing');
+  else {
+    for (const st of d.walls) for (const o of st.openings) if (o.kind === 'door' && !wk.passable.includes(o.id) && !/gara/.test(o.id)) out.push(`door ${o.id} not passable`);
+    const sp = wk.spawn.pos, hit = (b.obstacles || []).find((o) => sp[1] + 0.05 < o.y1 && sp[1] + 1.8 > o.y0 && (() => { let ins = false; const P = o.poly; for (let i = 0, j = P.length - 1; i < P.length; j = i++) { if ((P[i][1] > sp[2]) !== (P[j][1] > sp[2]) && sp[0] < ((P[j][0] - P[i][0]) * (sp[2] - P[i][1])) / (P[j][1] - P[i][1]) + P[i][0]) ins = !ins; } return ins; })());
+    if (hit) out.push(`spawn inside obstacle ${hit.what} ${hit.id}`);
+  }
+  JSON.stringify(d);
+  return out;
+}
+
+const tr0 = performance.now();
+if (view === 'plan') drawPlan(); else render();
+window.__t = { build: buildMs, render: Math.round(performance.now() - tr0) };
+hud();
+window.__check = check();
+const kinds = {}; for (const m of d.mounts) kinds[m.kind] = (kinds[m.kind] || 0) + 1;
+window.__stats = { ...(window.__stats || {}), kinds, mounts: d.mounts.length, tablets: d.tabletSpots.map((t) => `${t.id}:${t.rating}`).join(','), strips: d.strips.length, fixtures: b.fixtures.length, area: d.area, geoTris: countTris().tris };
+if (window.__check.length) console.warn('[check]', window.__check.join('\n'));
+console.log('[stats]', JSON.stringify({ ...window.__stats, ...countTris(), mounts: d.mounts.length, tablets: d.tabletSpots.length, strips: d.strips.length, fixtures: b.fixtures.length, area: d.area, check: window.__check.length }));
+window.__ready = true;
+</script>
+</body>
+</html>
