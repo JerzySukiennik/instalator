@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Instalator · postęp</title>
+<style>
+:root{--bg:#f3f1ec;--ink:#1d2226;--mute:#6b7177;--line:#d9d5cc;--card:#fff;--ok:#2f8f5b;--work:#c98a12;--loop:#3b6fd1}
+@media (prefers-color-scheme:dark){:root{--bg:#15181b;--ink:#e9e6df;--mute:#9aa0a6;--line:#2b3035;--card:#1d2125}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 ui-sans-serif,-apple-system,"SF Pro Text",Inter,sans-serif}
+header{padding:28px 24px 8px;max-width:1200px;margin:auto}h1{margin:0;font-size:28px;letter-spacing:-.02em}
+.sub{color:var(--mute);margin-top:4px}.phase{display:inline-block;margin-top:12px;padding:4px 10px;border:1px solid var(--line);border-radius:99px;font-size:13px}
+main{max-width:1200px;margin:auto;padding:16px 24px 48px;display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px}
+.p{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:8px}
+.top{display:flex;justify-content:space-between;gap:8px;align-items:baseline}.n{font-weight:650;font-size:16px}
+.s{font-size:12px;padding:2px 8px;border-radius:99px;color:#fff;white-space:nowrap}
+.s.won{background:var(--ok)}.s.building,.s.critic{background:var(--work)}.s.loop{background:var(--loop)}.s.todo{background:var(--mute)}
+.meta{color:var(--mute);font-size:13px}.gap{font-size:14px}.gap b{font-weight:600}
+.shots{display:flex;gap:6px;overflow-x:auto}.shots img{height:96px;border-radius:8px;border:1px solid var(--line)}
+section{max-width:1200px;margin:auto;padding:0 24px 48px}h2{font-size:16px;margin:8px 0}
+.log{border-top:1px solid var(--line)}.log div{padding:6px 0;border-bottom:1px solid var(--line);font-size:13px}.log time{color:var(--mute);margin-right:8px;font-variant-numeric:tabular-nums}
+</style>
+</head>
+<body>
+<header><h1>Instalator</h1><div class="sub">Gauntlet: builder i krytyk na każdy kawałek, aż krytyk wybierze nasze na ślepo.</div><div class="phase" id="phase">…</div></header>
+<main id="pieces"></main>
+<section><h2>Dziennik</h2><div class="log" id="log"></div></section>
+<script>
+const label={won:'wygrane',building:'buduje',critic:'krytyk ocenia',loop:'kolejna runda',todo:'czeka'};
+async function load(){
+  try{
+    const r=await fetch('progress.json?'+Date.now());const d=await r.json();
+    document.getElementById('phase').textContent=d.phase+' · '+new Date(d.updated).toLocaleTimeString('pl-PL');
+    document.getElementById('pieces').innerHTML=d.pieces.map(p=>`<div class="p"><div class="top"><span class="n">${p.name}</span><span class="s ${p.status}">${label[p.status]||p.status}</span></div><div class="meta">${p.owner} · runda ${p.round||0}${p.verdict?' · '+p.verdict:''}</div>${p.gap?`<div class="gap"><b>Największa luka:</b> ${p.gap}</div>`:''}${(p.shots||[]).length?`<div class="shots">${p.shots.map(s=>`<a href="${s}" target="_blank"><img src="${s}" loading="lazy"></a>`).join('')}</div>`:''}</div>`).join('');
+    document.getElementById('log').innerHTML=d.log.slice().reverse().map(l=>`<div><time>${new Date(l.t).toLocaleTimeString('pl-PL',{hour:'2-digit',minute:'2-digit'})}</time>${l.msg}</div>`).join('');
+  }catch(e){}
+}
+load();setInterval(load,8000);
+</script>
+</body>
+</html>
