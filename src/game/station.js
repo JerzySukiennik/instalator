@@ -26,7 +26,10 @@ export class Station {
     this.dir.tgt.copy(cam.position).add(new THREE.Vector3(0, 0, -1).applyQuaternion(cam.quaternion).multiplyScalar(1.5));
     if (f) { this.house.setFloor(f.floor); this.dir.closeup(f.pos, f.normal, f.dist || (kind === "rack" ? 1.2 : 0.8), kind === "rack" ? 0.06 : 0.1); }
     this.house.setDoors(true);
+    this.house.occludeWalls = true;
+    for (const o of [this.house.panelEnc, this.house.cab]) if (o?.userData?.door) o.userData.door.visible = false;
     for (const cg of this.house.b?.ceilingGroups || []) cg.group.visible = false;
+    if (this.house.b?.roof?.group) this.house.b.roof.group.visible = false;
     this.layer = document.createElement("div");
     this.layer.className = "st-layer on";
     this.side = document.createElement("div");
@@ -45,7 +48,10 @@ export class Station {
     removeEventListener("mouseup", this.up);
     removeEventListener("mousemove", this.move);
     this.house.setDoors(false);
+    this.house.occludeWalls = false;
+    for (const o of [this.house.panelEnc, this.house.cab]) if (o?.userData?.door) o.userData.door.visible = true;
     for (const cg of this.house.b?.ceilingGroups || []) cg.group.visible = true;
+    if (this.house.b?.roof?.group) this.house.b.roof.group.visible = true;
     this.house.setFloor(99);
     this.house.closeFill = false;
   }

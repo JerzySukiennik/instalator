@@ -696,7 +696,7 @@ export class House {
     const keep = new Set();
     if (cam && focus && this.closeFill && this.b) {
       const walls = new Set();
-      for (const wg of this.b.wallGroups || []) wg.mesh.traverse((o) => walls.add(o));
+      if (!this.occludeWalls) for (const wg of this.b.wallGroups || []) wg.mesh.traverse((o) => walls.add(o));
       for (const fg of this.b.floorGroups || []) (fg.mesh || fg).traverse?.((o) => walls.add(o));
       const dirv = focus.clone().sub(cam.position);
       const len = dirv.length();
