@@ -70,7 +70,9 @@ export class Player {
         this.segs.push({ floor: w.floor ?? 0, ax: ax + (bx - ax) * t0, az: az + (bz - az) * t0, bx: ax + (bx - ax) * t1, bz: az + (bz - az) * t1, r: (w.thick || 0.12) / 2 });
       }
     }
-    this.boxes = (b.obstacles || []).filter((o) => o.what !== "stairs" && o.poly && o.poly.length >= 3 && (o.y1 - o.y0) > 0.12);
+    this.bGround = typeof b.groundAt === "function" ? b.groundAt.bind(b) : null;
+    if (this.bGround && b.clearanceObstacles) this.segs = [];
+    this.boxes = (b.obstacles || []).filter((o) => o.what !== "stairs" && o.poly && o.poly.length >= 3 && (o.y1 - o.y0) > 0.04);
     const skip = new Set();
     for (const wg of b.wallGroups || []) wg.mesh.traverse((o) => skip.add(o));
     for (const cg of b.ceilingGroups || []) cg.group.traverse((o) => skip.add(o));
@@ -110,6 +112,7 @@ export class Player {
   }
 
   groundAt(x, y, z) {
+    if (this.bGround) { const g = this.bGround(x, z, y); if (g != null && isFinite(g)) return g; }
     this.rc.set(new THREE.Vector3(x, y + STEP, z), new THREE.Vector3(0, -1, 0));
     this.rc.far = 60;
     const hits = this.rc.intersectObjects(this.walk, false);
@@ -135,7 +138,7 @@ export class Player {
       }
       for (const o of this.boxes) {
         if ((o.floor ?? 0) !== f && Math.abs((o.y0 ?? 0) - y) > 1.5) continue;
-        if (o.y1 < y + 0.25 || o.y0 > y + 1.75) continue;
+        if (o.y1 < y + 0.05 || o.y0 > y + 1.8) continue;
         const P = o.poly;
         let inside = true, best = null, bd = 1e9;
         for (let i = 0; i < P.length; i++) {

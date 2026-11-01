@@ -4,6 +4,7 @@ import * as THREE from 'three';
 import { C, shade, hash, rng } from '../geo.js';
 import { P } from '../palette.js';
 import { makeSite, lawnColor } from '../exterior.js';
+import { fillPattern } from '../generator.js';
 import { smooth, noise2 } from '../geo.js';
 
 const Y = 9.2, H = 2.6, PI = Math.PI;
@@ -15,9 +16,10 @@ export default {
   floors: [{ index: 0, y: Y, height: H, name: 'Mieszkanie (3. piętro)', slab: 0.22 }],
   plinth: 0,
   topExtra: 0.22,
+  facadeAt: (W, u, y) => (W.id === 'wN' && u > 2.05 && u < 4.85 ? (y < Y + 1.35 ? CAGE.dado : CAGE.paint) : null),
   palette: { facade: '#e7e2d7', plinth: '#e7e2d7', frame: '#f4f4f1', door: '#f1efe9', doorFrame: '#f3f1ec', base: '#f3f1ec', sill: '#efede8', extDoor: '#5b4a3c', section: '#46413b' },
   walls: [
-    { id: 'wN', floor: 0, a: [-0.2, -0.125], b: [6.7, -0.125], t: 0.25, ext: true, open: [{ id: 'drzwi-wejsciowe', at: 2.65, w: 1.0, kind: 'door', head: 2.05, entrance: true, hinge: 'a', leafCol: '#6b5442', frameCol: '#5a4636' }] },
+    { id: 'wN', floor: 0, a: [-0.2, -0.125], b: [6.7, -0.125], t: 0.25, ext: true, uBreaks: [2.1, 4.8], facadeBands: [Y + 1.35], open: [{ id: 'drzwi-wejsciowe', at: 2.65, w: 1.0, kind: 'door', head: 2.05, entrance: true, hinge: 'a', leafCol: '#6b5442', frameCol: '#5a4636' }] },
     { id: 'wS', floor: 0, a: [-0.2, 5.7], b: [6.7, 5.7], t: 0.4, ext: true, open: [
       { at: 0.9, w: 1.8, kind: 'window', sill: 0.85, head: 2.3, panes: 2 },
       { id: 'balkon-drzwi', at: 4.5, w: 0.9, kind: 'glass', sill: 0, head: 2.3, panes: 1, slide: true, dark: false },
@@ -107,6 +109,7 @@ export default {
     { id: 'strefa-ulica', kind: 'street', floor: 0, pos: [3.0, 0.5, -16.0], r: 6 }
   ],
   street: [3.0, 0, -16.5],
+  walk: { spawn: { pos: [2.95, Y, -1.65], dir: [0, 1] }, bounds: [-0.3, -2.4, 7.2, 7.3] },
   approach: [[3.0, 0, -16.5], [3.0, 0, -11], [3.2, 0.8, -6.8], [3.2, Y, -2.2], [2.95, Y, -0.8]],
   views: { dollhouse: { az: -0.5, el: 0.58, dist: 1.12, sunAz: 315, sunEl: 46 }, close: { pos: [1.2, Y + 1.55, 4.9], target: [6.2, Y + 1.0, 1.6], fov: 60 } },
   outdoorSkip: (p, n) => n[0] > 0.5 || (n[2] < -0.5 && (p[0] < 1.6 || p[0] > 4.4)),
@@ -121,11 +124,125 @@ export default {
     g.line([3.92, Y + 1.0, 5.92], [3.92, Y + 1.0, 7.12], 0.022, C('#3a3d42'), 6);
     for (let i = 0; i <= 14; i++) g.line([3.92 + i * 0.2, Y, 7.12], [3.92 + i * 0.2, Y + 1.0, 7.12], i % 7 === 0 ? 0.018 : 0.008, C('#3a3d42'), 4);
     for (let i = 0; i <= 6; i++) g.line([3.92, Y, 5.92 + i * 0.2], [3.92, Y + 1.0, 5.92 + i * 0.2], 0.008, C('#3a3d42'), 4);
+    for (const [a, b] of [[[3.92, 7.12], [6.78, 7.12]], [[3.92, 5.92], [3.92, 7.12]], [[6.76, 5.92], [6.76, 7.12]]]) {
+      api.addObstacle({ id: 'balkon-balustrada', what: 'railing', floor: 0, poly: [[a[0] - 0.05, a[1] - 0.05], [b[0] + 0.05, a[1] - 0.05], [b[0] + 0.05, b[1] + 0.05], [a[0] - 0.05, b[1] + 0.05]], y0: Y, y1: Y + 1.8, noClear: true });
+    }
+    stairwell(api);
   },
   site(api) {
     buildSite(api);
   }
 };
+
+const CAGE = { zf: -6.6, x0: 1.9, x1: 4.6, z0: -6.35, z1: -0.25, land: -2.3, mid: -4.54, dado: '#6f8475', paint: '#e8e1d0', floor: '#b9b0a2' };
+
+function stairwell(api) {
+  const g = api.stat[0], { x0, x1, z0, z1, land, mid } = CAGE, Z0 = CAGE.zf;
+  const rise = 0.175, run = (land - mid) / 8, top = Y + 2.6, low = Y - 2.8;
+  const TERR = { type: 'tiles', color: CAGE.floor, size: [0.3, 0.3], grout: '#a39a8c', vary: 0.05 };
+  const slab = (ax, az, bx, bz, y) => {
+    g.use('matte');
+    g.bx(ax, y - 0.22, az, bx, y - 0.003, bz, C('#d8d2c6'), { top: C('#a39a8c') });
+    g.use('satin');
+    fillPattern(g, [ax, az, bx, bz], y, TERR, Math.round(ax * 7 + az * 13 + 400));
+  };
+  slab(x0, land, x1, z1, Y);
+  slab(x0, z0, x1, mid, Y - 1.4);
+  slab(x0, land - 0.0, x1, z1, low);
+  slab(x0, mid, 3.2, land, low);
+  const flight = (xa, xb, zTop, dirZ, yTop) => {
+    for (let i = 0; i < 8; i++) {
+      const za = zTop + dirZ * i * run, zb = za + dirZ * run, yy = yTop - i * rise;
+      const z0s = Math.min(za, zb), z1s = Math.max(za, zb);
+      g.use('satin');
+      g.bx(xa, yy - rise, z0s, xb, yy, z1s, C(CAGE.floor).clone().multiplyScalar(i % 2 ? 0.97 : 1.0), { top: C('#c2b9ab') });
+      g.use('matte');
+      g.bx(xa, yy - rise - 0.16, z0s, xb, yy - rise, z1s, C('#d8d2c6'));
+      g.bx(xa, yy - 0.012, dirZ > 0 ? z0s - 0.02 : z1s, xb, yy + 0.002, dirZ > 0 ? z0s : z1s + 0.02, C('#8f877b'));
+    }
+  };
+  flight(1.95, 3.2, land, -1, Y);
+  flight(3.3, 4.55, mid, 1, Y - 1.4);
+  g.use('matte');
+  const wallFace = (ax, az, bx, bz, ya, yb, col, nx, nz) => g.face([[ax, ya, az], [bx, ya, bz], [bx, yb, bz], [ax, yb, az]], [(ax + bx) / 2 - nx, (ya + yb) / 2, (az + bz) / 2 - nz], C(col));
+  const painted = (side) => {
+    const xs = side < 0 ? x0 + 0.002 : x1 - 0.002, nx = side < 0 ? 1 : -1;
+    for (const [za, zb, dl] of [[land - 0.3, z1, Y + 1.35], [z0, land - 0.3, Y - 0.05]]) {
+      wallFace(xs, za, xs, zb, low, dl, CAGE.dado, nx, 0);
+      wallFace(xs, za, xs, zb, dl, dl + 0.03, '#4b5a4f', nx, 0);
+      wallFace(xs, za, xs, zb, dl + 0.03, top, CAGE.paint, nx, 0);
+    }
+  };
+  painted(-1);
+  painted(1);
+  const wins = [[2.6, 3.8, Y - 0.5, Y + 0.6], [2.6, 3.8, Y + 1.2, Y + 2.3]];
+  const nzF = z0 + 0.002;
+  const northY = [low, Y - 0.05, Y - 0.02, top];
+  for (let k = 0; k < 3; k++) {
+    const ya = northY[k], yb = northY[k + 1], col = k === 0 ? CAGE.dado : k === 1 ? '#4b5a4f' : CAGE.paint;
+    const cuts = wins.filter((w) => w[3] > ya && w[2] < yb);
+    const rows = [...new Set([ya, yb, ...cuts.flatMap((w) => [Math.max(ya, w[2]), Math.min(yb, w[3])])])].sort((a, b) => a - b);
+    for (let r = 0; r < rows.length - 1; r++) {
+      const y0r = rows[r], y1r = rows[r + 1], ym = (y0r + y1r) / 2;
+      const hole = wins.find((w) => ym > w[2] && ym < w[3]);
+      if (!hole) wallFace(x1, nzF, x0, nzF, y0r, y1r, col, 0, 1);
+      else { wallFace(hole[0], nzF, x0, nzF, y0r, y1r, col, 0, 1); wallFace(x1, nzF, hole[1], nzF, y0r, y1r, col, 0, 1); }
+    }
+  }
+  for (const [wa, wb, wy0, wy1] of wins) {
+    g.use('matte');
+    g.bx(wa, wy0, Z0, wb, wy0 + 0.03, z0 + 0.06, C('#f1efe9'));
+    for (const [ua, ub, va, vb] of [[wa, wb, wy0, wy0 + 0.06], [wa, wb, wy1 - 0.06, wy1], [wa, wa + 0.06, wy0, wy1], [wb - 0.06, wb, wy0, wy1], [(wa + wb) / 2 - 0.03, (wa + wb) / 2 + 0.03, wy0, wy1]]) g.bx(ua, va, Z0 + 0.1, ub, vb, Z0 + 0.17, C('#f4f3ef'));
+    g.use('glass');
+    g.face([[wa + 0.06, wy0 + 0.06, Z0 + 0.13], [wb - 0.06, wy0 + 0.06, Z0 + 0.13], [wb - 0.06, wy1 - 0.06, Z0 + 0.13], [wa + 0.06, wy1 - 0.06, Z0 + 0.13]], [(wa + wb) / 2, (wy0 + wy1) / 2, Z0 + 1], C('#ffffff'));
+    g.use('matte');
+    g.face([[wa, wy0, Z0], [wb, wy0, Z0], [wb, wy0, z0], [wa, wy0, z0]], [(wa + wb) / 2, wy0 - 1, -6.5], C(CAGE.paint));
+    g.face([[wa, wy1, Z0], [wa, wy1, z0], [wb, wy1, z0], [wb, wy1, Z0]], [(wa + wb) / 2, wy1 + 1, -6.5], C(CAGE.paint));
+    g.face([[wa, wy0, Z0], [wa, wy0, z0], [wa, wy1, z0], [wa, wy1, Z0]], [wa - 1, (wy0 + wy1) / 2, -6.5], C(CAGE.paint));
+    g.face([[wb, wy0, Z0], [wb, wy1, Z0], [wb, wy1, z0], [wb, wy0, z0]], [wb + 1, (wy0 + wy1) / 2, -6.5], C(CAGE.paint));
+  }
+  g.use('matte');
+  api.ceil[0].use('matte');
+  api.ceil[0].face([[x0, top - 0.002, z0], [x1, top - 0.002, z0], [x1, top - 0.002, z1], [x0, top - 0.002, z1]], [(x0 + x1) / 2, top + 1, (z0 + z1) / 2], C('#f2efe8'));
+  for (const [lx, lz] of [[3.25, -1.25], [3.25, -5.4]]) {
+    g.use('matte');
+    g.cyl(lx, top - 0.03, lz, 0.17, 0.17, 0.03, 16, C('#e9e6df'));
+    g.use('gloss');
+    g.sphere(lx, top - 0.06, lz, 0.15, 16, 6, C('#f6f2e8'));
+  }
+  for (const [side, zc] of [[-1, -1.3], [1, -1.3]]) {
+    const xw = side < 0 ? x0 : x1, d = -side, za = zc - 0.45, zb = zc + 0.45, xf = xw + d * 0.012;
+    g.use('satin');
+    g.bx(Math.min(xw, xw + d * 0.03), Y, za - 0.06, Math.max(xw, xw + d * 0.03), Y + 2.11, za, C('#5a4636'));
+    g.bx(Math.min(xw, xw + d * 0.03), Y, zb, Math.max(xw, xw + d * 0.03), Y + 2.11, zb + 0.06, C('#5a4636'));
+    g.bx(Math.min(xw, xw + d * 0.03), Y + 2.05, za - 0.06, Math.max(xw, xw + d * 0.03), Y + 2.11, zb + 0.06, C('#5a4636'));
+    g.bx(Math.min(xw, xf), Y + 0.005, za, Math.max(xw, xf), Y + 2.05, zb, C(side < 0 ? '#7a5a40' : '#6b4f3a'));
+    g.use('metal');
+    const hz = side < 0 ? zb - 0.09 : za + 0.09, hx = xw + d * 0.02;
+    g.bx(Math.min(hx, hx + d * 0.05), Y + 0.98, hz - 0.02, Math.max(hx, hx + d * 0.05), Y + 1.12, hz + 0.02, C('#c9ccd0'));
+    g.bx(Math.min(hx + d * 0.04, hx + d * 0.06), Y + 1.04, Math.min(hz, hz + (side < 0 ? -0.13 : 0.13)), Math.max(hx + d * 0.04, hx + d * 0.06), Y + 1.065, Math.max(hz, hz + (side < 0 ? -0.13 : 0.13)), C('#c9ccd0'));
+    g.bx(Math.min(hx, hx + d * 0.01), Y + 1.5, zc - 0.03, Math.max(hx, hx + d * 0.01), Y + 1.56, zc + 0.03, C('#d9b54a'));
+    api.addObstacle({ id: `sasiad-${side}`, what: 'door', floor: 0, poly: [[xw - 0.05, za], [xw + 0.05, za], [xw + 0.05, zb], [xw - 0.05, zb]], y0: Y, y1: Y + 2.1, noClear: true });
+  }
+  g.use('matte');
+  g.cb(2.6, Y, -0.85, 3.3, Y + 0.018, -0.35, 0.01, C('#4b4642'));
+  g.use('metal');
+  const rail = (pts, n) => {
+    for (let i = 0; i <= n; i++) {
+      const t = i / n, x = pts[0][0] + (pts[1][0] - pts[0][0]) * t, y = pts[0][1] + (pts[1][1] - pts[0][1]) * t, z = pts[0][2] + (pts[1][2] - pts[0][2]) * t;
+      g.line([x, y, z], [x, y + 0.92, z], i === 0 || i === n ? 0.016 : 0.009, C('#3a3d42'), 4);
+    }
+    g.use('satin');
+    g.line([pts[0][0], pts[0][1] + 0.95, pts[0][2]], [pts[1][0], pts[1][1] + 0.95, pts[1][2]], 0.03, C('#7a4a2c'), 6);
+    g.use('metal');
+  };
+  rail([[3.25, Y, land], [x1 - 0.04, Y, land]], 11);
+  rail([[3.25, Y, land], [3.25, Y - 1.4, mid]], 18);
+  rail([[3.25, Y - 1.4, mid], [3.25, low, land]], 18);
+  api.walkSurface([x0, land, x1, z1], Y);
+  api.addObstacle({ id: 'klatka-schody', what: 'railing', floor: 0, poly: [[x0, land - 0.12], [x1, land - 0.12], [x1, land + 0.02], [x0, land + 0.02]], y0: Y - 3, y1: Y + 2.6, noClear: true });
+  for (const xw of [x0, x1]) api.addObstacle({ id: 'klatka-sciana', what: 'wall', floor: 0, poly: [[xw - 0.1, land - 0.2], [xw + 0.1, land - 0.2], [xw + 0.1, z1 + 0.1], [xw - 0.1, z1 + 0.1]], y0: Y - 0.3, y1: Y + 2.6, noClear: true });
+}
 
 function buildSite(api) {
   const S = makeSite(api, { ground: () => 0 });
@@ -142,7 +259,17 @@ function buildSite(api) {
   };
   const X0 = -0.4, X1 = 33.4, Z0 = -6.6, Z1 = 5.9, levels = [0.8, 3.6, 6.4];
   g.use('satin');
-  g.bx(X0, -0.4, Z0, X1, Y - 0.22, Z1, facade, { top: C('#77736c') });
+  const { x0: cx0, x1: cx1, z0: cz0, z1: cz1 } = CAGE, cb = Y - 3.0;
+  g.bx(X0, -0.4, Z0, X1, cb, Z1, facade, { top: C('#77736c') });
+  for (const [a, b, c, d] of [[X0, Z0, cx0, Z1], [cx1, Z0, X1, Z1], [cx0, cz1, cx1, Z1]]) g.bx(a, cb, b, c, Y - 0.22, d, facade, { top: C('#77736c') });
+  const holes = [[2.6, 3.8, Y - 0.5, Y + 0.6], [2.6, 3.8, Y + 1.2, Y + 2.3]];
+  const ys = [cb, ...holes.flatMap((h) => [h[2], h[3]]), Y + 2.82];
+  for (let i = 0; i < ys.length - 1; i++) {
+    const h = holes.find((q) => q[2] === ys[i]);
+    if (h) { g.bx(cx0, ys[i], Z0, h[0], ys[i + 1], cz0, facade); g.bx(h[1], ys[i], Z0, cx1, ys[i + 1], cz0, facade); }
+    else g.bx(cx0, ys[i], Z0, cx1, ys[i + 1], cz0, facade);
+  }
+  g.bx(cx0, Y + 2.6, cz0, cx1, Y + 2.82, cz1, facade, { top: C('#57534e'), bottom: C('#f2efe8') });
   g.bx(X0 - 0.03, -0.4, Z0 - 0.03, X1 + 0.03, 0.75, Z1 + 0.03, base);
   for (const yy of levels) {
     g.bx(X0 - 0.015, yy - 0.12, Z0 - 0.015, X1 + 0.015, yy + 0.02, Z1 + 0.015, shade(facade, 0.93));
@@ -152,7 +279,8 @@ function buildSite(api) {
   const cg = new (S.g.constructor)();
   cg.use('satin');
   cg.bx(6.8, Y - 0.22, Z0, X1, Y + 2.82, Z1, facade, { top: C('#57534e') });
-  cg.bx(X0, Y - 0.22, Z0, 6.8, Y + 2.82, -0.25, facade, { top: C('#57534e') });
+  cg.bx(X0, Y - 0.22, Z0, CAGE.x0, Y + 2.82, -0.25, facade, { top: C('#57534e') });
+  cg.bx(CAGE.x1, Y - 0.22, Z0, 6.8, Y + 2.82, -0.25, facade, { top: C('#57534e') });
   cg.bx(X0 - 0.05, Y + 2.82, Z0 - 0.05, X1 + 0.05, Y + 3.22, Z0 + 0.25, shade(facade, 0.96), { top: C('#8a8780') });
   cg.bx(6.8, Y + 2.82, Z1 - 0.25, X1 + 0.05, Y + 3.22, Z1 + 0.05, shade(facade, 0.96), { top: C('#8a8780') });
   cg.bx(X1 - 0.25, Y + 2.82, Z0, X1 + 0.05, Y + 3.22, Z1, shade(facade, 0.96), { top: C('#8a8780') });
@@ -212,7 +340,7 @@ function buildSite(api) {
       balcony(g, 3.9, 6.8, yy, Z1, 50 + f);
       win(0.5, 1.6, yy + 0.85, yy + 2.3, Z0, -1);
     }
-    if (f >= 0) {
+    if (f < 2) {
       const sw = f === 3 ? cg : g;
       sw.use('matte');
       sw.bx(2.6, yy + 1.2, Z0 - 0.03, 3.8, yy + 2.3, Z0, C('#4a5862'));

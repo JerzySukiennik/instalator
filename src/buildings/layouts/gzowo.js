@@ -161,6 +161,7 @@ export default {
     { id: 'drzewo-sosna', kind: 'outdoorWall', pos: [-12.6, 2.6, 9.2], normal: [0.6, 0, 0.8], tags: ['garden', 'tree'] }
   ],
   street: [10.0, -0.5, -22.0],
+  walk: { spawn: { pos: [7.6, -17.3], dir: [0, 1] }, bounds: [-24, -26, 19, 26] },
   approach: [[10.0, -0.5, -22.0], [10.2, -0.45, -16.0], [10.0, -0.45, -6.0], [7.6, -0.45, -1.0], [7.4, -0.2, 0.3]],
   views: { dollhouse: { az: 0.36, el: 0.74, dist: 0.86, target: [-1.0, 0.4, 0.4], sunAz: 40, sunEl: 47 }, wide: { az: 0.12, el: 0.5, dist: 1.42, target: [-0.5, 0.0, 7.5], sunAz: 40, sunEl: 47 }, close: { pos: [1.2, 1.55, 3.4], target: [-1.6, 1.35, -4.2], fov: 64 } },
   ceilingDecor(api, ceil) {
@@ -217,7 +218,13 @@ function buildSite(api) {
   S.water({ x0: -120, z0: 10, x1: 120, z1: FAR + 2, y: -1.55, bankZ: 16.0, farZ: FAR - 1 });
   g.use('satin');
   g.bx(-9.84, -0.6, 4.44, 6.44, -0.045, 8.4, C('#5c4535'));
-  for (let i = 0; i < 2; i++) g.bx(-1.5, -0.6, 8.4 + i * 0.32, 2.5, -0.2 - i * 0.18, 8.72 + i * 0.32, C('#7a5a42'), { top: C('#8a573c') });
+  for (let i = 0; i < 2; i++) { g.bx(-1.5, -0.6, 8.4 + i * 0.32, 2.5, -0.2 - i * 0.18, 8.72 + i * 0.32, C('#7a5a42'), { top: C('#8a573c') }); S.walk([-1.5, 8.4 + i * 0.32, 2.5, 8.72 + i * 0.32], -0.2 - i * 0.18); }
+  S.walk([-9.84, 4.44, 6.44, 8.4], -0.045);
+  for (const [a, b] of [[[-9.84, 8.4], [-1.5, 8.4]], [[2.5, 8.4], [6.44, 8.4]]]) S.block2('deckEdge', a, b, 0.05, -0.9, -0.25);
+  for (let x = -24; x < 19; x += 1.5) {
+    const z0 = Math.min(bankZ(x), bankZ(x + 1.5)) - 1.6;
+    S.block2('water', [x, (z0 + FAR) / 2], [x + 1.5, (z0 + FAR) / 2], FAR - z0, -3.5, -1.32);
+  }
   const gravel = { type: 'tiles', color: '#b0a796', size: [0.3, 0.3], grout: '#9a917f', vary: 0.12, gap: 0.05 };
   S.pave([7.8, -16.2, 12.4, -2.5], -0.43, gravel, 41);
   for (let i = 0; i < 6; i++) { g.use('satin'); g.cb(6.7 + (i % 2) * 0.5, -0.46, -2.6 + i * 0.6, 7.5 + (i % 2) * 0.5, -0.4, -2.15 + i * 0.6, 0.03, C('#9d978b')); }
@@ -225,8 +232,8 @@ function buildSite(api) {
   S.woodFence([13.5, -16], [19, -16], { h: 1.25 });
   S.woodFence([-24, -16], [-24, 21.5], { h: 1.25 });
   S.woodFence([19, -16], [19, 22.5], { h: 1.25 });
-  S.swingGate([8.2, -16], [13.5, -16], { style: 'wood', h: 1.3 });
-  S.swingGate([7.0, -16], [8.2, -16], { style: 'wood', h: 1.3, leaves: 1 });
+  S.swingGate([8.2, -16], [13.5, -16], { style: 'wood', h: 1.3, id: 'brama' });
+  S.swingGate([7.0, -16], [8.2, -16], { style: 'wood', h: 1.3, leaves: 1, id: 'furtka' });
   g.use('satin');
   g.bx(6.75, -0.45, -16.35, 6.95, 0.95, -16.15, C('#5b4636'));
   g.use('metal');
@@ -271,8 +278,11 @@ function firePit(S, x, z) {
   for (let i = 0; i < 10; i++) { const a = (i / 10) * Math.PI * 2; g.blob(x + Math.cos(a) * 0.62, y + 0.1, z + Math.sin(a) * 0.62, 0.17, 0.12, 0.15, '#8a857c', i + 3, { detail: 0 }); }
   g.cyl(x, y + 0.01, z, 0.5, 0.5, 0.02, 12, C('#2b2622'));
   for (let i = 0; i < 4; i++) { const a = i * 0.8; g.line([x + Math.cos(a) * 0.3, y + 0.06, z + Math.sin(a) * 0.3], [x - Math.cos(a) * 0.25, y + 0.2, z - Math.sin(a) * 0.25], 0.05, '#4a3a2c', 6); }
+  S.api.addObstacle?.({ id: 'ognisko', what: 'firePit', floor: 0, poly: [0, 1, 2, 3, 4, 5, 6, 7].map((i) => [x + Math.cos(i * PI / 4) * 0.8, z + Math.sin(i * PI / 4) * 0.8]), y0: y - 0.2, y1: y + 0.3, noClear: true });
   g.use('satin');
   for (const [dx, dz, r] of [[0, -1.9, 0], [1.9, 0.3, PI / 2.2], [-1.8, 0.6, -PI / 2.3]]) {
+    const lx = Math.cos(r), lz = -Math.sin(r);
+    S.block2('bench', [x + dx - lx * 0.9, z + dz - lz * 0.9], [x + dx + lx * 0.9, z + dz + lz * 0.9], 0.4, y, y + 0.42);
     g.at(x + dx, y, z + dz, r);
     g.at(0, 0.22, 0, 0, 0, PI / 2);
     g.cyl(0, -0.9, 0, 0.2, 0.2, 1.8, 9, C('#7a5d44'), { top: C('#c9a27a') });
@@ -295,6 +305,7 @@ function hammock(S, a, b) {
     g.quad([p[0] - nx, p[1], p[2] - nz], [q[0] - nx, q[1], q[2] - nz], [q[0] + nx, q[1], q[2] + nz], [p[0] + nx, p[1], p[2] + nz], c);
   }
   g.use('matte');
+  S.block2('hammock', [a[0] + dx * 0.15, a[1] + dz * 0.15], [b[0] - dx * 0.15, b[1] - dz * 0.15], 0.9, Math.min(ya, yb) - 1.0, Math.min(ya, yb));
   g.line([a[0], ya, a[1]], pts[1], 0.012, '#d8cfbf', 4);
   g.line([b[0], yb, b[1]], pts[n - 1], 0.012, '#d8cfbf', 4);
 }

@@ -43,19 +43,20 @@ const renderer = setupRenderer(new THREE.WebGLRenderer({ canvas, antialias: true
 renderer.setPixelRatio(1);
 renderer.setSize(W, H, false);
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(+(Q.get('fov') || 36), W / H, 0.3, 1500);
-const rig = previewLight(scene, { rig: Q.get('rig') || 'rybna', shadowSize: +(Q.get('shadow') || 4096) });
+const FPP = view === 'fpp';
+const camera = new THREE.PerspectiveCamera(+(Q.get('fov') || (FPP ? 62 : 36)), W / H, FPP ? 0.05 : 0.3, 1500);
+const rig = previewLight(scene, { rig: Q.get('rig') || (FPP ? 'game' : 'rybna'), shadowSize: +(Q.get('shadow') || 4096) });
 const { composer } = makeComposer(renderer, scene, camera, W, H, { bloom: Q.has('lights') ? 0.5 : 0.32 });
 
 const t0 = performance.now();
-const b = await buildBuilding(id);
+const b = await buildBuilding(id, { fpp: FPP || Q.has('fppdata') });
 const buildMs = Math.round(performance.now() - t0);
 scene.add(b.group);
 const d = b.data;
 window.__b = b;
 
 const topFloor = floorQ ?? d.floors.length - 1;
-for (const fg of b.floorGroups) fg.group.visible = fg.floor <= topFloor;
+for (const fg of b.floorGroups) fg.group.visible = FPP || fg.floor <= topFloor;
 if (Q.has('roof') && b.roof) b.roof.group.visible = true;
 if (Q.has('door')) b.setDoorOpen(d.entrance?.door, +Q.get('door'));
 if (Q.get('ctx') === '0' && b.context) b.context.visible = false;
@@ -122,6 +123,62 @@ if (view === 'dollhouse') {
   for (const cg of b.ceilingGroups || []) cg.group.visible = cg.floor <= topFloor;
   scene.add(new THREE.HemisphereLight('#fff1dc', '#b8a48a', 0.55));
   cutaway('none');
+} else if (FPP) {
+  let fl0 = +(Q.get('floor') || 0), x = +Q.get('x'), z = +Q.get('z'), yaw = +(Q.get('yaw') || 0), pitch = +(Q.get('pitch') || -0.08);
+  const rid = Q.get('room');
+  if (Q.get('spawn') !== null && d.walk) { x = d.walk.spawn.pos[0]; z = d.walk.spawn.pos[2]; yaw = d.walk.spawn.yaw; fl0 = -1; }
+  else if (rid) {
+    const room = d.rooms.find((r) => r.id === rid);
+    fl0 = room.floor;
+    const pip2 = (px, pz, poly) => { let ins = false; for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) { const a = poly[i], c = poly[j]; if ((a[1] > pz) !== (c[1] > pz) && px < ((c[0] - a[0]) * (pz - a[1])) / (c[1] - a[1]) + a[0]) ins = !ins; } return ins; };
+    const segD = (px, pz, a, c) => { const dx = c[0] - a[0], dz = c[1] - a[1], t = Math.max(0, Math.min(1, ((px - a[0]) * dx + (pz - a[1]) * dz) / (dx * dx + dz * dz || 1))); return Math.hypot(px - a[0] - dx * t, pz - a[1] - dz * t); };
+    let cx = 0, cz = 0;
+    for (const p of room.poly) { cx += p[0]; cz += p[1]; }
+    cx /= room.poly.length; cz /= room.poly.length;
+    if (!pip2(cx, cz, room.poly)) { const p0 = room.poly[0], p2 = room.poly[2]; cx = (p0[0] + p2[0]) / 2; cz = (p0[1] + p2[1]) / 2; }
+    const fy = d.floors[room.floor].y, obs = (b.obstacles || []).filter((o) => (o.floor ?? 0) === room.floor && o.y1 > fy + 0.1 && o.y0 < fy + 1.7);
+    let best = null;
+    let x0 = 1e9, z0 = 1e9, x1 = -1e9, z1 = -1e9;
+    for (const [px, pz] of room.poly) { x0 = Math.min(x0, px); z0 = Math.min(z0, pz); x1 = Math.max(x1, px); z1 = Math.max(z1, pz); }
+    for (let px = x0 + 0.2; px < x1; px += 0.2) for (let pz = z0 + 0.2; pz < z1; pz += 0.2) {
+      if (!pip2(px, pz, room.poly)) continue;
+      let dw = 1e9;
+      for (let i = 0; i < room.poly.length; i++) dw = Math.min(dw, segD(px, pz, room.poly[i], room.poly[(i + 1) % room.poly.length]));
+      if (dw < 0.35) continue;
+      if (obs.some((o) => { for (const [ox, oz] of [[0, 0], [0.25, 0], [-0.25, 0], [0, 0.25], [0, -0.25]]) if (pip2(px + ox, pz + oz, o.poly)) return true; return false; })) continue;
+      const sc = Math.hypot(px - cx, pz - cz) - Math.max(0, dw - 0.8) * 2;
+      if (!best || sc > best.sc) best = { sc, px, pz };
+    }
+    if (best) { x = best.px; z = best.pz; } else { x = cx; z = cz; }
+    let door = null;
+    for (const w of d.walls) {
+      if (w.floor !== room.floor) continue;
+      const dx = w.b[0] - w.a[0], dz = w.b[1] - w.a[1], L = Math.hypot(dx, dz), n = [-dz / L, dx / L];
+      for (const o of w.openings) {
+        if (o.kind !== 'door' || !(d.walk?.passable || []).includes(o.id)) continue;
+        const t = (o.t0 + o.t1) / 2, c = [w.a[0] + dx * t, w.a[1] + dz * t];
+        for (const sd of [1, -1]) { const p = [c[0] + n[0] * sd * 0.8, c[1] + n[1] * sd * 0.8]; if (pip2(p[0], p[1], room.poly) && !door) door = p; }
+      }
+    }
+    if (door && !Q.has('free')) {
+      x = door[0]; z = door[1];
+      let far = null;
+      for (const p of room.poly) { const dd = Math.hypot(p[0] - x, p[1] - z); if (!far || dd > far.dd) far = { dd, p }; }
+      cx = (cx + far.p[0]) / 2; cz = (cz + far.p[1]) / 2;
+    }
+    yaw = Math.atan2(-(cx - x), -(cz - z));
+    if (Math.hypot(cx - x, cz - z) < 0.3) yaw = 0;
+    if (Q.has('yaw')) yaw = +Q.get('yaw');
+  }
+  const gy = b.groundAt ? b.groundAt(x, z, fl0 >= 0 ? d.floors[fl0].y + 0.3 : 50) : d.floors[Math.max(0, fl0)].y;
+  camera.position.set(x, gy + (d.walk?.eye ?? 1.65), z);
+  camera.rotation.set(pitch, yaw, 0, 'YXZ');
+  window.__fpp = { x, z, yaw, y: gy };
+  scene.add(new THREE.HemisphereLight('#fff6ea', '#cbbfa8', +(Q.get('fill') || 0)));
+  let cx2 = 0, cz2 = 0;
+  for (const r of d.rooms) for (const p of r.poly) { cx2 += p[0]; cz2 += p[1]; }
+  const nP = d.rooms.reduce((a, r) => a + r.poly.length, 0);
+  rig.frame(new THREE.Vector3(cx2 / nP, d.floors[0].y, cz2 / nP), span * 0.75 + 6, Q.has('sunaz') ? +Q.get('sunaz') : undefined, Q.has('sunel') ? +Q.get('sunel') : undefined);
 } else if (view === 'spot') {
   const sid = Q.get('spot');
   const sp = d.tabletSpots.find((t) => t.id === sid) || d.mounts.find((m) => m.id === sid) || d.tabletSpots.find((t) => t.kind === 'wall');
@@ -182,9 +239,9 @@ if (Q.has('marks') && view !== 'plan') {
 let dirty = true;
 function render() {
   if (view === 'plan') return;
-  if (view === 'spot') { renderer.render(scene, camera); const st = { calls: renderer.info.render.calls, tris: renderer.info.render.triangles, buildMs }; composer.render(); window.__stats = st; dirty = false; return; }
   renderer.info.autoReset = false;
   renderer.info.reset();
+  if (view === 'spot' || FPP) { renderer.render(scene, camera); const st = { calls: renderer.info.render.calls, tris: renderer.info.render.triangles, buildMs }; renderer.info.reset(); composer.render(); window.__stats = st; dirty = false; return; }
   if (view === 'dollhouse') cutaway('overview');
   renderer.render(scene, camera);
   const stats = { calls: renderer.info.render.calls, tris: renderer.info.render.triangles, buildMs };
@@ -223,6 +280,7 @@ function drawPlan() {
   const rs = d.rooms.filter((r) => r.floor === f);
   let a0 = 1e9, b0 = 1e9, a1 = -1e9, b1 = -1e9;
   for (const r of rs) for (const [px, pz] of r.poly) { a0 = Math.min(a0, px); b0 = Math.min(b0, pz); a1 = Math.max(a1, px); b1 = Math.max(b1, pz); }
+  if (Q.has('walk') && Q.has('site') && d.walk?.bounds) [a0, b0, a1, b1] = d.walk.bounds;
   const pad = 70, s = Math.min((W - pad * 2) / (a1 - a0 + 2), (H - pad * 2) / (b1 - b0 + 2));
   const T = (px, pz) => [pad + (px - a0 + 1) * s, pad + (pz - b0 + 1) * s];
   const KC = { living: '#efe3c8', kitchen: '#f3dcc0', bath: '#cfe3ea', wc: '#cfe3ea', bed: '#e3d8ef', hall: '#e6e2da', tech: '#d9d9d9', garage: '#d3d3cf', balcony: '#dfe9d2', terrace: '#dfe9d2', office: '#e5ecd6', outdoor: '#e9f0dc' };
@@ -286,6 +344,18 @@ function drawPlan() {
   x.font = 'bold 15px -apple-system'; x.fillText(`${d.name} | ${d.floors[f].name} | plan z BuildingData`, pad, 32);
   const leg = Object.entries(MC); x.font = '11px -apple-system';
   leg.forEach(([k, c], i) => { x.fillStyle = c; x.beginPath(); x.arc(W - 150, 60 + i * 15, 4, 0, 7); x.fill(); x.fillStyle = '#222'; x.fillText(k, W - 140, 64 + i * 15); });
+  if (Q.has('walk') && d.walk) {
+    for (const q of d.walk.surfaces) { if (q.floor !== f) continue; x.beginPath(); q.poly.forEach(([px, pz], i) => { const [u, v] = T(px, pz); i ? x.lineTo(u, v) : x.moveTo(u, v); }); x.closePath(); x.fillStyle = q.room ? 'rgba(80,170,90,0.08)' : 'rgba(40,150,220,0.28)'; x.fill(); }
+    for (const o of b.obstacles || []) {
+      if ((o.floor ?? 0) !== f || o.y0 > d.floors[f].y + 1.8 || o.y1 < d.floors[f].y - 0.6) continue;
+      x.beginPath(); o.poly.forEach(([px, pz], i) => { const [u, v] = T(px, pz); i ? x.lineTo(u, v) : x.moveTo(u, v); }); x.closePath();
+      x.strokeStyle = o.what === 'wall' ? 'rgba(200,30,30,0.9)' : 'rgba(230,80,20,0.85)'; x.lineWidth = 1.2; x.stroke(); x.fillStyle = 'rgba(230,60,30,0.10)'; x.fill();
+    }
+    for (const st of d.walk.stairs) if (st.floor === f) { const [u, v] = T(...st.from), [u2, v2] = T(st.from[0] + st.dir[0] * st.len, st.from[1] + st.dir[1] * st.len); x.strokeStyle = '#1b6ef3'; x.lineWidth = 3; x.beginPath(); x.moveTo(u, v); x.lineTo(u2, v2); x.stroke(); }
+    const sp = d.walk.spawn;
+    if (f === 0 || sp.pos[1] > d.floors[f].y - 0.5) { const [u, v] = T(sp.pos[0], sp.pos[2]); x.fillStyle = '#1b6ef3'; x.beginPath(); x.arc(u, v, 7, 0, 7); x.fill(); x.strokeStyle = '#1b6ef3'; x.lineWidth = 3; x.beginPath(); x.moveTo(u, v); x.lineTo(u + sp.dir[0] * 30, v + sp.dir[1] * 30); x.stroke(); }
+    for (const gt of d.walk.gates) { const [u, v] = T(...gt.a), [u2, v2] = T(...gt.b); x.strokeStyle = gt.open ? '#22b14c' : '#7a2020'; x.lineWidth = 4; x.beginPath(); x.moveTo(u, v); x.lineTo(u2, v2); x.stroke(); }
+  }
   window.__stats = { calls: 0, tris: 0, buildMs };
 }
 
@@ -310,7 +380,14 @@ function check() {
   for (const st of d.strips) if (st.points.length < 2) out.push(`strip ${st.id} too short`);
   for (const m of d.mounts) if (m.room !== 'outdoor' && !d.rooms.some((r) => r.id === m.room)) out.push(`mount ${m.id} room ${m.room} unknown`);
   if (!d.tabletSpots.some((t) => t.rating === 'good')) out.push('no good tablet spot');
-  out.push(...clearanceReport(d, b.obstacles));
+  out.push(...clearanceReport(d, b.clearanceObstacles));
+  const wk = d.walk;
+  if (!wk || !wk.spawn || !wk.stairs || !wk.passable) out.push('walk missing');
+  else {
+    for (const st of d.walls) for (const o of st.openings) if (o.kind === 'door' && !wk.passable.includes(o.id) && !/gara/.test(o.id)) out.push(`door ${o.id} not passable`);
+    const sp = wk.spawn.pos, hit = (b.obstacles || []).find((o) => sp[1] + 0.05 < o.y1 && sp[1] + 1.8 > o.y0 && (() => { let ins = false; const P = o.poly; for (let i = 0, j = P.length - 1; i < P.length; j = i++) { if ((P[i][1] > sp[2]) !== (P[j][1] > sp[2]) && sp[0] < ((P[j][0] - P[i][0]) * (sp[2] - P[i][1])) / (P[j][1] - P[i][1]) + P[i][0]) ins = !ins; } return ins; })());
+    if (hit) out.push(`spawn inside obstacle ${hit.what} ${hit.id}`);
+  }
   JSON.stringify(d);
   return out;
 }

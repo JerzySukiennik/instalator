@@ -80,20 +80,22 @@ export function materials() {
   return shared;
 }
 
-export function wallMaterial(cap = P.section) {
+export function wallMaterial(cap = P.section, inner = 0) {
   const m = new THREE.MeshLambertMaterial({ vertexColors: true, side: THREE.DoubleSide });
-  const uCap = { value: new THREE.Color(cap) }, uCapLight = { value: 1 };
+  const uCap = { value: new THREE.Color(cap) }, uCapLight = { value: 1 }, uIn = { value: new THREE.Color(1.0, 0.95, 0.88).multiplyScalar(inner) };
   m.userData.cap = uCap;
   m.userData.capLight = uCapLight;
+  m.userData.inner = uIn;
   m.onBeforeCompile = (s) => {
     s.uniforms.uCap = uCap;
     s.uniforms.uCapLight = uCapLight;
+    s.uniforms.uIn = uIn;
     s.vertexShader = s.vertexShader
       .replace('#include <common>', '#include <common>\nattribute float aCap;\nvarying float vCap;')
       .replace('#include <begin_vertex>', '#include <begin_vertex>\nvCap = aCap;');
     s.fragmentShader = s.fragmentShader
-      .replace('#include <common>', '#include <common>\nuniform vec3 uCap;\nuniform float uCapLight;\nvarying float vCap;')
-      .replace('#include <opaque_fragment>', 'if (!gl_FrontFacing || vCap > 0.5) outgoingLight = uCap * uCapLight;\n#include <opaque_fragment>');
+      .replace('#include <common>', '#include <common>\nuniform vec3 uCap;\nuniform float uCapLight;\nuniform vec3 uIn;\nvarying float vCap;')
+      .replace('#include <opaque_fragment>', 'if (vCap > 0.1 && vCap < 0.5) outgoingLight += diffuseColor.rgb * uIn;\nif (!gl_FrontFacing || vCap > 0.5) outgoingLight = uCap * uCapLight;\n#include <opaque_fragment>');
   };
   m.customProgramCacheKey = () => 'instalator-wall';
   return m;

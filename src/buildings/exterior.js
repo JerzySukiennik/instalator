@@ -5,7 +5,7 @@ import { Geo, C, shade, mixc, clamp, smooth, hash, rng, noise2, fbm } from './ge
 import { P, materials } from './palette.js';
 import { KIT } from './furniture.js';
 import { fillPattern } from './generator.js';
-import { boxAt, ringBox } from './clearance.js';
+import { boxAt, ringBox, obb } from './clearance.js';
 
 const TAU = Math.PI * 2;
 const treeCache = new Map();
@@ -134,6 +134,7 @@ export function makeSite(api, o = {}) {
   const S = {
     g, api,
     ground: o.ground ?? (() => 0),
+    _init: (api.ground = o.ground ?? (() => 0)),
     tree(type, x, z, s = 1, ry = null) {
       if (!trees.has(type)) trees.set(type, []);
       const y = S.ground(x, z), cr = CROWN[type];
@@ -198,7 +199,19 @@ export function makeSite(api, o = {}) {
       api.siteGroup.add(m);
       return m;
     },
+    walk(shape, y) { api.walkSurface?.(shape, y); },
+    gspan(a, b) {
+      let lo = 1e9, hi = -1e9;
+      for (let i = 0; i <= 12; i++) { const t = i / 12, h = S.ground(a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t); lo = Math.min(lo, h); hi = Math.max(hi, h); }
+      return [lo, hi];
+    },
+    block2(id, a, b, w, y0, y1) {
+      const dx = b[0] - a[0], dz = b[1] - a[1], L = Math.hypot(dx, dz);
+      if (L < 1e-3 || !api.addObstacle) return;
+      api.addObstacle({ id, what: id, floor: 0, poly: obb((a[0] + b[0]) / 2, (a[1] + b[1]) / 2, dx / L, dz / L, L / 2, w / 2), y0, y1, noClear: true });
+    },
     pave(rect, y, f, seed = 3) {
+      api.walkSurface?.(rect, f.type === 'flat' ? y + 0.012 : y);
       g.use(f.mat || 'satin');
       if (f.type !== 'marble' && f.type !== 'concrete' && f.type !== 'carpet' && f.type !== 'flat') {
         g.use('matte');
@@ -235,6 +248,8 @@ export function makeSite(api, o = {}) {
         const t = (i + 0.5) / n, x = a[0] + dx * t, z = a[1] + dz * t;
         g.blob(x, S.ground(x, z) + h / 2, z, L / n * 0.75, h / 2, w / 2, mixc(col, '#557a40', hash(i, x) * 0.5), i + 3, { detail: 1, jitter: 0.08 });
       }
+      const [lo, hi] = S.gspan(a, b);
+      S.block2('hedge', a, b, w, lo, hi + h);
     },
     panelFence(a, b, o2 = {}) {
       const col = o2.color ?? '#33363a', h = o2.h ?? 1.5, base = o2.base ?? 0.2, post = 2.5;
@@ -256,6 +271,8 @@ export function makeSite(api, o = {}) {
       }
       g.use('metal');
       g.box(b[0], S.ground(b[0], b[1]) + (base + h) / 2 - 0.1, b[1], 0.06, base + h + 0.2, 0.06, col);
+      const [lo, hi] = S.gspan(a, b);
+      S.block2('fence', a, b, 0.12, lo - 0.3, hi + base + h + 0.05);
     },
     woodFence(a, b, o2 = {}) {
       const col = o2.color ?? '#7a5f45', h = o2.h ?? 1.3;
@@ -278,6 +295,8 @@ export function makeSite(api, o = {}) {
         g.face([[x - 0.045, y + hh, 0.1], [x + 0.045, y + hh, 0.1], [x, y + hh + 0.05, 0.1]], [x, y, -0.2], shade(col, 0.95));
       }
       g.pop();
+      const [lo, hi] = S.gspan(a, b);
+      S.block2('fence', a, b, 0.2, lo - 0.3, hi + h + 0.1);
     },
     swingGate(a, b, o2 = {}) {
       const col = o2.color ?? '#33363a', h = o2.h ?? 1.55, style = o2.style ?? 'bars';
@@ -290,8 +309,11 @@ export function makeSite(api, o = {}) {
       g.bx(L - 0.08, -0.3, -0.08, L + 0.08, h + 0.25, 0.08, pc);
       const leaves = o2.leaves ?? (L > 2 ? 2 : 1);
       const lw = (L - 0.2) / leaves;
+      const open = o2.open ?? (!!api.fpp && leaves === 1), sw = o2.inward ?? 1;
       for (let k = 0; k < leaves; k++) {
         const x0 = 0.1 + k * lw + 0.01, x1 = 0.1 + (k + 1) * lw - 0.01;
+        const hx = k === 0 ? x0 : x1;
+        if (open) { g.at(hx, 0, 0, (k === 0 ? -1 : 1) * sw * Math.PI / 2); g.at(-hx, 0, 0); }
         if (style === 'wood') {
           for (let i = 0; i < Math.round((x1 - x0) / 0.13); i++) { const x = x0 + (i + 0.5) * 0.13; g.bx(x - 0.045, 0.08, -0.02, x + 0.045, h - 0.05 + (i % 2) * 0.04, 0.0, shade(o2.wood ?? '#7a5f45', 0.92 + hash(i, k) * 0.14)); }
           g.bx(x0, 0.3, -0.06, x1, 0.38, -0.02, '#6a5240');
@@ -305,8 +327,14 @@ export function makeSite(api, o = {}) {
           if (style === 'slats') for (let yy = 0.2; yy < h - 0.1; yy += 0.13) g.bx(x0 + 0.05, yy, -0.015, x1 - 0.05, yy + 0.09, 0.015, o2.slat ?? '#6b4f3a');
           else for (let xx = x0 + 0.13; xx < x1 - 0.06; xx += 0.12) g.bx(xx - 0.01, 0.14, -0.01, xx + 0.01, h - 0.06, 0.01, col);
         }
+        if (open) {
+          g.pop(); g.pop();
+          const px = a[0] + ux * hx, pz = a[1] + uz * hx, nx = -uz * sw, nz = ux * sw;
+          S.block2('gateLeaf', [px, pz], [px + nx * (x1 - x0), pz + nz * (x1 - x0)], 0.08, y - 0.1, y + h);
+        }
       }
       g.pop();
+      api.addGate?.({ id: o2.id || (leaves === 1 ? 'furtka' : 'brama'), kind: leaves === 1 ? 'wicket' : 'drive', a, b, open, y });
     },
     slidingGate(a, b, o2 = {}) {
       const h = o2.h ?? 1.6;
@@ -322,10 +350,12 @@ export function makeSite(api, o = {}) {
       g.use('matte');
       g.bx(-0.45, 0, 0.12, -0.15, 0.35, 0.32, '#2b2c2f');
       g.pop();
+      api.addGate?.({ id: o2.id || 'brama', kind: 'drive', a, b, open: false, y });
     },
     car(x, z, r, opts = {}) { S.item('car', x, S.ground(x, z), z, r, opts); },
     house(h) {
       const w = h.w, d = h.d, wh = h.h ?? 5.6, rh = h.roofH ?? 2.8, y = S.ground(h.x, h.z) - 0.1;
+      api.addObstacle?.({ ...boxAt('house', 'house', 0, [h.x, h.z], h.r ?? 0, w + 0.1, d + 0.1, y - 0.3, y + wh), noClear: true });
       g.use('satin');
       g.at(h.x, y, h.z, h.r ?? 0);
       g.bx(-w / 2, -0.3, -d / 2, w / 2, wh, d / 2, h.color ?? '#e6dfd2');
@@ -558,6 +588,10 @@ export function jetty(S, x, z, len, w = 1.6, yTop = 0.2, yaw = 0) {
   }
   for (const s of [-1, 1]) g.bx(s * (w / 2 - 0.05) - 0.04, yTop - 0.18, 0, s * (w / 2 - 0.05) + 0.04, yTop - 0.04, len, '#6b543d');
   g.pop();
+  const T = (lx, lz) => [x + lx * Math.cos(yaw) + lz * Math.sin(yaw), z - lx * Math.sin(yaw) + lz * Math.cos(yaw)];
+  S.walk([T(-w / 2, -0.3), T(w / 2, -0.3), T(w / 2, len), T(-w / 2, len)], yTop);
+  for (const sd of [-1, 1]) S.block2('jettyEdge', T(sd * (w / 2 + 0.06), 0.4), T(sd * (w / 2 + 0.06), len + 0.06), 0.12, yTop - 0.5, yTop + 1.0);
+  S.block2('jettyEdge', T(-w / 2 - 0.06, len + 0.06), T(w / 2 + 0.06, len + 0.06), 0.12, yTop - 0.5, yTop + 1.0);
 }
 
 export function boat(S, x, y, z, yaw = 0, col = '#3f5f6f') {

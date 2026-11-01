@@ -4,7 +4,7 @@ import * as THREE from 'three';
 import { Geo, C, shade, mixc, clamp, smooth, hash, rng, noise2, fbm } from './geo.js';
 import { P, materials, wallMaterial, wallGlassMaterial, fixtureMaterial } from './palette.js';
 import { KIT, LIGHTS, bulbInto } from './furniture.js';
-import { clearanceScene, checkSpot, checkSurface, addObstacle, boxAt, wallBox, tabletZone, inTabletZone } from './clearance.js';
+import { clearanceScene, checkSpot, checkSurface, addObstacle, boxAt, wallBox, tabletZone, inTabletZone, obb } from './clearance.js';
 
 export const r3 = (v) => Math.round(v * 1000) / 1000;
 const OPEN = new Set(['balcony', 'terrace', 'outdoor']);
@@ -38,6 +38,24 @@ export function rectsOf(poly) {
     for (let j = 0; j + 1 < zs.length; j += 2) out.push([x0, zs[j], x1, zs[j + 1]]);
   }
   return out;
+}
+
+function cutRects(rects, vs) {
+  let parts = rects;
+  for (const v of vs) {
+    const next = [];
+    for (const p of parts) {
+      const [x0, z0, x1, z1] = p;
+      if (v.x1 <= x0 || v.x0 >= x1 || v.z1 <= z0 || v.z0 >= z1) { next.push(p); continue; }
+      if (v.z0 > z0) next.push([x0, z0, x1, v.z0]);
+      if (v.z1 < z1) next.push([x0, v.z1, x1, z1]);
+      const za = Math.max(z0, v.z0), zb = Math.min(z1, v.z1);
+      if (v.x0 > x0) next.push([x0, za, v.x0, zb]);
+      if (v.x1 < x1) next.push([v.x1, za, x1, zb]);
+    }
+    parts = next;
+  }
+  return parts;
 }
 
 function polyArea(poly) {
@@ -256,7 +274,8 @@ export function fillPattern(g, rect, y, f, seed) {
   }
 }
 
-export function generate(spec) {
+export function generate(spec, opts = {}) {
+  const fpp = !!opts.fpp;
   const M = materials();
   const pal = { section: P.section, frame: P.frame, door: '#f2f0ea', doorFrame: '#f4f2ec', base: '#f4f2ec', sill: P.sill, facade: P.render, plinth: P.plinth, glassFrame: P.frameDark, extDoor: '#3a3d42', ...(spec.palette || {}) };
   const floors = spec.floors.map((f, i) => ({ index: i, slab: 0.24, ...f }));
@@ -264,9 +283,9 @@ export function generate(spec) {
   const root = new THREE.Group();
   root.name = spec.id;
   const floorGroups = floors.map((f) => { const g = new THREE.Group(); g.name = `floor-${f.index}`; root.add(g); return { group: g, floor: f.index }; });
-  const ceilingGroups = floors.map((f) => { const g = new THREE.Group(); g.name = `ceiling-${f.index}`; g.visible = false; root.add(g); return { group: g, floor: f.index }; });
+  const ceilingGroups = floors.map((f) => { const g = new THREE.Group(); g.name = `ceiling-${f.index}`; g.visible = fpp; root.add(g); return { group: g, floor: f.index }; });
   const siteGroup = new THREE.Group(); siteGroup.name = 'site'; root.add(siteGroup);
-  const roofGroup = new THREE.Group(); roofGroup.name = 'roof'; roofGroup.visible = false; root.add(roofGroup);
+  const roofGroup = new THREE.Group(); roofGroup.name = 'roof'; roofGroup.visible = fpp; root.add(roofGroup);
   const stat = floors.map(() => new Geo());
   const ceil = floors.map(() => new Geo());
   const ovl = floors.map(() => new Overlay());
@@ -275,7 +294,7 @@ export function generate(spec) {
   const wg = (fl, side) => {
     const k = groupKey(fl, side);
     let w = wallG.get(k);
-    if (!w) { w = { floor: fl, side, geo: new Geo(), glass: new Geo(), mat: wallMaterial(pal.section), extra: [] }; w.geo.use('wall'); w.glass.use('glass'); wallG.set(k, w); }
+    if (!w) { w = { floor: fl, side, geo: new Geo(), glass: new Geo(), mat: wallMaterial(pal.section, fpp ? 0.16 : 0), extra: [] }; w.geo.use('wall'); w.glass.use('glass'); wallG.set(k, w); }
     return w;
   };
   const data = {
@@ -470,6 +489,7 @@ export function generate(spec) {
           else if (W.floor === 0) addY(FY(0) + (spec.plinthH ?? 0.32));
           if (W.facadeBands) for (const b of W.facadeBands) addY(b);
           const ya = [...ys].sort((a, b) => a - b);
+          g.cap = !info.exterior && info.room ? 0.25 : 0;
           for (let j = 0; j < ya.length - 1; j++) {
             const y0 = ya[j], y1 = ya[j + 1], v = sd * t2;
             const ym = (y0 + y1) / 2;
@@ -497,6 +517,7 @@ export function generate(spec) {
               g.bx(Math.min(bb[0][0], b1[0]), y, Math.min(bb[0][2], b1[2]), Math.max(bb[0][0], b1[0]), y + 0.075, Math.max(bb[0][2], b1[2]), bc, { top: shade(bc, 1.04) });
             }
           }
+          g.cap = 0;
           if (info.exterior && pc.kind !== 'lintel') faces.push({ W, sd, u0: ux0, u1: ux1, y0: pc.y0, y1: pc.y1, room: null, exterior: true, kind: pc.kind, floor: W.floor });
           if (info.exterior && pc.kind === 'lintel') faces.push({ W, sd, u0: ux0, u1: ux1, y0: pc.y0, y1: pc.y1, room: null, exterior: true, kind: 'lintel', floor: W.floor });
         }
@@ -702,7 +723,7 @@ export function generate(spec) {
     const vh = isExt ? (swing === -W.out ? (sgn > 0 ? v0 : v1) : (sgn > 0 ? v1 : v0)) : swing * t2;
     const s = hingeA ? 1 : -1;
     const dClosed = [W.d[0] * s, W.d[1] * s], dOpen = [W.n[0] * swing, W.n[1] * swing];
-    const ang = ((o.angle ?? (isExt ? 0 : 88)) * Math.PI) / 180;
+    const ang = ((fpp ? o.fppAngle ?? 90 : o.angle ?? (isExt ? 0 : 88)) * Math.PI) / 180;
     const hp = WP(W, uh, vh, yb + 0.006);
     const zs = (s === -swing) ? 1 : -1;
     const lg = new Geo();
@@ -742,7 +763,7 @@ export function generate(spec) {
     setK(ang);
     pivot.add(leaf);
     G.extra.push(pivot);
-    doors.set(o.id, { o, W, pivot, setK, ang, max: (o.maxAngle ?? 95) * Math.PI / 180, yaw0 });
+    doors.set(o.id, { o, W, pivot, setK, ang, max: (o.maxAngle ?? 95) * Math.PI / 180, yaw0, hp, dClosed, dOpen, leafW, th });
   }
 
   function casings(g, W, o, col) {
@@ -846,9 +867,17 @@ export function generate(spec) {
       if (!r.open) {
         const cg = ceil[fl.index];
         const cc = C(r.ceiling?.color || '#f4f2ee');
-        for (const rc of rectsOf(r.inner)) cg.poly([[rc[0], rc[1]], [rc[2], rc[1]], [rc[2], rc[3]], [rc[0], rc[3]]], fl.y + fl.height - 0.004, cc, false);
+        const up = voids.filter((v) => v.floor === fl.index + 1);
+        for (const rc of cutRects(rectsOf(r.inner), up)) cg.poly([[rc[0], rc[1]], [rc[2], rc[1]], [rc[2], rc[3]], [rc[0], rc[3]]], fl.y + fl.height - 0.004, cc, false);
       }
     }
+  }
+
+  for (const v of voids) {
+    const fl = floors[v.floor];
+    if (!fl) continue;
+    const inRoom = rooms.some((r) => r.floor === v.floor && !r.open && pip((v.x0 + v.x1) / 2, (v.z0 + v.z1) / 2, r.inner));
+    if (!inRoom) ceil[v.floor].poly([[v.x0, v.z0], [v.x1, v.z0], [v.x1, v.z1], [v.x0, v.z1]], fl.y + fl.height - 0.004, C('#f4f2ee'), false);
   }
 
   const items = [];
@@ -1474,10 +1503,13 @@ export function generate(spec) {
       parent.add(m);
     }
   };
-  const siteObs = [];
+  const siteObs = [], walkSurf = [], gates = [];
   const api = {
     spec, data, floors, rooms, roomById, M, pal, P, stat, siteGroup, roofGroup, ceilingGroups, floorGroups, ctx, faces, walls, addGeo, Geo,
-    FY, FH, wg, makeFixture, addMount, qYaw, boxPts, placeItem, snapWall, WP, addObstacle: (ob) => siteObs.push(ob)
+    FY, FH, wg, makeFixture, addMount, qYaw, boxPts, placeItem, snapWall, WP, fpp, ground: null, ceil,
+    addObstacle: (ob) => siteObs.push(ob),
+    walkSurface: (shape, y, floor = 0) => walkSurf.push({ poly: shape.length === 4 && typeof shape[0] === 'number' ? [[shape[0], shape[1]], [shape[2], shape[1]], [shape[2], shape[3]], [shape[0], shape[3]]] : shape, y, floor }),
+    addGate: (gt) => gates.push(gt)
   };
   const safe = (name, fn) => { try { fn(); } catch (e) { console.warn(`[buildings] ${spec.id} ${name} failed`, e); } };
   if (spec.ceilingDecor) safe('ceilingDecor', () => spec.ceilingDecor(api, ceil));
@@ -1528,7 +1560,7 @@ export function generate(spec) {
   if (spec.roof) safe('roof', () => spec.roof(api));
 
   if (siteObs.length) {
-    for (const ob of siteObs) { addObstacle(CS, ob); obstacles.push(ob); }
+    for (const ob of siteObs) { if (ob.noClear) continue; addObstacle(CS, ob); obstacles.push(ob); }
     for (const R of outdoorRecs) {
       if (!checkSpot(CS, R.m)) continue;
       const self = placed.find((p) => p.W === R.f.W && p.sd === R.f.sd && Math.abs(p.y - R.yy) < 0.01 && Math.abs(p.u - R.u) < 1e-6);
@@ -1556,5 +1588,100 @@ export function generate(spec) {
     dd.setK(clamp(k, 0, 1) * dd.max);
   };
 
-  return { id: spec.id, name: spec.name, group: root, data, wallGroups, floorGroups, fixtures, setDoorOpen, ceilingGroups, roof: { group: roofGroup }, site: siteGroup, context: api.context || null, obstacles };
+  const STEP = 0.45, walkObs = [];
+  const passOp = (o) => (o.kind === 'door' && !o.garage) || o.kind === 'arch';
+  const rectPoly = (cx, cz, d, hl, ht) => obb(cx, cz, d[0], d[1], hl, ht);
+  for (const rec of items) {
+    if (rec.it.t === 'stairs' || (rec.wall && rec.size[2] < 0.06)) continue;
+    const fy = FY(rec.fl);
+    for (const ob of itemBoxes(rec)) if (ob.y1 > fy + 0.06 && ob.y0 < fy + 1.8) walkObs.push(ob);
+  }
+  const thresholds = [];
+  for (const W of walls) {
+    const fy = FY(W.floor), top = fy + (W.h ?? FH(W.floor)), bot = W.bot != null ? fy + W.bot : fy - 0.3;
+    const cuts = W.ops.filter(passOp).map((o) => [o.s0, o.s1]).sort((a, b) => a[0] - b[0]);
+    let u = -W.endA;
+    const segs = [];
+    for (const [a, b] of cuts) { if (a > u + 0.01) segs.push([u, a]); u = Math.max(u, b); }
+    if (W.len + W.endB > u + 0.01) segs.push([u, W.len + W.endB]);
+    for (const [a, b] of segs) {
+      const c = WP(W, (a + b) / 2, 0, 0);
+      walkObs.push({ id: W.id, what: 'wall', floor: W.floor, poly: rectPoly(c[0], c[2], W.d, (b - a) / 2, W.t / 2), y0: bot, y1: top });
+    }
+    for (const o of W.ops) {
+      if (!passOp(o)) continue;
+      const c = WP(W, (o.s0 + o.s1) / 2, 0, 0);
+      thresholds.push(o.id);
+      walkSurf.push({ poly: rectPoly(c[0], c[2], W.d, (o.s1 - o.s0) / 2, W.t / 2 + 0.03), y: fy, floor: W.floor });
+    }
+  }
+  for (const dd of doors.values()) {
+    const k = dd.pivot.rotation.y, dir = [Math.cos(k), -Math.sin(k)];
+    const c = [dd.hp[0] + dir[0] * dd.leafW / 2, dd.hp[2] + dir[1] * dd.leafW / 2];
+    walkObs.push({ id: dd.o.id, what: 'doorLeaf', floor: dd.W.floor, poly: rectPoly(c[0], c[1], dir, dd.leafW / 2, 0.03), y0: dd.hp[1], y1: dd.hp[1] + 2.0 });
+  }
+  for (const rl of spec.railings || []) {
+    const fy = FY(rl.floor);
+    for (let i = 0; i < rl.pts.length - 1; i++) {
+      const a = rl.pts[i], b = rl.pts[i + 1], L = Math.hypot(b[0] - a[0], b[1] - a[1]);
+      walkObs.push({ id: `railing-${rl.floor}-${i}`, what: 'railing', floor: rl.floor, poly: rectPoly((a[0] + b[0]) / 2, (a[1] + b[1]) / 2, [(b[0] - a[0]) / L, (b[1] - a[1]) / L], L / 2 + 0.03, 0.04), y0: fy, y1: fy + 1.05 });
+    }
+  }
+  const walkStairs = (spec.stairs || []).map((st, i) => {
+    const fy = FY(st.floor), R = (floors[st.floor + 1] ? FY(st.floor + 1) : fy + FH(st.floor)) - fy, L = st.n * (st.run || 0.27), d = st.dir, n = [-d[1], d[0]];
+    for (const sd of [-1, 1]) {
+      const c = [st.x + d[0] * L / 2 + n[0] * sd * (st.w / 2 + 0.05), st.z + d[1] * L / 2 + n[1] * sd * (st.w / 2 + 0.05)];
+      walkObs.push({ id: `schody-${i}-bok`, what: 'stairGuard', floor: st.floor, poly: rectPoly(c[0], c[1], d, L / 2, 0.04), y0: fy, y1: fy + R + 1.0 });
+    }
+    const ce = [st.x + d[0] * (L + 0.05), st.z + d[1] * (L + 0.05)];
+    walkObs.push({ id: `schody-${i}-spod`, what: 'stairGuard', floor: st.floor, poly: rectPoly(ce[0], ce[1], n, st.w / 2 + 0.09, 0.05), y0: fy, y1: fy + R - 0.25 });
+    return { floor: st.floor, from: [r3(st.x), r3(st.z)], dir: [r3(d[0]), r3(d[1])], len: r3(L), w: r3(st.w), rise: r3(R) };
+  });
+  for (const gt of gates) {
+    const L = Math.hypot(gt.b[0] - gt.a[0], gt.b[1] - gt.a[1]), u = [(gt.b[0] - gt.a[0]) / L, (gt.b[1] - gt.a[1]) / L];
+    if (!gt.open) walkObs.push({ id: gt.id, what: 'gate', floor: 0, poly: rectPoly((gt.a[0] + gt.b[0]) / 2, (gt.a[1] + gt.b[1]) / 2, u, L / 2, 0.06), y0: gt.y - 0.3, y1: gt.y + 2.0 });
+    else walkSurf.push({ poly: rectPoly((gt.a[0] + gt.b[0]) / 2, (gt.a[1] + gt.b[1]) / 2, u, L / 2, 0.4), y: gt.y, floor: 0, gate: gt.id });
+  }
+  for (const ob of siteObs) if (!ob.noWalk) walkObs.push(ob);
+  const floorPolys = rooms.map((r) => ({ poly: r.poly.map((p) => [p[0], p[1]]), y: FY(r.floor), floor: r.floor, room: r.id }));
+  const surfaces = [...floorPolys, ...walkSurf].map((q) => {
+    let x0 = 1e9, z0 = 1e9, x1 = -1e9, z1 = -1e9;
+    for (const [x, z] of q.poly) { x0 = Math.min(x0, x); z0 = Math.min(z0, z); x1 = Math.max(x1, x); z1 = Math.max(z1, z); }
+    return { ...q, bb: [x0, z0, x1, z1] };
+  });
+  const inVoid = (fl, x, z) => voids.some((v) => v.floor === fl && x > v.x0 && x < v.x1 && z > v.z0 && z < v.z1);
+  const groundAt = (x, z, y = 1e6) => {
+    const hs = [];
+    for (const q of surfaces) {
+      if (x < q.bb[0] || x > q.bb[2] || z < q.bb[1] || z > q.bb[3] || !pip(x, z, q.poly)) continue;
+      if (q.room && inVoid(q.floor, x, z)) continue;
+      hs.push(q.y);
+    }
+    for (const st of walkStairs) {
+      const rx = x - st.from[0], rz = z - st.from[1], a = rx * st.dir[0] + rz * st.dir[1], b = -rx * st.dir[1] + rz * st.dir[0];
+      if (a >= -0.02 && a <= st.len + 0.02 && Math.abs(b) <= st.w / 2 + 0.02) hs.push(FY(st.floor) + st.rise * Math.min(1, Math.max(0, a / st.len)));
+    }
+    if (api.ground) hs.push(api.ground(x, z));
+    if (!hs.length) return FY(0);
+    let best = -1e9, low = 1e9;
+    for (const h of hs) { if (h <= y + STEP && h > best) best = h; if (h < low) low = h; }
+    return best > -1e8 ? best : low;
+  };
+  const wk = spec.walk || {};
+  const sp = wk.spawn || { pos: data.street ? [data.street.pos[0], data.street.pos[2]] : [0, -6], dir: [0, 1] };
+  const spXZ = sp.pos.length === 3 ? [sp.pos[0], sp.pos[2]] : sp.pos, spDir = sp.dir || [Math.sin(sp.yaw || 0), Math.cos(sp.yaw || 0)];
+  const spY = sp.pos.length === 3 ? sp.pos[1] : groundAt(spXZ[0], spXZ[1], sp.y ?? 1e6);
+  data.walk = {
+    spawn: { pos: [r3(spXZ[0]), r3(spY), r3(spXZ[1])], yaw: r3(Math.atan2(-spDir[0], -spDir[1])), dir: spDir.map(r3) },
+    eye: 1.65, radius: 0.25, step: STEP,
+    stairs: walkStairs,
+    passable: [...new Set([...thresholds, ...gates.filter((g) => g.open).map((g) => g.id)])],
+    gates: gates.map((g) => ({ id: g.id, kind: g.kind || 'gate', a: g.a.map(r3), b: g.b.map(r3), open: !!g.open })),
+    bounds: wk.bounds || null,
+    voids: voids.map((v) => ({ floor: v.floor, x0: v.x0, z0: v.z0, x1: v.x1, z1: v.z1 })),
+    surfaces: surfaces.map((q) => ({ poly: q.poly.map((p) => p.map(r3)), y: r3(q.y), floor: q.floor, ...(q.room ? { room: q.room } : {}), ...(q.gate ? { gate: q.gate } : {}) })),
+    terrain: !!api.ground
+  };
+
+  return { id: spec.id, name: spec.name, group: root, data, wallGroups, floorGroups, fixtures, setDoorOpen, ceilingGroups, roof: { group: roofGroup }, site: siteGroup, context: api.context || null, obstacles: walkObs, clearanceObstacles: obstacles, groundAt };
 }
