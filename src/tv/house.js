@@ -81,7 +81,7 @@ export class House {
     this.R.scene.add(this.fill);
   }
 
-  async load(id) {
+  async load(id, opts = {}) {
     await deviceModels();
     if (DM && DM.setDeviceEnvMap && !this.envSet) { try { DM.setDeviceEnvMap(this.R.envMap, 1); this.envSet = true; } catch (e) {} }
     this.clear();
@@ -89,7 +89,7 @@ export class House {
     if (id !== "standin") {
       try {
         const mod = await import("../buildings/index.js");
-        b = await mod.buildBuilding(id, { quality: "tv" });
+        b = await mod.buildBuilding(id, { quality: "tv", ...opts });
       } catch (e) {
         console.warn("[house] building module failed, using stand-in", e);
       }

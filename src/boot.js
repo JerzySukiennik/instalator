@@ -1,8 +1,7 @@
-// Instalator: routes the page to the TV app or the phone app.
+// Instalator: routes the page to the first-person computer game (default) or the older TV / phone apps (?role=tv|pad).
 
 const q = new URLSearchParams(location.search);
-const touch = matchMedia("(pointer: coarse)").matches && Math.min(innerWidth, innerHeight) < 700;
-const role = q.get("role") || (q.get("room") || touch ? "pad" : "tv");
+const role = q.get("role") || (q.get("room") ? "pad" : "game");
 
 function css(href) {
   const l = document.createElement("link");
@@ -15,8 +14,13 @@ if (role === "tv") {
   css("css/tv.css");
   document.body.innerHTML = `<canvas id="tv"></canvas><div id="ui"></div>`;
   import("./tv/main.js");
-} else {
+} else if (role === "pad") {
   css("css/pad.css");
   document.body.innerHTML = `<div id="app"></div>`;
   import("./pad/main.js");
+} else {
+  css("css/tv.css");
+  css("css/game.css");
+  document.body.innerHTML = `<canvas id="game"></canvas><div id="ui"></div><div id="gui"></div>`;
+  import("./game/main.js");
 }
