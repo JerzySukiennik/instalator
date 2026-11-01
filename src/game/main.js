@@ -403,6 +403,8 @@ function loop(now) {
     poseT -= dt;
     if (poseT <= 0 && session && player.enabled) { poseT = 0.1; session.pose({ p: player.pos.toArray(), yaw: player.yaw, pitch: player.pitch, tool: heldId() }); }
   } else if (mode === "map" || mode === "station") {
+    $("#prompt").classList.remove("show");
+    $("#ring").classList.remove("show");
     dir.update(dt);
     house.closeFill = mode === "station";
     house.update(dt, dir.tgt, R.camera);

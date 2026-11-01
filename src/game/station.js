@@ -21,6 +21,9 @@ export class Station {
   enter(kind, S, data, send, held) {
     this.kind = kind; this.S = S; this.data = data; this.send = send; this.held = held;
     const f = this.house.focusPoint(kind);
+    const cam = this.R.camera;
+    this.dir.pos.copy(cam.position);
+    this.dir.tgt.copy(cam.position).add(new THREE.Vector3(0, 0, -1).applyQuaternion(cam.quaternion).multiplyScalar(1.5));
     if (f) { this.house.setFloor(f.floor); this.dir.closeup(f.pos, f.normal, f.dist || (kind === "rack" ? 1.2 : 0.8), kind === "rack" ? 0.06 : 0.1); }
     this.house.setDoors(true);
     for (const cg of this.house.b?.ceilingGroups || []) cg.group.visible = false;

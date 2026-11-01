@@ -27,11 +27,11 @@ export class Interact {
     this.tmp = new THREE.Vector3();
   }
 
-  blocked(from, to) {
+  blocked(from, to, margin = 0.3) {
     const d = to.clone().sub(from);
     const len = d.length();
     this.rc.set(from, d.normalize());
-    this.rc.far = Math.max(0, len - 0.12);
+    this.rc.far = Math.max(0, len - margin);
     const objs = [];
     for (const wg of this.house.b?.wallGroups || []) objs.push(wg.mesh);
     return this.rc.intersectObjects(objs, true).length > 0;

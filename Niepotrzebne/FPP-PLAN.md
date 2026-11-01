@@ -17,3 +17,8 @@ Builders: B1 (models, agent a5751b08b7faa467d) builds `src/models/fpp.js` (hands
 1. FPP core local (single player, host session) with walking, collision, ground, crosshair, hotbar, install, shop, checklist. 2. Stations (panel, rack) and tablet. 3. Online rooms, public list, turns, avatars, follow view, pings. 4. Map view, handover, hands from B1, buildings from B2, audio. 5. Tests (smoke for FPP), gauntlet vs Electrician Simulator FPP screenshots, deploy on Jurek's command.
 
 Open issue: live online test failed after v1.3 (`firebase-timeout` in `src/net/firebase.js` fb(); SDK and auth endpoints answer fine with curl). Investigate when doing step 3.
+
+## Status (2026-11-01, session 1)
+- Done and tested headless (`?net=local&auto=solo&job=1&name=Jurek`, test scripts in scratchpad fpp.mjs / fpp2.mjs / fpp3.mjs): game boots to menu, solo host session, board pick, house loads in FPP, walking with collision, crosshair install (ceiling smoke sensor) works, shop window works, E opens the panel station and breaker clicks flip the main switch.
+- B1 already delivered `src/models/fpp.js` (untracked, hands render in the hands pass). B2 is working on FPP buildings (src/buildings modified, not committed).
+- Known issues to fix next: (1) panel station camera ends black (closeup tween from FPP; check camera vs panel pos, door covering view, ceilings/cutaway); (2) spawn falls back to inside the entrance until B2's `data.walk.spawn`; (3) online not tested yet (firebase-timeout seen on live after v1.3); (4) map view, handover walker, rack station, tablet window untested; (5) old TV/phone code still reachable via ?role=tv|pad.
