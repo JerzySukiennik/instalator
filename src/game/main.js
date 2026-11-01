@@ -125,7 +125,9 @@ const ui = {
     $("#boardbar")?.remove();
     if (snap.job && loadedFor !== snap.job.id) { loadJob(snap.job); return; }
     if (!data) return;
-    if (snap.phase === "review") { hud.show("handover"); hud.review(snap, () => audio.play("stamp")); house.sync(snap, snap.der); exitToGame(); player.unlock(); return; }
+    if (snap.phase === "review") { hud.show("handover"); hud.review(snap, () => audio.play("stamp")); house.sync(snap, snap.der); exitToGame(); player.unlock(); reviewBar(); return; }
+    $("#reviewbar")?.remove();
+    if (snap.phase === "play") reviewBar();
     hud.show("hud");
     const newly = hud.job(snap, session.code, "", snap.tasks || []);
     newly.forEach((r) => { const rq = snap.job.reqs.find((x) => x.id === r.id); if (rq) hud.achieve(rq.text, () => audio.play("pen_tick", { vol: 0.9 })); });
@@ -290,6 +292,15 @@ function boardBar() {
   if ($("#pick")) $("#pick").onclick = () => session.send({ a: "pick" });
   const mine = S.board?.votes?.[session.me];
   document.querySelectorAll("#board .job").forEach((c) => { c.classList.toggle("voted", Number(c.dataset.i) === mine); c.onclick = () => session.send({ a: "vote", i: Number(c.dataset.i) }); });
+}
+
+function reviewBar() {
+  let b = $("#reviewbar");
+  if (!b) { b = document.createElement("div"); b.id = "reviewbar"; gui.appendChild(b); }
+  const host = S.players.find((p) => p.cid === session.me)?.host;
+  b.innerHTML = host ? `${S.phase === "review" ? `<button class="btnp w" id="playh">Pobaw się domem</button>` : ""}<button class="btnp" id="nextj">Nowe zlecenie</button>` : `<span class="tape">Gospodarz wybiera, co dalej.</span>`;
+  if ($("#playh")) $("#playh").onclick = () => { session.send({ a: "play" }); hud.clearHandover(); player.lock(); };
+  if ($("#nextj")) $("#nextj").onclick = () => session.send({ a: "next" });
 }
 
 function openList() {
